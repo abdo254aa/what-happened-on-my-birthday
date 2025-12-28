@@ -116,13 +116,13 @@ const ArticlePage: React.FC = () => {
             <div className={`p-3 rounded-2xl bg-slate-50 dark:bg-slate-800 ${colorClass} shadow-md border border-slate-100 dark:border-slate-700 shrink-0`}>
               {icon}
             </div>
-            <h2 style={dynamicHeadingStyle} className="text-slate-900 dark:text-white font-display font-black text-2xl md:text-3xl lg:text-4xl tracking-tight">
+            <h2 style={dynamicHeadingStyle} className="text-slate-900 dark:text-white font-display font-black text-xl md:text-2xl lg:text-3xl tracking-tight">
                 {title}
             </h2>
         </div>
         <div 
           style={dynamicBodyStyle} 
-          className="text-lg md:text-xl font-medium text-slate-700 dark:text-slate-300 space-y-4 text-justify antialiased leading-relaxed" 
+          className="text-base md:text-lg font-medium text-slate-700 dark:text-slate-300 space-y-4 text-justify antialiased leading-relaxed" 
           dangerouslySetInnerHTML={{ __html: content }} 
         />
     </section>
@@ -169,7 +169,7 @@ const ArticlePage: React.FC = () => {
                     <h1 style={dynamicHeadingStyle} className="text-3xl md:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white mb-8 leading-[1.1] tracking-tight">
                         {articleData.title}
                     </h1>
-                    <div style={dynamicBodyStyle} className="text-lg md:text-xl italic text-slate-500 dark:text-slate-400 border-l-[6px] border-blue-600 px-6 mb-10 leading-relaxed rtl:border-l-0 rtl:border-r-[6px] rtl:pr-6">
+                    <div style={dynamicBodyStyle} className="text-base md:text-lg italic text-slate-500 dark:text-slate-400 border-l-[6px] border-blue-600 px-6 mb-10 leading-relaxed rtl:border-l-0 rtl:border-r-[6px] rtl:pr-6">
                         {isEditorial ? (articleData as any).intro : (articleData as any).excerpt}
                     </div>
 
@@ -213,7 +213,7 @@ const ArticlePage: React.FC = () => {
                       <Heart size={40} className="text-red-500 fill-red-500" />
                       <span>{isEditorial ? (articleData as any).conclusionTitle : "Keep Exploring!"}</span>
                     </h2>
-                    <div style={dynamicBodyStyle} className="text-lg md:text-xl text-slate-800 dark:text-slate-200 font-medium italic leading-relaxed text-justify">
+                    <div style={dynamicBodyStyle} className="text-base md:text-lg text-slate-800 dark:text-slate-200 font-medium italic leading-relaxed text-justify">
                         {isEditorial ? (articleData as any).conclusionContent : "History is vast and every day is a miracle. We're glad you're part of it."}
                     </div>
                     

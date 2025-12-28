@@ -15,6 +15,7 @@ export const getEditorialArticle = (id: string, day: number, month: number): Edi
   const dateStr = `${monthName} ${day}`;
   
   // Use a fixed decade for flavor text in generic articles, but avoid specific year references
+  // We use 1990 facts as a "rich sample" but will mask the date "1990" in text.
   const decade = "1990"; 
   const facts = decadeFacts[decade];
   const pool = contentPools['vibe_master'];
@@ -25,21 +26,37 @@ export const getEditorialArticle = (id: string, day: number, month: number): Edi
   const replacePlaceholders = (text: string) => {
     let res = text
       .replace(/{date}/g, dateStr)
-      // Generic Year Replacements
+      
+      // Generic Year/Time Replacements - Remove specific time anchors
       .replace(/The year {year}/g, "History")
-      .replace(/in {year}/g, "")
-      .replace(/{year}/g, "")
+      .replace(/in {year}/g, "throughout history")
+      .replace(/during {year}/g, "during this time")
+      .replace(/of {year}/g, "of the past")
+      .replace(/{year}/g, "the past")
+      
+      // Decade masking - prevent "1990s" from appearing in generic articles
+      .replace(/{decade}s/g, "past decades")
+      .replace(/the {decade}s/g, "history")
+      .replace(/{decade}/g, "the golden era")
+      
       // Flavor Replacements
-      .replace(/{decade}/g, decade)
       .replace(/{vibe}/g, facts.vibe)
       .replace(/{tech}/g, facts.tech)
       .replace(/{science}/g, facts.science)
       .replace(/{economic}/g, facts.economic)
       .replace(/{movie}/g, facts.movie)
-      .replace(/{song}/g, facts.song);
+      .replace(/{song}/g, facts.song)
+      .replace(/{fashion}/g, facts.fashion)
+      .replace(/{toy}/g, facts.toy)
+      .replace(/{snack}/g, facts.snack);
       
-      // Clean up any double spaces created by removals
-      return res.replace(/\s+/g, ' ').trim();
+      // Clean up any double spaces or punctuation issues created by removals
+      return res
+        .replace(/\s+/g, ' ')
+        .replace(/\s\./g, '.')
+        .replace(/\s,/g, ',')
+        .replace(/\.\./g, '.')
+        .trim();
   };
 
   // REFINED: Balanced Block Text Builder

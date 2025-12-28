@@ -92,7 +92,7 @@ const Home: React.FC = () => {
                                     <div className="space-y-1.5">
                                         <label className="text-[10px] md:text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest block text-center px-1">{t('label_year')}</label>
                                         <div className="relative">
-                                            <select required value={year} onChange={(e) => setYear(Number(e.target.value))} className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-600 rounded-xl px-2 md:px-4 py-2.5 md:py-3 outline-none font-black text-sm md:text-lg text-center appearance-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-slate-900 dark:text-white cursor-pointer hover:bg-white dark:hover:bg-slate-800">
+                                            <select required value={year} onChange={(e) => setYear(Number(e.target.value))} className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-600 rounded-xl px-2 md:px-4 py-2 md:py-2.5 outline-none font-black text-sm md:text-base text-center appearance-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-slate-900 dark:text-white cursor-pointer hover:bg-white dark:hover:bg-slate-800">
                                                 <option value="" disabled>{t('label_year')}</option>
                                                 {yearsArr.map(y => <option key={y} value={y}>{y}</option>)}
                                             </select>
@@ -101,7 +101,7 @@ const Home: React.FC = () => {
                                     <div className="space-y-1.5">
                                         <label className="text-[10px] md:text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest block text-center px-1">{t('label_month')}</label>
                                         <div className="relative">
-                                            <select required value={month} onChange={(e) => setMonth(Number(e.target.value))} className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-600 rounded-xl px-2 md:px-4 py-2.5 md:py-3 outline-none font-black text-sm md:text-lg text-center appearance-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-slate-900 dark:text-white cursor-pointer hover:bg-white dark:hover:bg-slate-800">
+                                            <select required value={month} onChange={(e) => setMonth(Number(e.target.value))} className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-600 rounded-xl px-2 md:px-4 py-2 md:py-2.5 outline-none font-black text-sm md:text-base text-center appearance-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-slate-900 dark:text-white cursor-pointer hover:bg-white dark:hover:bg-slate-800">
                                                 <option value="" disabled>{t('label_month')}</option>
                                                 {localizedMonths.map((m, i) => <option key={i} value={i+1}>{m}</option>)}
                                             </select>
@@ -110,7 +110,7 @@ const Home: React.FC = () => {
                                     <div className="space-y-1.5">
                                         <label className="text-[10px] md:text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest block text-center px-1">{t('label_day')}</label>
                                         <div className="relative">
-                                            <select required value={day} onChange={(e) => setDay(Number(e.target.value))} className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-600 rounded-xl px-2 md:px-4 py-2.5 md:py-3 outline-none font-black text-sm md:text-lg text-center appearance-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-slate-900 dark:text-white cursor-pointer hover:bg-white dark:hover:bg-slate-800">
+                                            <select required value={day} onChange={(e) => setDay(Number(e.target.value))} className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-600 rounded-xl px-2 md:px-4 py-2 md:py-2.5 outline-none font-black text-sm md:text-base text-center appearance-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-slate-900 dark:text-white cursor-pointer hover:bg-white dark:hover:bg-slate-800">
                                                 <option value="" disabled>{t('label_day')}</option>
                                                 {daysArr.map(d => <option key={d} value={d}>{d}</option>)}
                                             </select>
@@ -118,7 +118,7 @@ const Home: React.FC = () => {
                                     </div>
                                 </div>
                                 
-                                <button type="submit" disabled={loading} className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black text-base md:text-lg rounded-xl py-3 md:py-3.5 shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-70 group transform hover:-translate-y-1">
+                                <button type="submit" disabled={loading} className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black text-sm md:text-base rounded-xl py-2.5 md:py-3 shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-70 group transform hover:-translate-y-1">
                                     {loading ? <Loader2 className="animate-spin" size={20}/> : <>{t('btn_reveal')} <ArrowIcon size={20} className="group-hover:translate-x-1 transition-transform" /></>}
                                 </button>
                             </form>
@@ -150,7 +150,7 @@ const Home: React.FC = () => {
                                     <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${art.color} text-white flex items-center justify-center mb-6 shadow-lg shadow-blue-600/20`}>
                                         {React.cloneElement(art.icon as React.ReactElement, { size: 28 })}
                                     </div>
-                                    <h3 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white mb-4 tracking-tighter leading-tight">
+                                    <h3 className="text-lg md:text-xl font-black text-slate-900 dark:text-white mb-4 tracking-tighter leading-tight">
                                         {getLabel(art.titleKey)}
                                     </h3>
                                     <div className="flex items-center text-blue-600 dark:text-blue-400 font-black text-sm group-hover:gap-3 gap-2 transition-all">

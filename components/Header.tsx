@@ -69,7 +69,7 @@ const Header: React.FC = () => {
                     <select 
                       value={year} 
                       onChange={(e) => setYear(Number(e.target.value))}
-                      className="bg-transparent text-[11px] md:text-sm font-black text-slate-800 dark:text-slate-100 outline-none cursor-pointer py-1.5 appearance-none text-center min-w-[50px] md:min-w-[70px]"
+                      className="bg-transparent text-[11px] md:text-xs font-black text-slate-800 dark:text-slate-100 outline-none cursor-pointer py-1.5 appearance-none text-center min-w-[50px] md:min-w-[70px]"
                     >
                       <option value="" disabled>{t('label_year')}</option>
                       {yearsArr.map(y => <option key={y} value={y}>{y}</option>)}
@@ -80,7 +80,7 @@ const Header: React.FC = () => {
                     <select 
                       value={month} 
                       onChange={(e) => setMonth(Number(e.target.value))}
-                      className="bg-transparent text-[11px] md:text-sm font-black text-slate-800 dark:text-slate-100 outline-none cursor-pointer py-1.5 appearance-none text-center min-w-[60px] md:min-w-[100px]"
+                      className="bg-transparent text-[11px] md:text-xs font-black text-slate-800 dark:text-slate-100 outline-none cursor-pointer py-1.5 appearance-none text-center min-w-[60px] md:min-w-[100px]"
                     >
                       <option value="" disabled>{t('label_month')}</option>
                       {monthsArr.map((m, i) => <option key={i} value={i+1}>{m}</option>)}
@@ -91,7 +91,7 @@ const Header: React.FC = () => {
                     <select 
                       value={day} 
                       onChange={(e) => setDay(Number(e.target.value))}
-                      className="bg-transparent text-[11px] md:text-sm font-black text-slate-800 dark:text-slate-100 outline-none cursor-pointer py-1.5 appearance-none text-center min-w-[35px] md:min-w-[50px]"
+                      className="bg-transparent text-[11px] md:text-xs font-black text-slate-800 dark:text-slate-100 outline-none cursor-pointer py-1.5 appearance-none text-center min-w-[35px] md:min-w-[50px]"
                     >
                       <option value="" disabled>{t('label_day')}</option>
                       {daysArr.map(d => <option key={d} value={d}>{d}</option>)}
