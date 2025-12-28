@@ -1,5 +1,4 @@
 
-
 import React, { useEffect, useState, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { fetchBirthdayInsights } from '../services/staticDataService';
@@ -9,13 +8,15 @@ import {
   ArrowLeft, Sparkles, Calendar, ArrowRight, BarChart3, Clock, Globe, Zap, Users, 
   Music, Laptop, Heart, Newspaper, Loader2, Database, Share2, Trees, Radio, 
   Eye, Palette, Coffee, Utensils, Plane, Trophy, Gamepad2, GraduationCap, MessageCircle,
-  Activity, Lightbulb, Moon, Headphones, Wifi, Rocket
+  Activity, Lightbulb, Moon, Headphones, Wifi, Rocket, HelpCircle, ChevronDown
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useSettings } from '../contexts/SettingsContext';
 import { useAdmin } from '../contexts/AdminContext';
 import Sidebar from '../components/Sidebar';
 import AdPlaceholder from '../components/AdPlaceholder';
+import SEOHead from '../components/SEOHead';
+import { generateResultsMetadata, generateFAQSchema } from '../data/seoHelpers';
 
 const Results: React.FC = () => {
   const navigate = useNavigate();
@@ -32,6 +33,18 @@ const Results: React.FC = () => {
   const [data, setData] = useState<BirthdayData | null>(null);
   const [stats, setStats] = useState<PersonalStats | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // SEO: Generate Metadata
+  const seoData = useMemo(() => {
+    if (!day || !month || !year) return { title: 'MyBirthdayFacts', description: '' };
+    return generateResultsMetadata(day, month, year, language);
+  }, [day, month, year, language]);
+
+  // SEO: Generate Schema
+  const schemaData = useMemo(() => {
+    if (!stats || !day || !month || !year) return null;
+    return generateFAQSchema(stats, day, month, year);
+  }, [stats, day, month, year]);
 
   const reportId = useMemo(() => {
     return `DB-REF-${day}${month}${year}-${Math.abs((day * month * year) % 99999)}`;
@@ -86,8 +99,8 @@ const Results: React.FC = () => {
   };
   
   const dynamicBodyStyle = { 
-    fontSize: `calc(${bodyScale} * 95%)`, // Slightly smaller body text for simpler look
-    lineHeight: Math.max(1.5, lineHeight - 0.2), // Tighter line height
+    fontSize: `calc(${bodyScale} * 95%)`, 
+    lineHeight: Math.max(1.5, lineHeight - 0.2), 
     textAlign: globalStyles.textAlign as any
   };
 
@@ -112,6 +125,12 @@ const Results: React.FC = () => {
   return (
     <div className={`min-h-screen bg-slate-50 dark:bg-slate-950 pb-20 font-sans transition-colors ${dir === 'rtl' ? 'text-right' : 'text-left'}`} dir={dir}>
       
+      <SEOHead 
+        title={seoData.title} 
+        description={seoData.description} 
+        schema={schemaData || undefined}
+      />
+
       <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 sticky top-0 z-40 shadow-sm">
         <div className="max-w-[1700px] mx-auto px-6 py-3 flex justify-between items-center">
             <button onClick={() => navigate('/')} className="flex items-center text-sm md:text-base font-black text-slate-500 hover:text-blue-600 transition-all gap-2 group">
@@ -148,22 +167,22 @@ const Results: React.FC = () => {
                         {article.intro}
                     </div>
                     
-                    {/* Compact Stats Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div className="bg-slate-50 dark:bg-slate-800/40 p-5 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm text-center flex flex-col items-center justify-center min-h-[140px] hover:border-blue-300 transition-colors">
-                             <div className="text-blue-600 mb-2"><BarChart3 size={28} /></div>
-                             <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('age')}</div>
-                             <div className="text-3xl font-black text-slate-900 dark:text-white">{stats.age}</div>
+                    {/* Compact Stats Grid - Horizontal on Mobile */}
+                    <div className="grid grid-cols-3 gap-2 sm:gap-4">
+                        <div className="bg-slate-50 dark:bg-slate-800/40 p-2 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm text-center flex flex-col items-center justify-center min-h-[100px] sm:min-h-[140px] hover:border-blue-300 transition-colors">
+                             <div className="text-blue-600 mb-1 sm:mb-2"><BarChart3 className="w-5 h-5 sm:w-7 sm:h-7" /></div>
+                             <div className="text-[8px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('age')}</div>
+                             <div className="text-sm sm:text-3xl font-black text-slate-900 dark:text-white">{stats.age}</div>
                         </div>
-                        <div className="bg-slate-50 dark:bg-slate-800/40 p-5 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm text-center flex flex-col items-center justify-center min-h-[140px] hover:border-emerald-300 transition-colors">
-                             <div className="text-emerald-600 mb-2"><Clock size={28} /></div>
-                             <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('born_on')}</div>
-                             <div className="text-2xl font-black text-slate-900 dark:text-white">{stats.dayOfWeekBorn}</div>
+                        <div className="bg-slate-50 dark:bg-slate-800/40 p-2 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm text-center flex flex-col items-center justify-center min-h-[100px] sm:min-h-[140px] hover:border-emerald-300 transition-colors">
+                             <div className="text-emerald-600 mb-1 sm:mb-2"><Clock className="w-5 h-5 sm:w-7 sm:h-7" /></div>
+                             <div className="text-[8px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('born_on')}</div>
+                             <div className="text-sm sm:text-2xl font-black text-slate-900 dark:text-white truncate max-w-full px-1">{stats.dayOfWeekBorn}</div>
                         </div>
-                        <div className="bg-slate-50 dark:bg-slate-800/40 p-5 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm text-center flex flex-col items-center justify-center min-h-[140px] hover:border-purple-300 transition-colors">
-                             <div className="text-purple-600 mb-2"><Sparkles size={28} /></div>
-                             <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('zodiac')}</div>
-                             <div className="text-2xl font-black text-slate-900 dark:text-white">{stats.zodiacSign}</div>
+                        <div className="bg-slate-50 dark:bg-slate-800/40 p-2 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm text-center flex flex-col items-center justify-center min-h-[100px] sm:min-h-[140px] hover:border-purple-300 transition-colors">
+                             <div className="text-purple-600 mb-1 sm:mb-2"><Sparkles className="w-5 h-5 sm:w-7 sm:h-7" /></div>
+                             <div className="text-[8px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('zodiac')}</div>
+                             <div className="text-sm sm:text-2xl font-black text-slate-900 dark:text-white truncate max-w-full px-1">{stats.zodiacSign}</div>
                         </div>
                     </div>
                 </header>
@@ -225,6 +244,29 @@ const Results: React.FC = () => {
                     
                     {renderSection(article.entertainmentTitle, article.entertainmentContent, <Music />, "text-pink-600")}
                 </div>
+
+                {/* FAQ Section for Rich Snippets */}
+                <section className="mt-16 pt-12 border-t border-slate-100 dark:border-slate-800">
+                   <div className="flex items-center gap-3 mb-8">
+                      <HelpCircle size={28} className="text-blue-600" />
+                      <h2 className="font-display font-black text-2xl md:text-3xl text-slate-900 dark:text-white">
+                        {language === 'ar' ? 'أسئلة شائعة' : 'Frequently Asked Questions'}
+                      </h2>
+                   </div>
+                   <div className="grid gap-4">
+                      {schemaData?.mainEntity.map((q: any, i: number) => (
+                        <div key={i} className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6 border border-slate-100 dark:border-slate-700">
+                           <h3 className="font-bold text-lg text-slate-900 dark:text-white mb-2 flex items-center justify-between">
+                             {q.name}
+                             <ChevronDown size={20} className="text-slate-400" />
+                           </h3>
+                           <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                             {q.acceptedAnswer.text}
+                           </p>
+                        </div>
+                      ))}
+                   </div>
+                </section>
 
                 <footer className="mt-20 pt-16 border-t border-slate-100 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-900/50 -mx-6 md:-mx-10 p-8 text-center md:text-left rtl:md:text-right">
                     <h2 style={dynamicHeadingStyle} className="text-3xl md:text-4xl font-black mb-6 tracking-tight text-blue-600 flex flex-wrap items-center gap-4 justify-center md:justify-start">

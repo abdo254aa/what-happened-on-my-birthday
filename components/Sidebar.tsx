@@ -1,11 +1,10 @@
 
-
-import React, { useState, useMemo, useEffect } from 'react';
-import { ChevronRight, HelpCircle, Star, History, Sparkles, Calendar, Heart, Mail, Crown, GraduationCap, Zap, TrendingUp, BookOpen, Clock, ArrowLeft, ArrowRight } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { HelpCircle, Star, History, Sparkles, Heart, Crown, TrendingUp, BookOpen, ArrowLeft, ArrowRight } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getMonths } from '../utils/dateUtils';
 import AdPlaceholder from './AdPlaceholder';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { MONTHS } from '../types';
 import { editorialTemplates } from '../data/editorialArticles';
 
@@ -13,25 +12,15 @@ const Sidebar: React.FC = () => {
   const { t, language, dir } = useLanguage();
   const months = getMonths(language);
   const navigate = useNavigate();
-  const location = useLocation();
   
   const [showRiddleAnswer, setShowRiddleAnswer] = useState(false);
   
-  // Base "Today" for fallback only. 
-  // The primary source of truth will now ALWAYS be the URL parameters to ensure "Database" feel.
-  const [systemDate] = useState(new Date());
+  // ALWAYS use current system date for Sidebar content (Quick Links & More to Explore)
+  const systemDate = new Date();
 
-  const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
-  
-  // STRICT DATE LOGIC:
-  // If URL has a date, use it. If not, fallback to system date.
-  // This ensures Quick Links NEVER change date once a user has chosen a birthday.
-  const urlDay = Number(searchParams.get('day') || searchParams.get('d'));
-  const urlMonth = Number(searchParams.get('month') || searchParams.get('m'));
-
-  const activeDay = urlDay || systemDate.getDate();
-  const activeMonth = urlMonth || (systemDate.getMonth() + 1);
-  const activeYear = Number(searchParams.get('year')) || systemDate.getFullYear();
+  const activeDay = systemDate.getDate();
+  const activeMonth = systemDate.getMonth() + 1;
+  const activeYear = systemDate.getFullYear();
 
   const activeMonthName = months[activeMonth - 1];
   const activeDateString = language === 'ar' ? `${activeDay} ${activeMonthName}` : `${activeMonthName} ${activeDay}`;
@@ -62,8 +51,8 @@ const Sidebar: React.FC = () => {
   };
 
   // DATABASE SIMULATION:
-  // "Fresh Picks" are now calculated relative to the ACTIVE date, not just today.
-  // This makes the sidebar feel like a related content engine for the chosen birthday.
+  // "Fresh Picks" are now calculated relative to TODAY'S date.
+  // This makes the sidebar feel like a "Daily Digest" related to the real world.
   const featuredArticles = useMemo(() => {
     // We use a fixed seed based on the active date so the "Fresh Picks" are consistent for that date (Database behavior)
     return Array.from({ length: 7 }, (_, i) => {
@@ -114,7 +103,7 @@ const Sidebar: React.FC = () => {
         <AdPlaceholder slot="content" className="!my-0 !h-[250px] !w-full" />
       </div>
 
-      {/* 2. DYNAMIC QUICK LINKS (Fixed to Selected Date) */}
+      {/* 2. DYNAMIC QUICK LINKS (Fixed to Today's Date) */}
       <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-6 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-600 to-purple-600"></div>
         <div className="mb-6 flex items-center gap-3">
@@ -146,7 +135,7 @@ const Sidebar: React.FC = () => {
         </nav>
       </div>
 
-      {/* 3. FRESH PICKS (Related Dates from Database) */}
+      {/* 3. FRESH PICKS (Related Dates from Today) */}
       <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-6 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-red-500 to-orange-500"></div>
         <div className="mb-6 flex items-center justify-between">

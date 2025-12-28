@@ -11,6 +11,8 @@ import {
 } from 'lucide-react';
 import AdPlaceholder from '../components/AdPlaceholder';
 import Sidebar from '../components/Sidebar';
+import SEOHead from '../components/SEOHead';
+import { generateArticleMetadata } from '../data/seoHelpers';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useSettings } from '../contexts/SettingsContext';
 import { useAdmin } from '../contexts/AdminContext';
@@ -41,6 +43,13 @@ const ArticlePage: React.FC = () => {
 
   // Calculate Personal Stats
   const stats = useMemo(() => calculatePersonalStats(d, m, y), [d, m, y]);
+
+  // SEO Metadata
+  const seoData = useMemo(() => {
+    if (!articleData) return { title: 'Article Not Found', description: '' };
+    const content = 'intro' in articleData ? (articleData as any).intro : (articleData as any).excerpt;
+    return generateArticleMetadata(articleData.title, content, articleData.category, language);
+  }, [articleData, language]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -121,6 +130,11 @@ const ArticlePage: React.FC = () => {
   return (
     <div className={`min-h-screen bg-slate-50 dark:bg-slate-950 pb-20 font-sans transition-colors ${dir === 'rtl' ? 'text-right' : 'text-left'}`} dir={dir}>
       
+      <SEOHead 
+        title={seoData.title} 
+        description={seoData.description} 
+      />
+
       {/* HEADER: Matches Results.tsx Structure */}
       <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 sticky top-0 z-40 shadow-sm">
         <div className="max-w-[1700px] mx-auto px-6 py-3 flex justify-between items-center">
@@ -158,22 +172,22 @@ const ArticlePage: React.FC = () => {
                         {isEditorial ? (articleData as any).intro : (articleData as any).excerpt}
                     </div>
 
-                    {/* Stats/Info Grid - Matching Results.tsx Exactly */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div className="bg-slate-50 dark:bg-slate-800/40 p-5 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm text-center flex flex-col items-center justify-center min-h-[140px] hover:border-blue-300 transition-colors">
-                             <div className="text-blue-600 mb-2"><BarChart3 size={28} /></div>
-                             <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('age')}</div>
-                             <div className="text-3xl font-black text-slate-900 dark:text-white">{stats.age}</div>
+                    {/* Stats/Info Grid - Horizontal on Mobile (Matches Results.tsx) */}
+                    <div className="grid grid-cols-3 gap-2 sm:gap-4">
+                        <div className="bg-slate-50 dark:bg-slate-800/40 p-2 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm text-center flex flex-col items-center justify-center min-h-[100px] sm:min-h-[140px] hover:border-blue-300 transition-colors">
+                             <div className="text-blue-600 mb-1 sm:mb-2"><BarChart3 className="w-5 h-5 sm:w-7 sm:h-7" /></div>
+                             <div className="text-[8px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('age')}</div>
+                             <div className="text-sm sm:text-3xl font-black text-slate-900 dark:text-white">{stats.age}</div>
                         </div>
-                        <div className="bg-slate-50 dark:bg-slate-800/40 p-5 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm text-center flex flex-col items-center justify-center min-h-[140px] hover:border-emerald-300 transition-colors">
-                             <div className="text-emerald-600 mb-2"><Clock size={28} /></div>
-                             <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('born_on')}</div>
-                             <div className="text-2xl font-black text-slate-900 dark:text-white">{stats.dayOfWeekBorn}</div>
+                        <div className="bg-slate-50 dark:bg-slate-800/40 p-2 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm text-center flex flex-col items-center justify-center min-h-[100px] sm:min-h-[140px] hover:border-emerald-300 transition-colors">
+                             <div className="text-emerald-600 mb-1 sm:mb-2"><Clock className="w-5 h-5 sm:w-7 sm:h-7" /></div>
+                             <div className="text-[8px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('born_on')}</div>
+                             <div className="text-sm sm:text-2xl font-black text-slate-900 dark:text-white truncate max-w-full px-1">{stats.dayOfWeekBorn}</div>
                         </div>
-                        <div className="bg-slate-50 dark:bg-slate-800/40 p-5 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm text-center flex flex-col items-center justify-center min-h-[140px] hover:border-purple-300 transition-colors">
-                             <div className="text-purple-600 mb-2"><Sparkles size={28} /></div>
-                             <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('zodiac')}</div>
-                             <div className="text-2xl font-black text-slate-900 dark:text-white">{stats.zodiacSign}</div>
+                        <div className="bg-slate-50 dark:bg-slate-800/40 p-2 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm text-center flex flex-col items-center justify-center min-h-[100px] sm:min-h-[140px] hover:border-purple-300 transition-colors">
+                             <div className="text-purple-600 mb-1 sm:mb-2"><Sparkles className="w-5 h-5 sm:w-7 sm:h-7" /></div>
+                             <div className="text-[8px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('zodiac')}</div>
+                             <div className="text-sm sm:text-2xl font-black text-slate-900 dark:text-white truncate max-w-full px-1">{stats.zodiacSign}</div>
                         </div>
                     </div>
                 </header>
