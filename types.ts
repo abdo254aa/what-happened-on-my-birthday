@@ -1,4 +1,5 @@
 
+
 export interface GeneratedArticle {
   title: string;
   excerpt: string;
@@ -40,7 +41,8 @@ export interface BirthdayArticle {
   funFactsContent: string;
   whySpecialTitle: string;
   whySpecialContent: string;
-  // محاور جديدة للطول والتشويق
+  
+  // محاور سابقة للطول
   mediaTitle: string;
   mediaContent: string;
   environmentalTitle: string;
@@ -49,6 +51,39 @@ export interface BirthdayArticle {
   futureContent: string;
   aestheticTitle: string;
   aestheticContent: string;
+  
+  // PREVIOUS EXTRA SECTIONS
+  culinaryTitle: string;
+  culinaryContent: string;
+  travelTitle: string;
+  travelContent: string;
+  sportsTitle: string;
+  sportsContent: string;
+
+  // SIMPLE SECTIONS
+  gamingTitle: string;
+  gamingContent: string;
+  schoolTitle: string;
+  schoolContent: string;
+  socialTitle: string;
+  socialContent: string;
+
+  // STRUCTURE BREAKDOWN SECTIONS
+  healthTitle: string;
+  healthContent: string;
+  wisdomTitle: string;
+  wisdomContent: string;
+  mysticalTitle: string;
+  mysticalContent: string;
+
+  // NEW SECTIONS (One block text)
+  rhythmTitle: string;
+  rhythmContent: string;
+  digitalTitle: string;
+  digitalContent: string;
+  cosmicTitle: string;
+  cosmicContent: string;
+
   conclusionTitle: string;
   conclusionContent: string;
 }

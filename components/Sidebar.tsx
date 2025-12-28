@@ -1,5 +1,6 @@
 
-import React, { useState, useMemo } from 'react';
+
+import React, { useState, useMemo, useEffect } from 'react';
 import { ChevronRight, HelpCircle, Star, History, Sparkles, Calendar, Heart, Mail, Crown, GraduationCap, Zap, TrendingUp, BookOpen, Clock, ArrowLeft, ArrowRight } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getMonths } from '../utils/dateUtils';
@@ -16,23 +17,26 @@ const Sidebar: React.FC = () => {
   
   const [showRiddleAnswer, setShowRiddleAnswer] = useState(false);
   
+  // Base "Today" for fallback only. 
+  // The primary source of truth will now ALWAYS be the URL parameters to ensure "Database" feel.
+  const [systemDate] = useState(new Date());
+
   const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
   
-  // Get currently active date from URL params or default to today for the "Daily" experience
-  const activeDay = Number(searchParams.get('day') || searchParams.get('d'));
-  const activeMonth = Number(searchParams.get('month') || searchParams.get('m'));
-  
-  const today = useMemo(() => new Date(), []);
-  const targetDay = activeDay || today.getDate();
-  const targetMonth = activeMonth || (today.getMonth() + 1);
-  const nextYear = today.getFullYear() + 1;
-  
-  const currentMonthName = months[targetMonth - 1];
-  const dateString = language === 'ar' 
-    ? `${targetDay} ${currentMonthName}` 
-    : `${currentMonthName} ${targetDay}`;
+  // STRICT DATE LOGIC:
+  // If URL has a date, use it. If not, fallback to system date.
+  // This ensures Quick Links NEVER change date once a user has chosen a birthday.
+  const urlDay = Number(searchParams.get('day') || searchParams.get('d'));
+  const urlMonth = Number(searchParams.get('month') || searchParams.get('m'));
 
-  const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 86400000);
+  const activeDay = urlDay || systemDate.getDate();
+  const activeMonth = urlMonth || (systemDate.getMonth() + 1);
+  const activeYear = Number(searchParams.get('year')) || systemDate.getFullYear();
+
+  const activeMonthName = months[activeMonth - 1];
+  const activeDateString = language === 'ar' ? `${activeDay} ${activeMonthName}` : `${activeMonthName} ${activeDay}`;
+  
+  const nextYear = activeYear + 1;
   const templatesList = Object.keys(editorialTemplates);
 
   const quickLinks = useMemo(() => {
@@ -45,25 +49,31 @@ const Sidebar: React.FC = () => {
     ];
   }, []);
 
-  const getLabel = (key: string, dStr: string = dateString) => {
+  const getLabel = (key: string, dStr: string) => {
       let text = t(key);
       text = text.replace('{date}', dStr);
       text = text.replace('{year}', nextYear.toString());
-      text = text.replace('{month}', currentMonthName);
+      text = text.replace('{month}', activeMonthName);
       return text;
   };
 
-  const handleNavigate = (id: string, d: number = targetDay, m: number = targetMonth) => {
-    navigate(`/article/${id}?d=${d}&m=${m}`);
+  const handleNavigate = (id: string, d: number, m: number) => {
+    navigate(`/article/${id}?d=${d}&m=${m}&year=${activeYear}`);
   };
 
+  // DATABASE SIMULATION:
+  // "Fresh Picks" are now calculated relative to the ACTIVE date, not just today.
+  // This makes the sidebar feel like a related content engine for the chosen birthday.
   const featuredArticles = useMemo(() => {
+    // We use a fixed seed based on the active date so the "Fresh Picks" are consistent for that date (Database behavior)
     return Array.from({ length: 7 }, (_, i) => {
-        const futureDate = new Date();
-        // Shift logic to ensure variety every single day based on current date
-        futureDate.setDate(today.getDate() + i); 
-        const d = futureDate.getDate();
-        const m = futureDate.getMonth() + 1;
+        // Create a date object starting from the ACTIVE day + (i+1)
+        // This suggests "Next Days" or "Related Dates"
+        const seedDate = new Date(activeYear, activeMonth - 1, activeDay);
+        seedDate.setDate(seedDate.getDate() + (i + 1)); 
+        
+        const d = seedDate.getDate();
+        const m = seedDate.getMonth() + 1;
         const mShort = MONTHS[m - 1].substring(0, 3);
         const mName = MONTHS[m - 1];
         const dStr = language === 'ar' ? `${d} ${mName}` : `${mName} ${d}`;
@@ -78,8 +88,8 @@ const Sidebar: React.FC = () => {
           'from-slate-700 to-slate-900'
         ];
 
-        // Ensure we cycle through all available templates
-        const templateIndex = (dayOfYear + i) % templatesList.length;
+        // Deterministic rotation based on the date
+        const templateIndex = (d + m + i) % templatesList.length;
         const topicId = templatesList[templateIndex];
         
         const labelMap: Record<string, string> = {
@@ -93,18 +103,18 @@ const Sidebar: React.FC = () => {
         const labelKey = labelMap[topicId] || 'read_article';
         return { d, m, mShort, dStr, topicId, labelKey, color: colors[i % colors.length] };
     });
-  }, [dayOfYear, language, templatesList, today]);
+  }, [activeDay, activeMonth, activeYear, language, templatesList]);
 
   const ChevronIcon = dir === 'rtl' ? ArrowLeft : ArrowRight;
 
   return (
-    <div className="flex flex-col gap-8 w-full">
+    <div className="flex flex-col gap-6 w-full">
       {/* 1. AD UNIT */}
       <div className="rounded-[2rem] overflow-hidden border border-slate-200 dark:border-slate-800 shadow-lg bg-white dark:bg-slate-900 p-2">
         <AdPlaceholder slot="content" className="!my-0 !h-[250px] !w-full" />
       </div>
 
-      {/* 2. DYNAMIC QUICK LINKS */}
+      {/* 2. DYNAMIC QUICK LINKS (Fixed to Selected Date) */}
       <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-6 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-600 to-purple-600"></div>
         <div className="mb-6 flex items-center gap-3">
@@ -112,14 +122,14 @@ const Sidebar: React.FC = () => {
                 <BookOpen size={20} />
              </div>
              <h3 className="font-display font-black text-xl text-slate-900 dark:text-white tracking-tight leading-none">
-                {getLabel('quick_links_header')}
+                {getLabel('quick_links_header', activeDateString)}
             </h3>
         </div>
         <nav className="flex flex-col space-y-1">
             {quickLinks.map((item, idx) => (
                 <button 
                     key={idx}
-                    onClick={() => handleNavigate(item.id)}
+                    onClick={() => handleNavigate(item.id, activeDay, activeMonth)}
                     className="flex items-center gap-4 px-2 py-3.5 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all group w-full text-left rtl:text-right"
                 >
                     <div className={`w-9 h-9 flex items-center justify-center bg-slate-50 dark:bg-slate-800 rounded-xl ${item.color} group-hover:scale-110 transition-transform shadow-sm border border-slate-100 dark:border-slate-700`}>
@@ -127,7 +137,7 @@ const Sidebar: React.FC = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                         <h4 className="font-bold text-slate-700 dark:text-slate-300 text-[14px] group-hover:text-blue-700 dark:group-hover:text-blue-400 leading-tight">
-                            {getLabel(item.labelKey)}
+                            {getLabel(item.labelKey, activeDateString)}
                         </h4>
                     </div>
                     <ChevronIcon size={14} className="text-slate-300 group-hover:text-blue-500 shrink-0 transition-transform group-hover:translate-x-1" />
@@ -136,14 +146,14 @@ const Sidebar: React.FC = () => {
         </nav>
       </div>
 
-      {/* 3. DAILY PICKS VARIETY */}
+      {/* 3. FRESH PICKS (Related Dates from Database) */}
       <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-6 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-red-500 to-orange-500"></div>
         <div className="mb-6 flex items-center justify-between">
              <div className="flex items-center gap-3">
                 <TrendingUp size={20} className="text-red-600" />
                 <h3 className="font-display font-black text-xl text-slate-900 dark:text-white tracking-tight">
-                    {language === 'ar' ? 'مقالات مقترحة اليوم' : 'Fresh Daily Picks'}
+                    {language === 'ar' ? 'اكتشف المزيد (More)' : 'More to Explore'}
                 </h3>
              </div>
         </div>

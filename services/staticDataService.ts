@@ -1,14 +1,16 @@
 
+
 import { BirthdayData } from '../types';
 import { contentPools, decadeFacts, FragmentPool } from '../data/birthdayData';
 
 /**
  * Super-Deterministic High-Fidelity Narrative Engine
- * Generates massive, SEO-friendly articles divided into 10 major thematic Chapters.
+ * Generates massive, SEO-friendly articles divided into 24+ major thematic Chapters.
  * 
  * UPGRADES:
- * - Dynamic Sentence Structures: Randomizes order of Hook, Main Content, and Filler.
- * - Anti-Repetition: Tracks used indices to ensure the same pool string isn't used twice.
+ * - Single Block Paragraphs: Combines generated sentences into one massive text block per section.
+ * - Concise Intro: Intro is now restricted to a single, impactful segment.
+ * - Total Word Count Strategy: Body sections are denser to maintain ~2000 words total.
  */
 export const fetchBirthdayInsights = async (day: number, month: number, year: number, lang: 'en' | 'ar' = 'en'): Promise<BirthdayData> => {
   const monthsEN = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -84,43 +86,30 @@ export const fetchBirthdayInsights = async (day: number, month: number, year: nu
       return arr[index];
   };
 
-  // UPDATED: Dynamic Structure Builder
-  // Instead of always A + B + Hook + Filler, we randomize the structure.
-  const buildDynamicParagraph = (poolKey: keyof FragmentPool, sectionId: number): string => {
-    // 1. Get two distinct unique sentences from the requested pool
-    const main1 = getUniqueItem(poolKey, sectionId * 10);
-    const main2 = getUniqueItem(poolKey, (sectionId * 10) + 5);
-    
-    // 2. Get Hook and Filler
-    // We also want to rotate hooks and fillers to avoid "Did you know..." appearing in every paragraph
-    const hook = pool.seoHooks[(baseSeed + sectionId) % pool.seoHooks.length];
-    const filler = pool.fillers[(baseSeed + sectionId) % pool.fillers.length];
-    
-    // 3. Select a Structure Template based on sectionId (to be deterministic but varied)
-    const structureType = (baseSeed + sectionId) % 4;
+  // UPDATED: Standard Sentence Builder
+  const buildSentence = (poolKey: keyof FragmentPool, seed: number): string => {
+      const s1 = getUniqueItem(poolKey, seed);
+      const hook = pool.seoHooks[(baseSeed + seed) % pool.seoHooks.length];
+      const filler = pool.fillers[(baseSeed + seed) % pool.fillers.length];
+      
+      // Randomize structure to prevent pattern fatigue
+      const structure = (seed % 3);
+      if (structure === 0) return `${s1} ${filler}`;
+      if (structure === 1) return `${hook} ${s1}`;
+      return `${s1} This reality is fascinating because ${hook.toLowerCase()}`;
+  };
 
-    let rawText = "";
-
-    switch (structureType) {
-        case 0:
-            // Classic: Main 1 -> Main 2 -> Hook -> Filler
-            rawText = `${main1} ${main2} ${hook} ${filler}`;
-            break;
-        case 1:
-            // Inverted: Hook -> Main 1 -> Filler -> Main 2
-            rawText = `${hook} ${main1} ${filler} Furthermore, ${main2}`;
-            break;
-        case 2:
-            // Concise: Main 1 -> Filler -> Main 2
-            rawText = `${main1} ${filler} In addition to that, ${main2}`;
-            break;
-        case 3:
-            // Narrative: Main 2 -> Main 1 -> Hook
-            rawText = `${main2} This connects to a larger trend: ${main1} ${hook}`;
-            break;
-    }
-
-    return replacePlaceholders(rawText);
+  // UPDATED: Generate One Single Continuous Block of text (Massive Paragraph)
+  const generateDeepDiveSection = (poolKey: keyof FragmentPool, sectionIndex: number): string => {
+      // Concatenate 5 sentences into one long string
+      const p1 = buildSentence(poolKey, sectionIndex * 100);
+      const p2 = buildSentence(poolKey, (sectionIndex * 100) + 20);
+      const p3 = buildSentence(poolKey, (sectionIndex * 100) + 40);
+      const p4 = buildSentence(poolKey, (sectionIndex * 100) + 60);
+      const p5 = buildSentence(poolKey, (sectionIndex * 100) + 80);
+      
+      // Combined into ONE P tag for continuous reading flow as requested
+      return replacePlaceholders(`<p>${p1} ${p2} ${p3} ${p4} ${p5}</p>`);
   };
 
   const getThematicTitle = (type: keyof typeof pool.thematicTitles, offset: number): string => {
@@ -129,61 +118,109 @@ export const fetchBirthdayInsights = async (day: number, month: number, year: nu
     return replacePlaceholders(title);
   };
 
+  // Concise Intro Logic: Just one impactful paragraph
+  const generateConciseIntro = (): string => {
+     return replacePlaceholders(pool.intros[baseSeed % pool.intros.length]);
+  };
+
   const article = {
     title: lang === 'ar' 
-      ? `الأرشيف الكوني: ماذا حدث يوم ${day} ${monthNameAR} ${year}؟` 
-      : `The Cosmic Archive: What Happened on ${monthNameEN} ${day}, ${year}?`,
-    intro: replacePlaceholders(pool.intros[baseSeed % pool.intros.length]),
+      ? `الأرشيف الكوني الشامل: تحليل عميق ليوم ${day} ${monthNameAR} ${year}` 
+      : `The Definitive Cosmic Archive: A Deep Dive into ${monthNameEN} ${day}, ${year}`,
+    intro: generateConciseIntro(),
     
-    // 1. السياسة والتاريخ (History)
+    // 24+ Extensive Sections to hit high word counts while keeping paragraphs unified
+    
     eventsTitle: getThematicTitle('geopolitics', 1),
-    eventsContent: buildDynamicParagraph('history', 1),
+    eventsContent: generateDeepDiveSection('history', 1),
     
-    // 2. الاقتصاد (Economy)
     seasonTitle: getThematicTitle('socioEconomy', 2),
-    seasonContent: buildDynamicParagraph('economy', 2),
+    seasonContent: generateDeepDiveSection('economy', 2),
     
-    // 3. الإرث الثقافي (Culture)
     famousPeopleTitle: getThematicTitle('culturalLegacy', 3),
-    famousPeopleContent: buildDynamicParagraph('culture', 3),
+    famousPeopleContent: generateDeepDiveSection('culture', 3),
     
-    // 4. العلم والتكنولوجيا (Science)
+    // NEW SIMPLE SECTION 1
+    gamingTitle: getThematicTitle('gamingLife', 16),
+    gamingContent: generateDeepDiveSection('gaming', 16),
+    
+    // NEW STRUCTURE SECTION 1
+    healthTitle: getThematicTitle('healthWellness', 19),
+    healthContent: generateDeepDiveSection('health', 19),
+    
+    // NEW MICRO SECTION 1 (One Block)
+    rhythmTitle: getThematicTitle('rhythmBeats', 22),
+    rhythmContent: generateDeepDiveSection('culture', 22),
+
     technologyTitle: getThematicTitle('scientificFrontier', 4),
-    technologyContent: buildDynamicParagraph('science', 4),
+    technologyContent: generateDeepDiveSection('science', 4),
     
-    // 5. الاتصالات (Lifestyle - Media focus)
     mediaTitle: getThematicTitle('mediaEvolution', 5),
-    mediaContent: buildDynamicParagraph('lifestyle', 5),
+    mediaContent: generateDeepDiveSection('lifestyle', 5),
 
-    // 6. البيئة والطبيعة (Analysis - Environmental Focus)
+    // NEW SIMPLE SECTION 2
+    schoolTitle: getThematicTitle('schoolDays', 17),
+    schoolContent: generateDeepDiveSection('school', 17),
+    
+    // NEW STRUCTURE SECTION 2
+    wisdomTitle: getThematicTitle('wisdomPhilosophy', 20),
+    wisdomContent: generateDeepDiveSection('philosophy', 20),
+
+    // NEW MICRO SECTION 2 (One Block)
+    digitalTitle: getThematicTitle('digitalFootprint', 23),
+    digitalContent: generateDeepDiveSection('science', 23),
+
+    culinaryTitle: getThematicTitle('culinaryWorld', 13),
+    culinaryContent: generateDeepDiveSection('culinary', 13),
+
     environmentalTitle: getThematicTitle('environmentalContext', 6),
-    environmentalContent: buildDynamicParagraph('analysis', 6),
+    environmentalContent: generateDeepDiveSection('analysis', 6),
 
-    // 7. الجماليات والموضة (Culture - reused but unique items guaranteed)
+    travelTitle: getThematicTitle('travelHorizons', 14),
+    travelContent: generateDeepDiveSection('travel', 14),
+
+    sportsTitle: getThematicTitle('sportsSpirit', 15),
+    sportsContent: generateDeepDiveSection('sports', 15),
+
+    // NEW SIMPLE SECTION 3
+    socialTitle: getThematicTitle('socialVibe', 18),
+    socialContent: generateDeepDiveSection('social', 18),
+    
+    // NEW STRUCTURE SECTION 3
+    mysticalTitle: getThematicTitle('mysticalVibes', 21),
+    mysticalContent: generateDeepDiveSection('horoscopeInsights', 21),
+
+    // NEW MICRO SECTION 3 (One Block)
+    cosmicTitle: getThematicTitle('cosmicConnections', 24),
+    cosmicContent: generateDeepDiveSection('horoscopeInsights', 24),
+
     aestheticTitle: getThematicTitle('aestheticTrends', 7),
-    aestheticContent: buildDynamicParagraph('culture', 7),
+    aestheticContent: generateDeepDiveSection('culture', 7), 
 
-    // 8. الحياة اليومية (Lifestyle - reused but unique items guaranteed)
     generationTitle: getThematicTitle('dailyLife', 8),
-    generationContent: buildDynamicParagraph('lifestyle', 8),
+    generationContent: generateDeepDiveSection('lifestyle', 8),
 
-    // 9. التوقعات المستقبلية (History - reused but unique items guaranteed)
     futureTitle: getThematicTitle('futureVisions', 9),
-    futureContent: buildDynamicParagraph('history', 9),
+    futureContent: generateDeepDiveSection('history', 9),
 
-    // 10. التحليل السلوكي (Analysis - reused but unique items guaranteed)
     entertainmentTitle: getThematicTitle('behavioralAnalysis', 10),
-    entertainmentContent: buildDynamicParagraph('analysis', 10),
+    entertainmentContent: generateDeepDiveSection('analysis', 10),
+    
+    whySpecialTitle: getThematicTitle('psychologicalProfile', 11),
+    whySpecialContent: generateDeepDiveSection('psychology', 11),
+    
+    careerTitle: getThematicTitle('careerPath', 12),
+    careerContent: generateDeepDiveSection('career', 12),
 
-    conclusionTitle: lang === 'ar' ? `خاتمة: أنت جزء من القصة` : `Conclusion: You Are Part of the Story`,
-    conclusionContent: replacePlaceholders(pool.conclusions[baseSeed % pool.conclusions.length])
+    conclusionTitle: lang === 'ar' ? `خاتمة: أنت جزء من القصة` : `Conclusion: You Are The Living Legacy`,
+    conclusionContent: replacePlaceholders(pool.conclusions[baseSeed % pool.conclusions.length] + " " + pool.conclusions[(baseSeed + 2) % pool.conclusions.length])
   };
 
   return {
     article: article as any,
     historicalEvents: [{ year: String(year), event: `The world witnessed a unique alignment of events as you arrived.` }],
     famousPeople: [],
-    funFacts: ["Creative Soul", "History Maker", "Future Leader"],
+    funFacts: ["Creative Soul", "History Maker", "Future Leader", "Adaptive Genius", "Cosmic Traveler"],
     generatedArticles: []
   };
 };

@@ -2,7 +2,7 @@
 export interface EditorialSection {
   title: string;
   content: string;
-  iconType: 'sparkles' | 'heart' | 'globe' | 'zap' | 'users' | 'music' | 'history';
+  iconType: 'sparkles' | 'heart' | 'globe' | 'zap' | 'users' | 'music' | 'history' | 'star' | 'message-circle' | 'flag' | 'moon' | 'shield' | 'cloud' | 'eye' | 'calendar' | 'sun' | 'trending-up' | 'activity' | 'camera' | 'map' | 'coffee' | 'award' | 'book';
   colorClass: string;
 }
 

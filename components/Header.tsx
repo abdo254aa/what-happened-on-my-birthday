@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation, useParams } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Gift, Moon, Sun, Calendar, ArrowRight } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -11,8 +11,9 @@ const Header: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
-  const params = useParams();
-
+  
+  // Note: useParams() does not work here because Header is rendered outside of <Routes>
+  
   const searchParams = new URLSearchParams(location.search);
   
   // Normalize param names (Results uses day/month, Article uses d/m)
@@ -34,15 +35,9 @@ const Header: React.FC = () => {
   const handleManualSubmit = () => {
     if (!day || !month || !year) return;
 
-    // Smart Navigation Logic
-    // If we are currently on an article page, we stay on that article type but update the date
-    if (location.pathname.startsWith('/article/')) {
-      const articleId = params.id;
-      navigate(`/article/${articleId}?d=${day}&m=${month}&year=${year}`);
-    } else {
-      // Otherwise, we always go to the main Results report
-      navigate(`/results?day=${day}&month=${month}&year=${year}`);
-    }
+    // ALWAYS navigate to the main Results report (New Search behavior)
+    // This ensures the page changes completely instead of just updating the current sub-article view
+    navigate(`/results?day=${day}&month=${month}&year=${year}`);
   };
 
   const daysArr = Array.from({ length: 31 }, (_, i) => i + 1);

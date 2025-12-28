@@ -1,4 +1,5 @@
 
+
 import React, { useEffect, useState, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { fetchBirthdayInsights } from '../services/staticDataService';
@@ -7,7 +8,8 @@ import { BirthdayData, PersonalStats } from '../types';
 import { 
   ArrowLeft, Sparkles, Calendar, ArrowRight, BarChart3, Clock, Globe, Zap, Users, 
   Music, Laptop, Heart, Newspaper, Loader2, Database, Share2, Trees, Radio, 
-  Eye, Palette, Coffee 
+  Eye, Palette, Coffee, Utensils, Plane, Trophy, Gamepad2, GraduationCap, MessageCircle,
+  Activity, Lightbulb, Moon, Headphones, Wifi, Rocket
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useSettings } from '../contexts/SettingsContext';
@@ -174,13 +176,46 @@ const Results: React.FC = () => {
                     
                     {renderSection(article.famousPeopleTitle, article.famousPeopleContent, <Users />, "text-purple-600")}
                     
+                    {/* NEW SECTION 1 */}
+                    {renderSection(article.gamingTitle, article.gamingContent, <Gamepad2 />, "text-indigo-500")}
+                    
+                    {/* NEW STRUCTURE SECTION 1 */}
+                    {renderSection(article.healthTitle, article.healthContent, <Activity />, "text-red-500")}
+
+                    {/* NEW MICRO SECTION 1 */}
+                    {renderSection(article.rhythmTitle, article.rhythmContent, <Headphones />, "text-pink-600")}
+
                     {renderSection(article.technologyTitle, article.technologyContent, <Laptop />, "text-emerald-600")}
                     <AdPlaceholder slot="content" className="!my-6" />
                     
                     {renderSection(article.mediaTitle, article.mediaContent, <Radio />, "text-indigo-600")}
                     
+                    {/* NEW SECTION 2 */}
+                    {renderSection(article.schoolTitle, article.schoolContent, <GraduationCap />, "text-yellow-600")}
+                    
+                    {/* NEW STRUCTURE SECTION 2 */}
+                    {renderSection(article.wisdomTitle, article.wisdomContent, <Lightbulb />, "text-amber-500")}
+
+                    {/* NEW MICRO SECTION 2 */}
+                    {renderSection(article.digitalTitle, article.digitalContent, <Wifi />, "text-cyan-500")}
+
+                    {renderSection(article.culinaryTitle, article.culinaryContent, <Utensils />, "text-orange-500")}
+
                     {renderSection(article.environmentalTitle, article.environmentalContent, <Trees />, "text-green-600")}
                     
+                    {renderSection(article.travelTitle, article.travelContent, <Plane />, "text-sky-500")}
+
+                    {renderSection(article.sportsTitle, article.sportsContent, <Trophy />, "text-yellow-500")}
+
+                    {/* NEW SECTION 3 */}
+                    {renderSection(article.socialTitle, article.socialContent, <MessageCircle />, "text-pink-500")}
+                    
+                    {/* NEW STRUCTURE SECTION 3 */}
+                    {renderSection(article.mysticalTitle, article.mysticalContent, <Moon />, "text-purple-500")}
+
+                    {/* NEW MICRO SECTION 3 */}
+                    {renderSection(article.cosmicTitle, article.cosmicContent, <Rocket />, "text-violet-500")}
+
                     {renderSection(article.aestheticTitle, article.aestheticContent, <Palette />, "text-cyan-500")}
                     
                     {renderSection(article.generationTitle, article.generationContent, <Coffee />, "text-orange-500")}
@@ -206,7 +241,8 @@ const Results: React.FC = () => {
             </article>
             <div className="mt-8"><AdPlaceholder slot="footer" /></div>
           </main>
-          <aside className="lg:col-span-4 hidden lg:block sticky top-24 self-start"><Sidebar /></aside>
+          {/* UPDATED SIDEBAR STICKY POSITION */}
+          <aside className="lg:col-span-4 hidden lg:block sticky top-4 self-start h-fit"><Sidebar /></aside>
         </div>
       </div>
     </div>
