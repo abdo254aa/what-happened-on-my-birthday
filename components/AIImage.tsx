@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Sparkles, Image as ImageIcon } from 'lucide-react';
 
@@ -10,8 +9,8 @@ interface AIImageProps {
 }
 
 const AIImage: React.FC<AIImageProps> = ({ fallbackGradient, alt, className = "" }) => {
-  // Instead of generating AI images, we render a high-quality aesthetic placeholder
-  // using the provided gradient class. This ensures 100% reliability and speed.
+  // Render a high-quality aesthetic placeholder using the provided gradient class.
+  // This ensures 100% reliability and speed without external API calls.
   
   return (
     <div className={`${className} ${fallbackGradient} relative overflow-hidden group flex items-center justify-center`}>
