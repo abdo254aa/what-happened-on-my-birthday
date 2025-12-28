@@ -82,34 +82,44 @@ const Home: React.FC = () => {
                         <p className="text-slate-500 dark:text-slate-400 mb-8 font-bold text-sm md:text-base max-w-2xl leading-relaxed text-center md:text-left px-2 md:px-0 text-justify">
                             {t('hero_subtitle')}
                         </p>
-                        <div className="bg-slate-50/50 dark:bg-slate-800/50 rounded-2xl p-3 md:p-6 border border-slate-100 dark:border-slate-700">
-                            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                                {/* Compact grid for mobile */}
-                                <div className="grid grid-cols-3 gap-2">
-                                    <div className="space-y-1">
-                                        <label className="text-[9px] sm:text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block px-1 text-center">{t('label_year')}</label>
-                                        <select required value={year} onChange={(e) => setYear(Number(e.target.value))} className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-1 sm:px-3 py-3 outline-none font-bold text-sm sm:text-base text-center appearance-none">
-                                            <option value="" disabled>{t('label_year')}</option>
-                                            {yearsArr.map(y => <option key={y} value={y}>{y}</option>)}
-                                        </select>
+                        
+                        {/* MAIN FORM - OPTIMIZED SIZE FOR DESKTOP */}
+                        <div className="bg-white dark:bg-slate-800 rounded-3xl p-5 md:p-6 border border-slate-200 dark:border-slate-700 shadow-xl shadow-slate-200/50 dark:shadow-slate-900/50 relative overflow-hidden">
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-indigo-500"></div>
+                            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+                                {/* Compact Inputs Grid */}
+                                <div className="grid grid-cols-3 gap-3 md:gap-4">
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] md:text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest block text-center px-1">{t('label_year')}</label>
+                                        <div className="relative">
+                                            <select required value={year} onChange={(e) => setYear(Number(e.target.value))} className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-600 rounded-xl px-2 md:px-4 py-2.5 md:py-3 outline-none font-black text-sm md:text-lg text-center appearance-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-slate-900 dark:text-white cursor-pointer hover:bg-white dark:hover:bg-slate-800">
+                                                <option value="" disabled>{t('label_year')}</option>
+                                                {yearsArr.map(y => <option key={y} value={y}>{y}</option>)}
+                                            </select>
+                                        </div>
                                     </div>
-                                    <div className="space-y-1">
-                                        <label className="text-[9px] sm:text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block px-1 text-center">{t('label_month')}</label>
-                                        <select required value={month} onChange={(e) => setMonth(Number(e.target.value))} className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-1 sm:px-3 py-3 outline-none font-bold text-sm sm:text-base text-center appearance-none">
-                                            <option value="" disabled>{t('label_month')}</option>
-                                            {localizedMonths.map((m, i) => <option key={i} value={i+1}>{m}</option>)}
-                                        </select>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] md:text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest block text-center px-1">{t('label_month')}</label>
+                                        <div className="relative">
+                                            <select required value={month} onChange={(e) => setMonth(Number(e.target.value))} className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-600 rounded-xl px-2 md:px-4 py-2.5 md:py-3 outline-none font-black text-sm md:text-lg text-center appearance-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-slate-900 dark:text-white cursor-pointer hover:bg-white dark:hover:bg-slate-800">
+                                                <option value="" disabled>{t('label_month')}</option>
+                                                {localizedMonths.map((m, i) => <option key={i} value={i+1}>{m}</option>)}
+                                            </select>
+                                        </div>
                                     </div>
-                                    <div className="space-y-1">
-                                        <label className="text-[9px] sm:text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block px-1 text-center">{t('label_day')}</label>
-                                        <select required value={day} onChange={(e) => setDay(Number(e.target.value))} className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-1 sm:px-3 py-3 outline-none font-bold text-sm sm:text-base text-center appearance-none">
-                                            <option value="" disabled>{t('label_day')}</option>
-                                            {daysArr.map(d => <option key={d} value={d}>{d}</option>)}
-                                        </select>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] md:text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest block text-center px-1">{t('label_day')}</label>
+                                        <div className="relative">
+                                            <select required value={day} onChange={(e) => setDay(Number(e.target.value))} className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-600 rounded-xl px-2 md:px-4 py-2.5 md:py-3 outline-none font-black text-sm md:text-lg text-center appearance-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-slate-900 dark:text-white cursor-pointer hover:bg-white dark:hover:bg-slate-800">
+                                                <option value="" disabled>{t('label_day')}</option>
+                                                {daysArr.map(d => <option key={d} value={d}>{d}</option>)}
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
-                                <button type="submit" disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black text-base rounded-xl py-3.5 shadow-lg transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-70">
-                                    {loading ? <Loader2 className="animate-spin" size={20}/> : <>{t('btn_reveal')} <ArrowIcon size={20} /></>}
+                                
+                                <button type="submit" disabled={loading} className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black text-base md:text-lg rounded-xl py-3 md:py-3.5 shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-70 group transform hover:-translate-y-1">
+                                    {loading ? <Loader2 className="animate-spin" size={20}/> : <>{t('btn_reveal')} <ArrowIcon size={20} className="group-hover:translate-x-1 transition-transform" /></>}
                                 </button>
                             </form>
                         </div>

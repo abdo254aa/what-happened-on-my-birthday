@@ -47,7 +47,8 @@ const Sidebar: React.FC = () => {
   };
 
   const handleNavigate = (id: string, d: number, m: number) => {
-    navigate(`/article/${id}?d=${d}&m=${m}&year=${activeYear}`);
+    // Navigate without year to imply generic date lookup (Year Agnostic)
+    navigate(`/article/${id}?d=${d}&m=${m}`);
   };
 
   // DATABASE SIMULATION:

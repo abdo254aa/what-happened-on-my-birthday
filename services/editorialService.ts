@@ -13,7 +13,8 @@ export const getEditorialArticle = (id: string, day: number, month: number): Edi
 
   const monthName = MONTHS[month - 1];
   const dateStr = `${monthName} ${day}`;
-  const year = new Date().getFullYear(); 
+  
+  // Use a fixed decade for flavor text in generic articles, but avoid specific year references
   const decade = "1990"; 
   const facts = decadeFacts[decade];
   const pool = contentPools['vibe_master'];
@@ -22,9 +23,13 @@ export const getEditorialArticle = (id: string, day: number, month: number): Edi
   const seed = (day * 401) + (month * 11) + id.length;
 
   const replacePlaceholders = (text: string) => {
-    return text
+    let res = text
       .replace(/{date}/g, dateStr)
-      .replace(/{year}/g, year.toString())
+      // Generic Year Replacements
+      .replace(/The year {year}/g, "History")
+      .replace(/in {year}/g, "")
+      .replace(/{year}/g, "")
+      // Flavor Replacements
       .replace(/{decade}/g, decade)
       .replace(/{vibe}/g, facts.vibe)
       .replace(/{tech}/g, facts.tech)
@@ -32,11 +37,12 @@ export const getEditorialArticle = (id: string, day: number, month: number): Edi
       .replace(/{economic}/g, facts.economic)
       .replace(/{movie}/g, facts.movie)
       .replace(/{song}/g, facts.song);
+      
+      // Clean up any double spaces created by removals
+      return res.replace(/\s+/g, ' ').trim();
   };
 
   // REFINED: Balanced Block Text Builder
-  // Loops 4 times (instead of 6) to make paragraphs dense but not boringly long.
-  // Relies on having MORE sections with TITLES to break up the text.
   const buildMegaSection = (poolArray: string[], variant: number): string => {
     let combinedText = "";
     
@@ -55,18 +61,9 @@ export const getEditorialArticle = (id: string, day: number, month: number): Edi
     return replacePlaceholders(`<p>${combinedText.trim()}</p>`);
   };
 
-  // CONCISE INTRO BUILDER
-  const buildConciseIntro = (poolArray: string[], variant: number): string => {
-      const s = seed + variant;
-      const f1 = poolArray[s % poolArray.length];
-      return replacePlaceholders(f1);
-  };
-
   let dynamicSections: EditorialSection[] = [];
 
   // DRASTICALLY EXPANDED SECTIONS (~20 sections per article)
-  // This approach breaks the content into many titled blocks, preventing boredom.
-  
   if (id === 'famous-birthdays' || id === 'famous-birthday-twins') {
     dynamicSections = [
       { title: `Legendary Lives: The Stars of ${dateStr}`, content: buildMegaSection(pool.famousBioFragments, 1), iconType: 'users', colorClass: 'text-amber-600' },
@@ -141,10 +138,10 @@ export const getEditorialArticle = (id: string, day: number, month: number): Edi
 
   return {
     ...template,
-    title: template.title.replace(/{date}/g, dateStr).replace(/{year}/g, year.toString()),
-    intro: buildConciseIntro(pool.intros, 500), 
+    title: replacePlaceholders(template.title),
+    intro: replacePlaceholders(template.intro), 
     sections: dynamicSections,
-    conclusionTitle: template.conclusionTitle.replace(/{date}/g, dateStr),
+    conclusionTitle: replacePlaceholders(template.conclusionTitle),
     conclusionContent: buildMegaSection(pool.conclusions, 777)
   };
 };

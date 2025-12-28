@@ -50,20 +50,12 @@ const Header: React.FC = () => {
       <div className="max-w-[1440px] mx-auto px-2 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 md:h-24 gap-2 md:gap-4">
           
-          {/* LOGO AREA */}
           <div className="flex items-center gap-2 md:gap-4 min-w-0 flex-shrink-0">
-            <Link to="/" className="flex items-center gap-3 group focus:outline-none" aria-label="Homepage">
-              {/* Logo Icon */}
-              <div className="relative flex items-center justify-center w-10 h-10 md:w-11 md:h-11 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl shadow-lg shadow-blue-600/20 text-white transform group-hover:scale-105 transition-all duration-300">
-                <Gift size={22} className="md:w-6 md:h-6" strokeWidth={2.5} />
-              </div>
-              
-              {/* Logo Text */}
-              <div className="flex flex-col">
-                <span className="font-display font-black text-xl md:text-2xl tracking-tighter text-slate-900 dark:text-white leading-none whitespace-nowrap">
-                  {t('site_name_part1')}<span className="text-blue-600 dark:text-blue-400">{t('site_name_part2')}</span>
-                </span>
-              </div>
+            <Link to="/" className="flex items-center gap-2 group">
+              <Gift size={24} className="text-blue-600 dark:text-blue-500 drop-shadow-md md:w-7 md:h-7" />
+              <span className="font-display font-black text-lg md:text-2xl tracking-tighter text-slate-900 dark:text-white leading-none whitespace-nowrap hidden md:block">
+                {t('site_name_part1')}{' '}<span className="text-blue-600 dark:text-blue-400">{t('site_name_part2')}</span>
+              </span>
             </Link>
           </div>
 
