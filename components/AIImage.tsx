@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { GoogleGenAI } from "@google/genai";
 import { Loader2, Sparkles, ImageOff } from 'lucide-react';
@@ -72,8 +71,10 @@ const AIImage: React.FC<AIImageProps> = ({ prompt, fallbackGradient, alt, classN
           }
         });
 
-        const part = response.candidates?.[0]?.content?.parts.find(p => p.inlineData);
-        if (part?.inlineData) {
+        const candidate = response.candidates?.[0];
+        const part = candidate?.content?.parts?.find(p => p.inlineData);
+
+        if (part && part.inlineData) {
           const base64Data = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
           memoryCache[cacheKey] = base64Data;
           try {
