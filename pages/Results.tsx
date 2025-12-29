@@ -108,7 +108,7 @@ const Results: React.FC = () => {
     <section className="mb-12 last:mb-0 group border-b border-slate-100 dark:border-slate-800 pb-10">
         <div className="flex items-center gap-4 mb-6">
             <div className={`p-3 rounded-2xl bg-slate-50 dark:bg-slate-800 ${colorClass} shadow-md border border-slate-100 dark:border-slate-700 shrink-0`}>
-              {React.cloneElement(icon as React.ReactElement, { size: 28 })}
+              {React.cloneElement(icon as React.ReactElement<any>, { size: 28 })}
             </div>
             <h2 style={dynamicHeadingStyle} className="text-slate-900 dark:text-white font-display font-black text-xl md:text-2xl lg:text-3xl tracking-tight">
                 {title}
