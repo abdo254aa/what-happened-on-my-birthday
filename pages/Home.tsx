@@ -72,7 +72,7 @@ const Home: React.FC = () => {
             
             <main className="lg:col-span-8 space-y-6 order-1 lg:order-1">
                 
-                {/* HERO SECTION - LARGER TITLE (lg:text-5xl) */}
+                {/* HERO SECTION - REFINED TITLE SIZE AND SPACING */}
                 <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-slate-800 p-6 md:p-8 relative overflow-hidden shadow-lg shadow-slate-200/40 dark:shadow-none">
                      <div className={`absolute top-0 ${language === 'ar' ? 'left-0' : 'right-0'} w-96 h-96 bg-blue-500/5 dark:bg-blue-500/10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none`}></div>
                     
@@ -81,7 +81,7 @@ const Home: React.FC = () => {
                            <Gift size={12} /> {t('site_name_part1')}{' '}{t('site_name_part2')}
                         </div>
                         
-                        <h1 className="font-display font-black text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-slate-900 dark:text-white mb-2 tracking-tight leading-tight">
+                        <h1 className="font-display font-black text-xl sm:text-2xl md:text-3xl lg:text-4xl text-slate-900 dark:text-white mb-4 tracking-normal leading-snug">
                             {t('hero_title_1')} <span className="text-blue-600 dark:text-blue-500">{t('hero_title_2')}</span>
                         </h1>
                         
