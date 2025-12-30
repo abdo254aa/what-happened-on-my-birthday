@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>My Birthday Facts</title>
+  <subtitle>Discover what happened on your birthday.</subtitle>
+  <link href="https://mybirthday.world/atom.xml" rel="self"/>
+  <link href="https://mybirthday.world/"/>
+  <updated>2024-05-24T00:00:00Z</updated>
+  <id>https://mybirthday.world/</id>
+  <author>
+    <name>MyBirthdayFacts Team</name>
+  </author>
+
+  <entry>
+    <title>Famous Birthday Twins Profile</title>
+    <link href="https://mybirthday.world/article/famous-birthday-twins"/>
+    <id>https://mybirthday.world/article/famous-birthday-twins</id>
+    <updated>2024-05-24T00:00:00Z</updated>
+    <summary>Ever wondered which Hollywood icon or musical legend acts as your spiritual twin?</summary>
+  </entry>
+  <entry>
+    <title>The Magical Animal Kingdom and Your Birth Month</title>
+    <link href="https://mybirthday.world/article/birthday-animals"/>
+    <id>https://mybirthday.world/article/birthday-animals</id>
+    <updated>2024-06-01T00:00:00Z</updated>
+    <summary>Discover the amazing link between your birth month and animal traits.</summary>
+  </entry>
+</feed>
