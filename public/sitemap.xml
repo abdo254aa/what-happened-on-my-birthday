@@ -7,75 +7,51 @@
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://mybirthday.world/about</loc>
-    <lastmod>2024-05-24</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://mybirthday.world/contact</loc>
-    <lastmod>2024-05-24</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://mybirthday.world/privacy</loc>
-    <lastmod>2024-05-24</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.3</priority>
-  </url>
-  <url>
-    <loc>https://mybirthday.world/terms</loc>
-    <lastmod>2024-05-24</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.3</priority>
-  </url>
-  <url>
     <loc>https://mybirthday.world/article/famous-birthdays</loc>
     <lastmod>2024-05-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://mybirthday.world/article/famous-birthday-twins</loc>
     <lastmod>2024-05-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://mybirthday.world/article/history-of-birthdays</loc>
     <lastmod>2024-05-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://mybirthday.world/article/zodiac-magic-guide</loc>
     <lastmod>2024-05-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://mybirthday.world/article/birthday-love-compatibility</loc>
     <lastmod>2024-05-24</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://mybirthday.world/article/space-birthdays</loc>
     <lastmod>2024-05-24</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://mybirthday.world/article/birthday-animals</loc>
     <lastmod>2024-05-24</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://mybirthday.world/article/ultimate-party-guide</loc>
     <lastmod>2024-05-24</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
   </url>
 </urlset>
