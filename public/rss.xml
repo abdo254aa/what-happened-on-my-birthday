@@ -1,15 +1,17 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<rss version="2.0">
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
 <channel>
   <title>My Birthday Facts - Discover Your History</title>
   <link>https://mybirthday.world</link>
   <description>Latest historical birthday facts, celebrity birthday twins, and zodiac insights.</description>
   <language>en-us</language>
   <lastBuildDate>Fri, 24 May 2024 00:00:00 +0000</lastBuildDate>
+  <atom:link href="https://mybirthday.world/rss.xml" rel="self" type="application/rss+xml" />
 
   <item>
     <title>Who Shares a Birthday with You? Famous Birthdays Explained</title>
     <link>https://mybirthday.world/article/famous-birthdays</link>
+    <guid isPermaLink="true">https://mybirthday.world/article/famous-birthdays</guid>
     <description>Take a deep look at the history and the legends who share your special day.</description>
     <category>Celebrity Culture</category>
     <pubDate>Fri, 24 May 2024 00:00:00 +0000</pubDate>
@@ -17,6 +19,7 @@
   <item>
     <title>Zodiac Magic: What the Universe Says About Your Birth</title>
     <link>https://mybirthday.world/article/zodiac-magic-guide</link>
+    <guid isPermaLink="true">https://mybirthday.world/article/zodiac-magic-guide</guid>
     <description>The planetary alignment on your birthday carries a unique cosmic signature.</description>
     <category>Astrology</category>
     <pubDate>Fri, 24 May 2024 00:00:00 +0000</pubDate>
@@ -24,8 +27,9 @@
   <item>
     <title>How Old Would You Be on Mars? Space Birthdays Guide</title>
     <link>https://mybirthday.world/article/space-birthdays</link>
+    <guid isPermaLink="true">https://mybirthday.world/article/space-birthdays</guid>
     <description>Discover the cosmic secrets behind your age and how a year on other planets changes everything.</description>
-    <category>Science & Fun</category>
+    <category>Science &amp; Fun</category>
     <pubDate>Wed, 22 May 2024 00:00:00 +0000</pubDate>
   </item>
 </channel>
