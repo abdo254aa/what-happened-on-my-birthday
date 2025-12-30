@@ -9,6 +9,7 @@ import ArticlePage from './pages/ArticlePage';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import Contact from './pages/Contact';
+import About from './pages/About';
 import { ContentProvider } from './contexts/ContentContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -33,6 +34,7 @@ const App: React.FC = () => {
                         <Route path="/privacy" element={<Privacy />} />
                         <Route path="/terms" element={<Terms />} />
                         <Route path="/contact" element={<Contact />} />
+                        <Route path="/about" element={<About />} />
                     </Routes>
                     </main>
                     <Footer />
