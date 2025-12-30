@@ -6,9 +6,17 @@ interface AdPlaceholderProps {
   className?: string;
 }
 
+/**
+ * AdPlaceholder component - Temporarily deactivated for AdSense review phase.
+ * The logic is preserved below to be restored upon request.
+ */
 const AdPlaceholder: React.FC<AdPlaceholderProps> = ({ slot, className = "" }) => {
+  // Ads are temporarily hidden. Returning null removes the placeholder boxes from the UI.
+  return null;
+
+  /* 
+  // RESTORATION CODE (Hidden for now):
   let sizeClass = "";
-  
   switch (slot) {
     case 'header':
       sizeClass = "h-[100px] md:h-[250px] w-full max-w-[970px]";
@@ -35,6 +43,7 @@ const AdPlaceholder: React.FC<AdPlaceholderProps> = ({ slot, className = "" }) =
         </div>
     </div>
   );
+  */
 };
 
 export default AdPlaceholder;
