@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowRight, ChevronRight, Newspaper, Loader2, ArrowLeft, Gift, Sparkles, Calendar, BookOpen } from 'lucide-react';
@@ -56,8 +55,8 @@ const Home: React.FC = () => {
     <div className="flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950 font-sans text-slate-900 dark:text-slate-100 transition-colors duration-300" dir={dir}>
       
       <SEOHead 
-        title={language === 'ar' ? 'ماذا حدث في يوم ميلادك؟ - اكتشف الحقائق' : 'What Happened On My Birthday? Discover Your Personal History'} 
-        description={language === 'ar' ? 'اكتشف الأحداث التاريخية، المشاهير، وأسرار يوم ميلادك في تقرير شامل ومجاني.' : 'Find out everything about your birthday—from historical events to famous birthdays and horoscope details. Visit our site for unique fun facts and celebrate your day like never before.'}
+        title="What Happened On My Birthday? Events & Famous Birthdays" 
+        description="Discover what happened on your birthday. Explore historical events, famous people born on your date, and who shares your birthday."
         type="website"
       />
 
