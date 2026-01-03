@@ -1,14 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <!-- Homepage -->
   <url>
     <loc>https://mybirthday.world/</loc>
     <lastmod>2024-05-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
-
-  <!-- Editorial Articles -->
   <url>
     <loc>https://mybirthday.world/article/famous-birthdays</loc>
     <lastmod>2024-05-24</lastmod>
@@ -39,8 +36,6 @@
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
-
-  <!-- Blog Content -->
   <url>
     <loc>https://mybirthday.world/article/space-birthdays</loc>
     <lastmod>2024-05-24</lastmod>
@@ -59,8 +54,6 @@
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
-
-  <!-- Static Pages -->
   <url>
     <loc>https://mybirthday.world/about</loc>
     <lastmod>2024-05-24</lastmod>
