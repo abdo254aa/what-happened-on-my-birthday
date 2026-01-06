@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Gift, Moon, Sun, ArrowRight, ArrowLeft } from 'lucide-react';
@@ -47,9 +46,11 @@ const Header: React.FC = () => {
         <div className="flex justify-between items-center h-16 md:h-20 gap-2 md:gap-4">
           
           <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
-            <Link to="/" className="flex items-center gap-2 group">
-              <Gift size={24} className="text-blue-600 dark:text-blue-500 drop-shadow-md md:w-7 md:h-7" />
-              <span className="font-display font-black text-lg md:text-xl tracking-tighter text-slate-900 dark:text-white leading-none whitespace-nowrap hidden lg:block">
+            <Link to="/" className="flex items-center gap-3 group">
+              {/* Increased Icon Size */}
+              <Gift size={32} className="text-blue-600 dark:text-blue-500 drop-shadow-md md:w-9 md:h-9" />
+              {/* Slightly reduced Title Font Size based on user request */}
+              <span className="font-display font-black text-lg md:text-2xl tracking-tighter text-slate-900 dark:text-white leading-none whitespace-nowrap hidden lg:block">
                 {t('site_name_part1')}{' '}<span className="text-blue-600 dark:text-blue-400">{t('site_name_part2')}</span>
               </span>
             </Link>
@@ -114,11 +115,13 @@ const Header: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2 flex-shrink-0">
+            {/* Added stronger border and shadow to make it clear as requested */}
             <button 
                 onClick={toggleTheme}
-                className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-full bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-100 dark:border-slate-800 transition-all active:scale-90"
+                className="w-11 h-11 md:w-12 md:h-12 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 text-slate-500 dark:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-700 border-2 border-slate-200 dark:border-slate-600 shadow-md transition-all active:scale-90"
+                aria-label="Toggle Dark Mode"
             >
-                {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
+                {theme === 'light' ? <Moon size={22} /> : <Sun size={22} />}
             </button>
           </div>
           

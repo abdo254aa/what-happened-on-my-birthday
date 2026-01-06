@@ -99,9 +99,9 @@ const Sidebar: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-6 w-full">
-      {/* 1. AD UNIT */}
+      {/* 1. AD UNIT - CHANGED TO FLEXIBLE HEIGHT */}
       <div className="rounded-[2rem] overflow-hidden border border-slate-200 dark:border-slate-800 shadow-lg bg-white dark:bg-slate-900 p-2">
-        <AdPlaceholder slot="content" className="!my-0 !h-[250px] !w-full" />
+        <AdPlaceholder slot="content" minHeight="250px" className="!my-0 !w-full" />
       </div>
 
       {/* 2. DYNAMIC QUICK LINKS (Fixed to Today's Date) */}

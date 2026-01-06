@@ -25,14 +25,16 @@
     <meta property="twitter:description" content="Discover what happened on your birthday. Explore historical events, famous people born on your date, and who shares your birthday." />
     
     <!-- Favicons -->
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <link rel="icon" href="/icons/favicon-512x512.png">
     
     <!-- Web App Manifest -->
     <link rel="manifest" href="/site.webmanifest" />
     <meta name="theme-color" content="#2563eb" />
     
-    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
         darkMode: 'class',
@@ -63,17 +65,14 @@
                 600: '#e11d48',
               }
             },
-            scrollBehavior: {
-              smooth: 'smooth',
+            animation: {
+              'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
             }
-          },
-        },
+          }
+        }
       }
     </script>
-    <style>
-      html { scroll-behavior: smooth; }
-      body { -webkit-font-smoothing: antialiased; }
-    </style>
+
 <script type="importmap">
 {
   "imports": {
