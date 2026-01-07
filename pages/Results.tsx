@@ -104,6 +104,19 @@ const Results: React.FC = () => {
     textAlign: globalStyles.textAlign as any
   };
 
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({ 
+          title: article.title, 
+          url: window.location.href 
+        });
+      } catch (err) {
+        console.error("Share failed:", err);
+      }
+    }
+  };
+
   const renderSection = (title: string, content: string, icon: React.ReactNode, colorClass: string) => (
     <section className="mb-12 last:mb-0 group border-b border-slate-100 dark:border-slate-800 pb-10">
         <div className="flex items-center gap-4 mb-6">
@@ -140,7 +153,7 @@ const Results: React.FC = () => {
                <div className="hidden sm:flex text-[10px] font-black text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 items-center gap-2">
                   <Database size={12} /> {reportId}
                </div>
-               <button onClick={() => navigator.share && navigator.share({ title: article.title, url: window.location.href })} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-600 dark:text-slate-400 hover:bg-blue-600 hover:text-white transition-all">
+               <button onClick={handleShare} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-600 dark:text-slate-400 hover:bg-blue-600 hover:text-white transition-all">
                   <Share2 size={18} />
                </button>
             </div>

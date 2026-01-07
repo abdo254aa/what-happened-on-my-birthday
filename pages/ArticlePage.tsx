@@ -81,6 +81,19 @@ const ArticlePage: React.FC = () => {
     textAlign: globalStyles.textAlign as any
   };
 
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: articleData.title,
+          url: window.location.href
+        });
+      } catch (err) {
+        console.error("Share failed:", err);
+      }
+    }
+  };
+
   const getIcon = (type: string) => {
     switch (type) {
       case 'sparkles': return <Sparkles size={28} />;
@@ -146,7 +159,7 @@ const ArticlePage: React.FC = () => {
                <div className="hidden sm:flex text-[10px] font-black text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 items-center gap-2">
                   <Database size={12} /> {reportId}
                </div>
-               <button onClick={() => navigator.share && navigator.share({ title: articleData.title, url: window.location.href })} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-600 dark:text-slate-400 hover:bg-blue-600 hover:text-white transition-all">
+               <button onClick={handleShare} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-600 dark:text-slate-400 hover:bg-blue-600 hover:text-white transition-all">
                   <Share2 size={18} />
                </button>
             </div>
