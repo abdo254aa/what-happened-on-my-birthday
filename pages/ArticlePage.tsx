@@ -82,21 +82,16 @@ const ArticlePage: React.FC = () => {
     textAlign: globalStyles.textAlign as any
   };
 
-  const handleShare = async () => {
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: articleData.title,
-          url: window.location.href
-        });
-      } else {
-        throw new Error('Web Share API not supported');
-      }
-    } catch (err) {
-       // Fallback to clipboard if share fails (e.g. Invalid URL, unsupported, or cancelled)
-       navigator.clipboard.writeText(window.location.href);
-       setShowCopyFeedback(true);
-       setTimeout(() => setShowCopyFeedback(false), 2000);
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: articleData.title,
+        url: window.location.href,
+      }).catch(console.error);
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      setShowCopyFeedback(true);
+      setTimeout(() => setShowCopyFeedback(false), 2000);
     }
   };
 
