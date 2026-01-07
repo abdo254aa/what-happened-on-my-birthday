@@ -8,7 +8,7 @@ import {
   ArrowLeft, Sparkles, Calendar, ArrowRight, BarChart3, Clock, Globe, Zap, Users, 
   Music, Laptop, Heart, Newspaper, Loader2, Database, Share2, Trees, Radio, 
   Eye, Palette, Coffee, Utensils, Plane, Trophy, Gamepad2, GraduationCap, MessageCircle,
-  Activity, Lightbulb, Moon, Headphones, Wifi, Rocket, HelpCircle, ChevronDown
+  Activity, Lightbulb, Moon, Headphones, Wifi, Rocket, HelpCircle, ChevronDown, Check
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useSettings } from '../contexts/SettingsContext';
@@ -33,6 +33,7 @@ const Results: React.FC = () => {
   const [data, setData] = useState<BirthdayData | null>(null);
   const [stats, setStats] = useState<PersonalStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showCopyFeedback, setShowCopyFeedback] = useState(false);
 
   // SEO: Generate Metadata
   const seoData = useMemo(() => {
@@ -105,15 +106,20 @@ const Results: React.FC = () => {
   };
 
   const handleShare = async () => {
-    if (navigator.share) {
-      try {
+    try {
+      if (navigator.share) {
         await navigator.share({ 
           title: article.title, 
           url: window.location.href 
         });
-      } catch (err) {
-        console.error("Share failed:", err);
+      } else {
+        throw new Error('Web Share API not supported');
       }
+    } catch (err) {
+      // Fallback to clipboard if share fails (e.g. Invalid URL, unsupported, or cancelled)
+      navigator.clipboard.writeText(window.location.href);
+      setShowCopyFeedback(true);
+      setTimeout(() => setShowCopyFeedback(false), 2000);
     }
   };
 
@@ -153,8 +159,12 @@ const Results: React.FC = () => {
                <div className="hidden sm:flex text-[10px] font-black text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 items-center gap-2">
                   <Database size={12} /> {reportId}
                </div>
-               <button onClick={handleShare} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-600 dark:text-slate-400 hover:bg-blue-600 hover:text-white transition-all">
-                  <Share2 size={18} />
+               <button 
+                  onClick={handleShare} 
+                  className={`p-2 rounded-full transition-all ${showCopyFeedback ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-blue-600 hover:text-white'}`}
+                  aria-label="Share"
+                >
+                  {showCopyFeedback ? <Check size={18} /> : <Share2 size={18} />}
                </button>
             </div>
         </div>

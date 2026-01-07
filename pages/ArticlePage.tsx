@@ -1,5 +1,5 @@
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
 import { blogPosts } from '../data/blogPosts';
 import { getEditorialArticle } from '../services/editorialService';
@@ -7,7 +7,7 @@ import { calculatePersonalStats } from '../utils/dateUtils';
 import { 
   ArrowLeft, Clock, Share2, ArrowRight, Sparkles, Calendar, Bookmark, 
   MessageSquare, Heart, Globe, Zap, Users, Music, Laptop, Newspaper, Database, BarChart3,
-  Star, MessageCircle, Flag, Moon, Shield, Cloud, Eye, Sun, TrendingUp, Activity, Camera, Map, Coffee, Award, Book
+  Star, MessageCircle, Flag, Moon, Shield, Cloud, Eye, Sun, TrendingUp, Activity, Camera, Map, Coffee, Award, Book, Check
 } from 'lucide-react';
 import AdPlaceholder from '../components/AdPlaceholder';
 import Sidebar from '../components/Sidebar';
@@ -31,6 +31,7 @@ const ArticlePage: React.FC = () => {
   const m = Number(searchParams.get('m') || searchParams.get('month')) || (new Date().getMonth() + 1);
   const y = Number(searchParams.get('year')) || new Date().getFullYear();
   const hasSpecificYear = searchParams.has('year');
+  const [showCopyFeedback, setShowCopyFeedback] = useState(false);
 
   // Load Data
   const articleData = useMemo(() => {
@@ -82,15 +83,20 @@ const ArticlePage: React.FC = () => {
   };
 
   const handleShare = async () => {
-    if (navigator.share) {
-      try {
+    try {
+      if (navigator.share) {
         await navigator.share({
           title: articleData.title,
           url: window.location.href
         });
-      } catch (err) {
-        console.error("Share failed:", err);
+      } else {
+        throw new Error('Web Share API not supported');
       }
+    } catch (err) {
+       // Fallback to clipboard if share fails (e.g. Invalid URL, unsupported, or cancelled)
+       navigator.clipboard.writeText(window.location.href);
+       setShowCopyFeedback(true);
+       setTimeout(() => setShowCopyFeedback(false), 2000);
     }
   };
 
@@ -159,8 +165,12 @@ const ArticlePage: React.FC = () => {
                <div className="hidden sm:flex text-[10px] font-black text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 items-center gap-2">
                   <Database size={12} /> {reportId}
                </div>
-               <button onClick={handleShare} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-600 dark:text-slate-400 hover:bg-blue-600 hover:text-white transition-all">
-                  <Share2 size={18} />
+               <button 
+                  onClick={handleShare} 
+                  className={`p-2 rounded-full transition-all ${showCopyFeedback ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-blue-600 hover:text-white'}`}
+                  aria-label="Share"
+                >
+                  {showCopyFeedback ? <Check size={18} /> : <Share2 size={18} />}
                </button>
             </div>
         </div>
