@@ -3,8 +3,8 @@ import { BirthdayData } from '../types';
 import { contentPools, decadeFacts, FragmentPool } from '../data/birthdayData';
 
 /**
- * Super-Deterministic High-Fidelity Narrative Engine
- * Generates massive, SEO-friendly articles divided into 24+ major thematic Chapters.
+ * Advanced Deterministic Narrative Synthesis Engine
+ * Reconstructs professional historical archives with varied sentence structures and editorial tone.
  */
 export const fetchBirthdayInsights = async (day: number, month: number, year: number, lang: 'en' | 'ar' = 'en'): Promise<BirthdayData> => {
   const monthsEN = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -74,25 +74,33 @@ export const fetchBirthdayInsights = async (day: number, month: number, year: nu
       const s1 = getUniqueItem(poolKey, seed);
       const hook = pool.seoHooks[(baseSeed + seed) % pool.seoHooks.length];
       const filler = pool.fillers[(baseSeed + seed) % pool.fillers.length];
-      const transitions = [
-        "In fact,", "Beyond this,", "Interestingly,", "At the same time,", "What many don't realize is that", 
-        "Crucially,", "As the day unfolded,", "Hidden in this moment was the fact that"
+      
+      // Professional editorial connectors
+      const connectors = [
+        "From an archival perspective,", "Furthermore,", "The documentation suggest that", 
+        "It is notable that", "During the same cycle,", "In this specific context,", 
+        "The historical resonance of this period ensured that", "Significantly,"
       ];
-      const trans = transitions[seed % transitions.length];
+      const conn = connectors[seed % connectors.length];
 
-      const structure = (seed % 3);
+      const structure = (seed % 4);
+      // Case 0: Analytical Narrative
       if (structure === 0) return `${s1} ${filler}`;
-      if (structure === 1) return `${trans} ${s1.toLowerCase()} ${hook}`;
-      return `${s1} This reality is fascinating because ${hook.toLowerCase()}`;
+      // Case 1: Formal Synthesis
+      if (structure === 1) return `${conn} ${s1.charAt(0).toLowerCase() + s1.slice(1)} ${hook}`;
+      // Case 2: Historical Observation
+      if (structure === 2) return `${s1} This phenomenon correlates directly with ${hook.toLowerCase()}`;
+      // Case 3: Integrated Context
+      return `${filler} ${s1.charAt(0).toLowerCase() + s1.slice(1)} ${hook}`;
   };
 
-  const generateDeepDiveSection = (poolKey: keyof FragmentPool, sectionIndex: number): string => {
+  const generateSection = (poolKey: keyof FragmentPool, sectionIndex: number): string => {
+      // Build 3 structurally unique sentences to form a concise, professional paragraph
+      // We keep it to 3 to satisfy "without increasing paragraph length" for results
       const s1 = buildSentence(poolKey, sectionIndex * 100);
-      const s2 = buildSentence(poolKey, (sectionIndex * 100) + 20);
-      const s3 = buildSentence(poolKey, (sectionIndex * 100) + 40);
-      const s4 = buildSentence(poolKey, (sectionIndex * 100) + 60);
-      const s5 = buildSentence(poolKey, (sectionIndex * 100) + 80);
-      return replacePlaceholders(`<p>${s1} ${s2} ${s3} ${s4} ${s5}</p>`);
+      const s2 = buildSentence(poolKey, (sectionIndex * 100) + 17);
+      const s3 = buildSentence(poolKey, (sectionIndex * 100) + 34);
+      return replacePlaceholders(`<p>${s1} ${s2} ${s3}</p>`);
   };
 
   const getThematicTitle = (type: keyof typeof pool.thematicTitles, offset: number): string => {
@@ -103,67 +111,67 @@ export const fetchBirthdayInsights = async (day: number, month: number, year: nu
 
   const article = {
     title: lang === 'ar' 
-      ? `الأرشيف الكوني الشامل: أسرار يوم ${day} ${monthNameAR} ${year}` 
-      : `The Cosmic Story: Unveiling the Magic of ${monthNameEN} ${day}, ${year}`,
+      ? `الأرشيف التاريخي المتكامل: تحليل يوم ${day} ${monthNameAR} ${year}` 
+      : `Archival Reconstruction: The Complete Record of ${monthNameEN} ${day}, ${year}`,
     intro: replacePlaceholders(pool.intros[baseSeed % pool.intros.length]),
     
     eventsTitle: getThematicTitle('geopolitics', 1),
-    eventsContent: generateDeepDiveSection('history', 1),
+    eventsContent: generateSection('history', 1),
     seasonTitle: getThematicTitle('socioEconomy', 2),
-    seasonContent: generateDeepDiveSection('economy', 2),
+    seasonContent: generateSection('economy', 2),
     famousPeopleTitle: getThematicTitle('culturalLegacy', 3),
-    famousPeopleContent: generateDeepDiveSection('culture', 3),
+    famousPeopleContent: generateSection('culture', 3),
     gamingTitle: getThematicTitle('gamingLife', 16),
-    gamingContent: generateDeepDiveSection('gaming', 16),
+    gamingContent: generateSection('gaming', 16),
     healthTitle: getThematicTitle('healthWellness', 19),
-    healthContent: generateDeepDiveSection('health', 19),
+    healthContent: generateSection('health', 19),
     rhythmTitle: getThematicTitle('rhythmBeats', 22),
-    rhythmContent: generateDeepDiveSection('culture', 22),
+    rhythmContent: generateSection('culture', 22),
     technologyTitle: getThematicTitle('scientificFrontier', 4),
-    technologyContent: generateDeepDiveSection('science', 4),
+    technologyContent: generateSection('science', 4),
     mediaTitle: getThematicTitle('mediaEvolution', 5),
-    mediaContent: generateDeepDiveSection('lifestyle', 5),
+    mediaContent: generateSection('lifestyle', 5),
     schoolTitle: getThematicTitle('schoolDays', 17),
-    schoolContent: generateDeepDiveSection('school', 17),
+    schoolContent: generateSection('school', 17),
     wisdomTitle: getThematicTitle('wisdomPhilosophy', 20),
-    wisdomContent: generateDeepDiveSection('philosophy', 20),
+    wisdomContent: generateSection('philosophy', 20),
     digitalTitle: getThematicTitle('digitalFootprint', 23),
-    digitalContent: generateDeepDiveSection('science', 23),
+    digitalContent: generateSection('science', 23),
     culinaryTitle: getThematicTitle('culinaryWorld', 13),
-    culinaryContent: generateDeepDiveSection('culinary', 13),
+    culinaryContent: generateSection('culinary', 13),
     environmentalTitle: getThematicTitle('environmentalContext', 6),
-    environmentalContent: generateDeepDiveSection('analysis', 6),
+    environmentalContent: generateSection('analysis', 6),
     travelTitle: getThematicTitle('travelHorizons', 14),
-    travelContent: generateDeepDiveSection('travel', 14),
+    travelContent: generateSection('travel', 14),
     sportsTitle: getThematicTitle('sportsSpirit', 15),
-    sportsContent: generateDeepDiveSection('sports', 15),
+    sportsContent: generateSection('sports', 15),
     socialTitle: getThematicTitle('socialVibe', 18),
-    socialContent: generateDeepDiveSection('social', 18),
+    socialContent: generateSection('social', 18),
     mysticalTitle: getThematicTitle('mysticalVibes', 21),
-    mysticalContent: generateDeepDiveSection('horoscopeInsights', 21),
+    mysticalContent: generateSection('horoscopeInsights', 21),
     cosmicTitle: getThematicTitle('cosmicConnections', 24),
-    cosmicContent: generateDeepDiveSection('horoscopeInsights', 24),
+    cosmicContent: generateSection('horoscopeInsights', 24),
     aestheticTitle: getThematicTitle('aestheticTrends', 7),
-    aestheticContent: generateDeepDiveSection('culture', 7), 
+    aestheticContent: generateSection('culture', 7), 
     generationTitle: getThematicTitle('dailyLife', 8),
-    generationContent: generateDeepDiveSection('lifestyle', 8),
+    generationContent: generateSection('lifestyle', 8),
     futureTitle: getThematicTitle('futureVisions', 9),
-    futureContent: generateDeepDiveSection('history', 9),
+    futureContent: generateSection('history', 9),
     entertainmentTitle: getThematicTitle('behavioralAnalysis', 10),
-    entertainmentContent: generateDeepDiveSection('analysis', 10),
+    entertainmentContent: generateSection('analysis', 10),
     whySpecialTitle: getThematicTitle('psychologicalProfile', 11),
-    whySpecialContent: generateDeepDiveSection('psychology', 11),
+    whySpecialContent: generateSection('psychology', 11),
     careerTitle: getThematicTitle('careerPath', 12),
-    careerContent: generateDeepDiveSection('career', 12),
-    conclusionTitle: lang === 'ar' ? `خاتمة: قصتك لم تنتهِ بعد` : `Your Story is Only Beginning`,
-    conclusionContent: replacePlaceholders(pool.conclusions[baseSeed % pool.conclusions.length] + " " + pool.conclusions[(baseSeed + 2) % pool.conclusions.length])
+    careerContent: generateSection('career', 12),
+    conclusionTitle: lang === 'ar' ? `خلاصة التقرير: الأثر التاريخي المستمر` : `Summary: Your Enduring Historical Legacy`,
+    conclusionContent: replacePlaceholders(pool.conclusions[baseSeed % pool.conclusions.length])
   };
 
   return {
     article: article as any,
-    historicalEvents: [{ year: String(year), event: `The world witnessed a unique alignment of events as you arrived.` }],
+    historicalEvents: [{ year: String(year), event: `The global narrative shifted significantly as your arrival synchronized with these documented historical cycles.` }],
     famousPeople: [],
-    funFacts: ["Storymaker", "Cosmic Voyager", "Iconic Native", "History Builder"],
+    funFacts: ["Generational Architect", "Legacy Custodian", "Historical Synthesis Expert", "Visionary Leader"],
     generatedArticles: []
   };
 };

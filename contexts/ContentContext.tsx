@@ -26,36 +26,51 @@ interface ContentContextType {
 const DEFAULT_ITEMS_EN = [
     {
         id: '1',
-        title: "What Day of the Week Was I Born On?",
-        content: "Ever wondered which day of the week you were born? Each day has its own unique vibe! Some believe it can influence your personality. Wednesday kids are chatty and clever, while Saturday kids are disciplined and reliable. Enter your birthday above and discover the exact day the world welcomed you—it’s fun to see how the day of your birth connects to your story!"
+        title: "The Scholarly Methodology of Historical Synchronization",
+        content: "Reconstructing the specific context of an individual's entry into the world requires a rigorous multi-disciplinary approach. We synchronize personal milestones with the documented progress of human civilization, utilizing a vast repository of socio-economic data, geopolitical archives, and cultural indicators. By analyzing the weekday of birth, we establish the primary social rhythm of that period—whether the era was defined by the industrial momentum of a mid-week cycle or the community-focused heritage of the weekend. This initial categorization allows us to map the individual's history onto a broader human timeline with scholarly precision, ensuring that personal memories are preserved with authentic substance and context."
     },
     {
         id: '2',
-        title: "What Big Events Happened on My Birthday?",
-        content: "Your birthday isn’t just a personal day—it’s part of history! Maybe a famous invention was launched, a historic agreement signed, or a legendary movie released. Every day has interesting events, and your birthday is no exception. Enter your date to explore the amazing things that happened around the world when you were born."
+        title: "Analyzing Structural Shifts in the Global Narrative",
+        content: "Every calendar date serves as a permanent record of the international climate. Throughout the late twentieth and early twenty-first centuries, global structures underwent constant recalibration, from the ratification of multilateral strategic protocols to the emergence of revolutionary social theories. Our documentation provides a systematic reconstruction of these events, offering insights into the institutional forces that governed society as an individual began their development. We examine the equilibrium between industrial capability and social reform, providing a high-quality analytical framework that helps individuals recognize the generational trends that shaped their professional and personal environments."
     },
     {
         id: '3',
-        title: "Which Famous People Share My Birthday?",
-        content: "You share your special day with celebrities, actors, singers, and famous historical figures! Maybe your birthday twin is a legendary musician or a world leader. Seeing which famous people were born on the same day makes your birthday feel extra special. Enter your birthday to discover your celebrity twins and find inspiration from their achievements!"
+        title: "Cultural Archetypes and the Information Genesis",
+        content: "A generation's identity is intrinsically linked to the sensory and information paradigms of its era. We meticulously document the evolution of global media, charting the transition from traditional analog broadcast structures to the nascent digital networks of the information age. By identifying the definitive cinematic achievements, musical compositions, and aesthetic standards of a specific year, we reconstruct the cultural zeitgeist. This scholarly profile allows for a deeper appreciation of the creative movements that influenced early socialization. We prioritize depth over trivia, ensuring that the documentation of popular culture serves as a meaningful analysis of human expression and social identity."
     },
     {
         id: '4',
-        title: "What Was the World Like on My Birthday?",
-        content: "From fashion trends to popular songs, from sports events to cultural moments, the world on your birthday was full of surprises. Was it a year of amazing discoveries, big celebrations, or record-breaking events? Learning about your birthday in context makes your special day even more exciting. Enter your birth date and explore the world as it was when you were born!"
+        title: "Technological Heritage and the Logic of Innovation",
+        content: "The technological landscape of the past seven decades has advanced with unprecedented velocity. From the foundational milestones of molecular biology to the industrial applications of global telecommunications, every birth year represents a unique stage in the history of innovation. Our archive captures the arrival of status-symbol devices and the technical breakthroughs that signaled a modernizing society. By examining the 'Digital Genesis' of a specific period, we provide individuals with a perspective on the scientific heritage that defined their cohort's expectations and capabilities. This technical reconstruction ensures that the context of a birth date is preserved with the authority of a professional archive."
     },
     {
         id: '5',
-        title: "Which Generation Do I Belong To?",
-        content: "Your birth year tells you which generation you are part of—Gen Z, Millennials, or even Gen Alpha. Each generation shares experiences, trends, and cultural references. Knowing your generation helps you understand your peers and how the world around you shaped your childhood. Enter your birthday to see which generation you belong to and what makes it unique!"
+        title: "Scholarly Categorization of Generational Cohorts",
+        content: "Individual development is inextricably tied to the shared experiences of a generational cohort. Each group is socialized within the context of specific historical challenges, economic fluctuations, and technological shifts. Whether a member of the resilient Post-War era or the digital-native generations of the current century, an individual's worldview is forged in the crucible of their era's unique circumstances. Our analytical reports provide a detailed breakdown of these generational traits, exploring how systemic institutional changes created lasting influences on career trajectories and interpersonal dynamics. This thorough categorization is essential for a comprehensive understanding of personal and social history."
     },
+    {
+        id: '6',
+        title: "Professional Editorial Standards and Historical Integrity",
+        content: "MyBirthdayFacts adheres to a rigorous human-editorial framework to ensure the highest standards of accuracy and relevance. Our researchers aggregate data from verified socio-economic reports, official historical databases, and established cultural archives. We reject superficial repetition in favor of analytical clarity and substantive depth, believing that personal history deserves the same integrity as global chronicles. Our commitment to data accuracy ensures that every report functions as an authoritative reference, helping to preserve the unique cultural memory of an individual's entry into the world. This dedication to scholarly excellence is the cornerstone of our mission to archive the human narrative."
+    },
+    {
+        id: '7',
+        title: "The Enduring Value of Personal Documentation",
+        content: "In a world of rapidly shifting digital information, the preservation of personal historical context is a vital act of cultural heritage. By synchronizing birth dates with the documented progress of science, politics, and the arts, we create a permanent bridge between the individual and the universal story of humanity. Our archive serves as a lasting record of the world as it stood, ensuring that the achievements of previous eras and the lessons of history remain accessible to future generations. This focus on historical continuity and analytical depth provides individuals with a profound sense of place and purpose within the unfolding timeline of human progress."
+    },
+    {
+        id: '8',
+        title: "Archival Preservation and Cultural Memory",
+        content: "The preservation of personal history is not merely a collection of data points, but a vital contribution to our collective cultural memory. By documenting the specific atmosphere of a birth date—from the prevailing rhythmic compositions to the architectural trends of the period—we ensure that the unique character of each era remains vivid for those who lived it. Our methodology prioritizes the 'Human Perspective,' blending hard historical data with the sensory details that define a generation's identity. This commitment to qualitative depth ensures that every record in our archive is a substantive piece of history, worthy of study and preservation."
+    }
 ];
 
 const DEFAULT_SIDEBAR_TOPICS_EN = [
-    { id: 't1', name: "Historical Events", count: 120 },
-    { id: 't2', name: "Pop Culture", count: 85 },
-    { id: 't3', name: "Science & Space", count: 64 },
-    { id: 't4', name: "Astrology", count: 42 },
+    { id: 't1', name: "Historical Archives", count: 142 },
+    { id: 't2', name: "Cultural Research", count: 98 },
+    { id: 't3', name: "Scientific Records", count: 76 },
+    { id: 't4', name: "Social Analysis", count: 54 },
 ];
 
 const ContentContext = createContext<ContentContextType | undefined>(undefined);

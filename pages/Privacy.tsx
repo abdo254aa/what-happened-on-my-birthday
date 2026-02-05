@@ -25,20 +25,32 @@ const Privacy: React.FC = () => {
 
               <AdPlaceholder slot="content" />
 
-              <h2 className="text-2xl font-black text-slate-900 dark:text-white mt-12 mb-4">2. Information We Collect</h2>
+              <h2 className="text-2xl font-black text-slate-900 dark:text-white mt-12 mb-4">2. Google AdSense and Cookies</h2>
               <p className="mb-6">
-                <strong>Information you provide:</strong> We collect the birth date (day, month, year) you enter into our forms. This information is used solely to generate the content displayed on the results page and is not stored in any permanent database linked to your identity.
+                We use Google AdSense to serve advertisements on our site. Google, as a third-party vendor, uses cookies to serve ads on your site. Google's use of the <strong>DART cookie</strong> enables it to serve ads to your users based on their visit to your sites and other sites on the Internet.
               </p>
               <p className="mb-6">
-                <strong>Usage Data:</strong> We may automatically collect certain information when you visit, use, or navigate the Website. This may include device and usage information, such as your IP address, browser and device characteristics.
+                Users may opt out of the use of the DART cookie by visiting the Google ad and content network privacy policy. Third-party ad servers or ad networks use technology to the advertisements and links that appear on MyBirthdayFacts.
               </p>
 
-              <h2 className="text-2xl font-black text-slate-900 dark:text-white mt-12 mb-4">3. Use of Cookies and Ads</h2>
+              <h2 className="text-2xl font-black text-slate-900 dark:text-white mt-12 mb-4">3. GDPR and CCPA Compliance</h2>
               <p className="mb-6">
-                  <strong>Google AdSense:</strong> We use Google AdSense to display advertisements. Google uses cookies to serve ads based on your prior visits to our website. Google's use of advertising cookies enables it and its partners to serve ads to you based on your visit to our sites.
+                If you are a resident of the European Economic Area (EEA) or California, you have certain data protection rights. We aim to take reasonable steps to allow you to correct, amend, delete, or limit the use of your Personal Data.
               </p>
-              
-              <h2 className="text-2xl font-black text-slate-900 dark:text-white mt-12 mb-4">4. Contact Us</h2>
+              <ul className="list-disc pl-6 mb-6">
+                <li>The right to access, update or delete the information we have on you.</li>
+                <li>The right of rectification.</li>
+                <li>The right to object.</li>
+                <li>The right of restriction.</li>
+                <li>The right to data portability.</li>
+              </ul>
+
+              <h2 className="text-2xl font-black text-slate-900 dark:text-white mt-12 mb-4">4. Information We Collect</h2>
+              <p className="mb-6">
+                <strong>User Input:</strong> We collect the birth date (day, month, year) you enter into our forms. This information is processed in real-time to generate your personalized report and is not stored permanently against your identity.
+              </p>
+
+              <h2 className="text-2xl font-black text-slate-900 dark:text-white mt-12 mb-4">5. Contact Us</h2>
               <p className="mb-6">
                   If you have questions or comments about this policy, you may email us via our contact page.
               </p>

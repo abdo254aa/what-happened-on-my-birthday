@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ArrowRight, ChevronRight, Newspaper, Loader2, ArrowLeft, Gift, Sparkles, Calendar, BookOpen } from 'lucide-react';
+import { ArrowRight, ChevronRight, Newspaper, Loader2, ArrowLeft, Gift, Sparkles, Calendar, BookOpen, ShieldCheck } from 'lucide-react';
 import AdPlaceholder from '../components/AdPlaceholder';
 import Sidebar from '../components/Sidebar';
 import SEOHead from '../components/SEOHead';
@@ -55,8 +56,8 @@ const Home: React.FC = () => {
     <div className="flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950 font-sans text-slate-900 dark:text-slate-100 transition-colors duration-300" dir={dir}>
       
       <SEOHead 
-        title="What Happened On My Birthday? Events & Famous Birthdays" 
-        description="Discover what happened on your birthday. Explore historical events, famous people born on your date, and who shares your birthday."
+        title="Historical Birthday Archive: Events, Icons & Era Reconstruction" 
+        description="Access a professional historical reconstruction of your birth date. Documenting geopolitical milestones, cultural zeitgeist, and generational profiles for the last 70 years."
         type="website"
       />
 
@@ -71,21 +72,21 @@ const Home: React.FC = () => {
             
             <main className="lg:col-span-8 space-y-6 order-1 lg:order-1">
                 
-                {/* HERO SECTION - REFINED TITLE SIZE AND SPACING */}
+                {/* HERO SECTION */}
                 <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-slate-800 p-6 md:p-8 relative overflow-hidden shadow-lg shadow-slate-200/40 dark:shadow-none">
                      <div className={`absolute top-0 ${language === 'ar' ? 'left-0' : 'right-0'} w-96 h-96 bg-blue-500/5 dark:bg-blue-500/10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none`}></div>
                     
                     <div className="relative z-10 text-center md:text-left rtl:md:text-right">
                         <div className="inline-flex items-center gap-2 mb-3 bg-blue-50 dark:bg-blue-900/20 px-3 py-1 rounded-full border border-blue-100 dark:border-blue-800/50 text-blue-600 dark:text-blue-400 text-[10px] font-black uppercase tracking-widest mx-auto md:mx-0">
-                           <Gift size={12} /> {t('site_name_part1')}{' '}{t('site_name_part2')}
+                           <ShieldCheck size={12} /> Verified Historical Repository
                         </div>
                         
                         <h1 className="font-display font-black text-xl sm:text-2xl md:text-3xl lg:text-4xl text-slate-900 dark:text-white mb-4 tracking-normal leading-snug">
                             {t('hero_title_1')} <span className="text-blue-600 dark:text-blue-500">{t('hero_title_2')}</span>
                         </h1>
                         
-                        <p className="text-slate-500 dark:text-slate-400 mb-6 font-medium text-base md:text-lg max-w-2xl mx-auto md:mx-0 leading-relaxed">
-                            {t('hero_subtitle')}
+                        <p className="text-slate-500 dark:text-slate-400 mb-6 font-medium text-base md:text-lg max-w-2xl mx-auto md:mx-0 leading-relaxed text-justify">
+                            Our database provides a rigorous analytical reconstruction of the world as it stood on the morning of your arrival. We synchronize individual milestones with documented geopolitical shifts and cultural evolutions.
                         </p>
                         
                         <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-5 md:p-6 border border-slate-100 dark:border-slate-700/50 shadow-sm">
@@ -128,19 +129,34 @@ const Home: React.FC = () => {
                     </div>
                 </div>
 
-                {/* UNIFIED DESCRIPTION SECTION */}
+                {/* EXPANDED CONTENT DESCRIPTION - ENRICHED FOR ADSENSE */}
                 <div className="bg-white dark:bg-slate-900 p-8 md:p-12 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm">
                     <div className="flex flex-col">
                         {descriptionItems.map((item, idx) => (
-                            <div key={item.id} className={idx !== 0 ? "mt-4" : ""}>
-                                <h3 className="font-display font-black text-2xl md:text-3xl text-slate-900 dark:text-white mb-2 leading-tight">
+                            <div key={item.id} className={idx !== 0 ? "mt-10" : ""}>
+                                <h3 className="font-display font-black text-2xl md:text-3xl text-slate-900 dark:text-white mb-4 leading-tight">
                                     {item.title}
                                 </h3>
-                                <p className="text-slate-800 dark:text-slate-200 text-xl md:text-2xl font-medium leading-relaxed text-justify mb-0">
+                                <p className="text-slate-700 dark:text-slate-300 text-lg md:text-xl font-medium leading-relaxed text-justify mb-0">
                                     {item.content}
                                 </p>
                             </div>
                         ))}
+                    </div>
+                    
+                    {/* ADDED EDITORIAL METHODOLOGY SECTION DIRECTLY ON HOME */}
+                    <div className="mt-16 pt-12 border-t border-slate-100 dark:border-slate-800">
+                        <div className="flex items-center gap-4 mb-6">
+                            <div className="p-3 rounded-2xl bg-blue-50 dark:bg-blue-900/20 text-blue-600">
+                                <BookOpen size={28} />
+                            </div>
+                            <h2 className="font-display font-black text-2xl md:text-3xl text-slate-900 dark:text-white tracking-tight">
+                                Our Editorial Methodology
+                            </h2>
+                        </div>
+                        <p className="text-slate-700 dark:text-slate-300 text-lg font-medium leading-relaxed text-justify">
+                            The archival data presented by MyBirthdayFacts is the result of a rigorous multi-step analytical process. We aggregate primary historical sources, socio-economic reports, and documented cultural milestones to create a comprehensive snapshot of a specific point in history. Our editorial board prioritizes substance and depth, ensuring that every insight moves beyond mere trivia to offer genuine analytical value. By synchronizing personal birth dates with the broader human narrative, we aim to preserve cultural memory and provide a profound understanding of the forces that shape our identities.
+                        </p>
                     </div>
                 </div>
                 
