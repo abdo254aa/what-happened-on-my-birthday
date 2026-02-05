@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { GoogleGenAI } from "@google/genai";
 import { Loader2, Sparkles, ImageOff } from 'lucide-react';
@@ -23,7 +24,7 @@ const AIImage: React.FC<AIImageProps> = ({ prompt, fallbackGradient, alt, classN
 
   useEffect(() => {
     let isMounted = true;
-    const cacheKey = `ai_img_${btoa(unescape(encodeURIComponent(prompt))).substring(0, 40)}`;
+    const cacheKey = `archival_img_${btoa(unescape(encodeURIComponent(prompt))).substring(0, 40)}`;
 
     const generateImage = async (retryCount = 0): Promise<void> => {
       // 1. Check Memory Cache first
@@ -103,7 +104,7 @@ const AIImage: React.FC<AIImageProps> = ({ prompt, fallbackGradient, alt, classN
 
           if (retryCount < 2) { 
             const delay = Math.pow(3, retryCount) * 4000 + Math.random() * 2000;
-            console.warn(`AI Image: Rate limited (429). Retrying in ${Math.round(delay)}ms...`);
+            console.warn(`Visual Documentation: Rate limited (429). Retrying in ${Math.round(delay)}ms...`);
             setTimeout(() => {
               if (isMounted) generateImage(retryCount + 1);
             }, delay);
@@ -111,7 +112,7 @@ const AIImage: React.FC<AIImageProps> = ({ prompt, fallbackGradient, alt, classN
           }
         }
 
-        console.error("AI Image Generation Error:", err);
+        console.error("Visual Record Retrieval Error:", err);
         if (isMounted) {
           setError(true);
           setLoading(false);
@@ -151,7 +152,7 @@ const AIImage: React.FC<AIImageProps> = ({ prompt, fallbackGradient, alt, classN
       />
       <div className="absolute top-2 right-2 bg-black/40 backdrop-blur-md px-2 py-1 rounded-md z-10 border border-white/10">
          <span className="text-[8px] font-black text-white/90 uppercase tracking-widest flex items-center gap-1">
-            <Sparkles size={10} className="text-blue-400" /> AI Visual
+            <Sparkles size={10} className="text-blue-400" /> Historical Illustration
          </span>
       </div>
     </div>
