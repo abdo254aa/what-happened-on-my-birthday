@@ -1,4 +1,3 @@
-
 export interface EditorialSection {
   title: string;
   content: string;
@@ -21,57 +20,57 @@ export interface EditorialTemplate {
 export const editorialTemplates: Record<string, EditorialTemplate> = {
   'famous-birthdays': {
     id: 'famous-birthdays',
-    category: 'Celebrity Culture',
-    readTime: '15 min read',
+    category: 'Celebrity & Icons Spotlight',
+    readTime: '6 min read',
     imageGradient: 'from-amber-400 to-orange-600',
-    title: 'Historical Report: Who Shares a Birthday on {date}?',
-    intro: 'Take a deep look at the history and the legends who share your special day.',
-    sections: [], // Populated dynamically by service
-    conclusionTitle: 'Your Legacy is Waiting',
-    conclusionContent: 'Being born on {date} puts you in a group of stars. Go out there and shine!'
+    title: 'Famous Birthdays on {date}',
+    intro: 'Every calendar date has its own star-studded guest list, and {date} shines brighter than most! From silver-screen legends and chart-topping musicians to trailblazing thinkers, the icons born on this day share an unmistakable spark of charisma and ambition. Step inside our VIP birthday lounge to discover the remarkable figures who blow out their candles right alongside you on {date}.',
+    sections: [],
+    conclusionTitle: 'Your Spot on the Red Carpet',
+    conclusionContent: 'Sharing {date} with such unforgettable legends proves that your birthday carries a legacy of bold creativity and star power. Whenever your special day arrives, celebrate knowing you are in truly iconic company!'
   },
   'famous-birthday-twins': {
     id: 'famous-birthday-twins',
-    category: 'Celebrity Profiles',
-    readTime: '18 min read',
+    category: 'Twin Star Profiles',
+    readTime: '6 min read',
     imageGradient: 'from-blue-500 to-indigo-700',
-    title: 'Celebrity Twins: Finding Your Star Match for {date}',
-    intro: 'Ever wondered which Hollywood icon or musical legend acts as your spiritual twin? The stars of {date} reveal a fascinating pattern of talent and fame.',
-    sections: [], // Populated dynamically by service
-    conclusionTitle: 'Walk the Red Carpet of Life',
-    conclusionContent: 'Your birthday twins prove that greatness is in your DNA. Embrace your star power.'
+    title: 'Celebrity Twins on {date}',
+    intro: 'Have you ever wondered which world-famous stars share the exact same birthday spotlight as {date}? Having a celebrity birthday twin is like sharing a secret cosmic handshake with the worlds of Hollywood, music, and sports. Let us pull back the velvet curtain and meet the inspiring icons who call {date} their birthday too!',
+    sections: [],
+    conclusionTitle: 'Twins in Spirit and Sparkle',
+    conclusionContent: 'Your celebrity birthday twins on {date} show that passion, originality, and heart can light up the entire world. Keep shining in your own unique way—you share a calendar day built for greatness!'
   },
   'history-of-birthdays': {
     id: 'history-of-birthdays',
-    category: 'Historical Archive',
-    readTime: '20 min read',
+    category: 'Time-Travel Chronicles',
+    readTime: '7 min read',
     imageGradient: 'from-slate-800 to-slate-950',
-    title: 'The Full Timeline: Major Events of {date}',
-    intro: 'Let’s explore the complex facts and seismic shifts that happened around the world on this day in history.',
-    sections: [], // Populated dynamically by service
-    conclusionTitle: 'You are the Future',
-    conclusionContent: 'Every event on {date} contributes to the rich tapestry of history. You are a key part of it.'
+    title: 'Historical Events of {date}',
+    intro: 'If the calendar pages of {date} could talk, they would tell stories of jaw-dropping breakthroughs, cultural Plot Twists, and moments that changed the world forever! Across the centuries, this exact date has served as the stage for bold explorers, dazzling inventions, and unforgettable celebrations. Grab your backstage pass to history as we uncover the most fascinating moments that happened on {date}.',
+    sections: [],
+    conclusionTitle: 'A Date Written in History',
+    conclusionContent: 'From grand turning points to cultural milestones, {date} is woven right into the most exciting chapters of human history. Every year, you get to add your own unforgettable story to this extraordinary calendar date!'
   },
   'zodiac-magic-guide': {
     id: 'zodiac-magic-guide',
-    category: 'Astrology',
-    readTime: '12 min read',
+    category: 'Astrology & Cosmic Style',
+    readTime: '6 min read',
     imageGradient: 'from-purple-600 to-indigo-900',
-    title: 'Stars of {date}: What the Universe Says About You',
-    intro: 'The planetary alignment on {date} carries a unique cosmic signature designed to welcome a visionary into the world.',
-    sections: [], // Populated dynamically by service
-    conclusionTitle: 'Trust Your Universal Energy',
-    conclusionContent: 'Use your natural celestial strengths to guide you. You were born for greatness.'
+    title: 'Horoscope Secrets for {date}',
+    intro: 'There is a special kind of stardust woven into {date}, blending cosmic magnetism with an irresistible personality glow! People born on this exact day carry a unique astrological signature that sets them apart in any room they enter. Ready to unlock the celestial vault and discover the hidden superpowers, secret quirks, and cosmic destiny written in the stars for {date}?',
+    sections: [],
+    conclusionTitle: 'Embrace Your Cosmic Glow',
+    conclusionContent: 'The stars on {date} gifted you with a rare blend of intuition, charm, and unstoppable drive. Trust your inner compass, let your natural magic shine, and watch how effortlessly the universe meets you halfway!'
   },
   'birthday-love-compatibility': {
     id: 'birthday-love-compatibility',
-    category: 'Relationships',
-    readTime: '14 min read',
+    category: 'Love & Star Chemistry',
+    readTime: '6 min read',
     imageGradient: 'from-pink-500 to-rose-700',
-    title: 'Birthday Love Match: Romance Secrets for {date}',
-    intro: 'How does your birth on {date} influence your heart? We analyze the romantic vibrations of this specific day.',
-    sections: [], // Populated dynamically by service
-    conclusionTitle: 'Love is Your North Star',
-    conclusionContent: 'Finding a match is about understanding the resonance of your birth. Follow your heart.'
+    title: 'Birthday Love Compatibility',
+    intro: 'When it comes to romance, friendship, and undeniable chemistry, the energy of {date} is pure magnetism! Your birth date holds the key to how you fall in love, what makes your heart skip a beat, and which zodiac signs naturally vibe with your wavelength. Let us dive into the cosmic love playbook for {date} and uncover the secrets to your most magical connections!',
+    sections: [],
+    conclusionTitle: 'Written in the Stars',
+    conclusionContent: 'Whether you are sparks-flying with a soulmate or building lifelong friendships, the heart of {date} loves deeply, loyally, and unforgettable. Stay true to your authentic warmth, and the right people will always gravitate to your orbit!'
   }
 };

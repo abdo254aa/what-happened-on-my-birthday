@@ -1,4 +1,3 @@
-
 import { MONTHS } from "../types";
 
 export const generateResultsMetadata = (day: number, month: number, year: number, lang: 'en' | 'ar') => {
@@ -7,14 +6,14 @@ export const generateResultsMetadata = (day: number, month: number, year: number
   
   if (lang === 'ar') {
     return {
-      title: `ماذا حدث في يوم ${day} ${month} ${year}؟ - تقرير شامل`,
-      description: `اكتشف حقائق تاريخ ميلادك ليوم ${day} ${month} ${year}. أحداث تاريخية، مشاهير، برجي الفلكي، وشخصية جيلك في تقرير واحد مفصل.`
+      title: `ماذا حدث في يوم ${day} ${month} ${year}؟ - السجل التاريخي والواقعي`,
+      description: `تقرير مفصل وواقعي ليوم ${day} ${month} ${year}: تكاليف المعيشة والأسعار وقتها، الأحداث الموثقة، التكنولوجيا السائدة، وخصائص جيلك بدون مبالغة.`
     };
   }
 
   return {
-    title: `What Happened on ${dateStr}? Full Birthday Profile & Facts`,
-    description: `Uncover your birthday's historical significance on ${dateStr}. Explore detailed birthday insights including celebrity sharers, notable events, and numerology. Use our easy tools to see your birth day’s week, generation, and days remaining.`
+    title: `What Happened on ${dateStr}? Real Historical & Cost-of-Living Record`,
+    description: `Examine the factual record for ${dateStr}: real cost of living (home prices, fuel, wages), documented headlines, technology specs, and honest generational insights.`
   };
 };
 
@@ -35,34 +34,26 @@ export const generateFAQSchema = (stats: any, day: number, month: number, year: 
       "mainEntity": [
         {
           "@type": "Question",
-          "name": `What day of the week was ${dateStr}?`,
+          "name": `What exact day of the week was ${dateStr}?`,
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": `According to the calendar, ${dateStr} fell on a ${stats.dayOfWeekBorn}.`
+            "text": `${dateStr} fell on a ${stats.dayOfWeekBorn}. Your next birthday will fall on a ${stats.nextBirthdayDayOfWeek} in ${stats.daysUntilNextBirthday} days.`
           }
         },
         {
           "@type": "Question",
-          "name": `What is the zodiac sign for ${monthName} ${day}?`,
+          "name": `How many exact days, months, and years have passed since ${dateStr}?`,
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": `People born on ${monthName} ${day} belong to the ${stats.zodiacSign} zodiac sign.`
+            "text": `Someone born on ${dateStr} is currently ${stats.exactAge.years} years, ${stats.exactAge.months} months, and ${stats.exactAge.days} days old—which equals approximately ${stats.totalDaysAlive.toLocaleString()} total days lived.`
           }
         },
         {
           "@type": "Question",
-          "name": `How many days have passed since ${year}?`,
+          "name": `What is the calendar zodiac sign for ${monthName} ${day}?`,
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": `As of today, approximately ${stats.totalDaysAlive} days have passed since this date.`
-          }
-        },
-        {
-          "@type": "Question",
-          "name": `Who shares a birthday with me on ${monthName} ${day}?`,
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": `You share your birthday with many historical figures and celebrities. Check our detailed "Famous People" section to see your birthday twins.`
+            "text": `In the Western astrological calendar, ${monthName} ${day} falls under the sign of ${stats.zodiacSign}.`
           }
         }
       ]
