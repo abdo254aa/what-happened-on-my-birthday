@@ -42,15 +42,13 @@ const Header: React.FC = () => {
 
   return (
     <header className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-b border-slate-100 dark:border-slate-800 sticky top-0 z-50 shadow-sm transition-all duration-300">
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16 md:h-20 gap-2 md:gap-4">
+      <div className="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-15 md:h-[68px] gap-2 md:gap-4">
           
-          <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
-            <Link to="/" className="flex items-center gap-3 group">
-              {/* Increased Icon Size */}
-              <Gift size={32} className="text-blue-600 dark:text-blue-500 drop-shadow-md md:w-9 md:h-9" />
-              {/* Slightly reduced Title Font Size based on user request */}
-              <span className="font-display font-black text-lg md:text-2xl tracking-tighter text-slate-900 dark:text-white leading-none whitespace-nowrap hidden lg:block">
+          <div className="flex items-center gap-2 md:gap-3.5 flex-shrink-0">
+            <Link to="/" className="flex items-center gap-2.5 group">
+              <Gift size={28} className="text-blue-600 dark:text-blue-500 drop-shadow-md md:w-8 md:h-8" />
+              <span className="font-display font-black text-lg md:text-[21px] tracking-tight text-slate-900 dark:text-white leading-none whitespace-nowrap hidden lg:block">
                 {t('site_name_part1')}{' '}<span className="text-blue-600 dark:text-blue-400">{t('site_name_part2')}</span>
               </span>
             </Link>
@@ -58,7 +56,7 @@ const Header: React.FC = () => {
 
           {/* تصميم شريط البحث الموحد المأخوذ من الصورة */}
           <div className="flex-1 flex justify-center min-w-0 px-2 md:px-0">
-              <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full flex items-center shadow-sm h-11 md:h-12 w-full max-w-[480px] overflow-hidden p-1.5">
+              <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full flex items-center shadow-sm h-10 md:h-[44px] w-full max-w-[460px] overflow-hidden p-1.5">
                   
                   {/* قسم السنة */}
                   <div className="flex-1 relative h-full flex items-center">

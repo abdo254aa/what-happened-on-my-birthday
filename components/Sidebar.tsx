@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { HelpCircle, Star, History, Sparkles, Heart, Crown, TrendingUp, BookOpen, ArrowLeft, ArrowRight } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -98,68 +97,68 @@ const Sidebar: React.FC = () => {
   const ChevronIcon = dir === 'rtl' ? ArrowLeft : ArrowRight;
 
   return (
-    <div className="flex flex-col gap-6 w-full">
+    <div className="flex flex-col gap-5 w-full">
       {/* 1. AD UNIT - CHANGED TO FLEXIBLE HEIGHT */}
-      <div className="rounded-[2rem] overflow-hidden border border-slate-200 dark:border-slate-800 shadow-lg bg-white dark:bg-slate-900 p-2">
-        <AdPlaceholder slot="content" minHeight="250px" className="!my-0 !w-full" />
+      <div className="rounded-[1.75rem] overflow-hidden border border-slate-200 dark:border-slate-800 shadow-lg bg-white dark:bg-slate-900 p-2">
+        <AdPlaceholder slot="content" minHeight="220px" className="!my-0 !w-full" />
       </div>
 
       {/* 2. DYNAMIC QUICK LINKS (Fixed to Today's Date) */}
-      <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-6 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-5 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-600 to-purple-600"></div>
-        <div className="mb-6 flex items-center gap-3">
+        <div className="mb-4 flex items-center gap-2.5">
              <div className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-xl text-blue-600">
-                <BookOpen size={20} />
+                <BookOpen size={18} />
              </div>
-             <h3 className="font-display font-black text-xl text-slate-900 dark:text-white tracking-tight leading-none">
+             <h3 className="font-display font-black text-base md:text-[17px] text-slate-900 dark:text-white tracking-tight leading-none">
                 {getLabel('quick_links_header', activeDateString)}
             </h3>
         </div>
-        <nav className="flex flex-col space-y-1">
+        <nav className="flex flex-col space-y-0.5">
             {quickLinks.map((item, idx) => (
                 <button 
                     key={idx}
                     onClick={() => handleNavigate(item.id, activeDay, activeMonth)}
-                    className="flex items-center gap-4 px-2 py-3.5 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all group w-full text-left rtl:text-right"
+                    className="flex items-center gap-3.5 px-2 py-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all group w-full text-left rtl:text-right"
                 >
-                    <div className={`w-9 h-9 flex items-center justify-center bg-slate-50 dark:bg-slate-800 rounded-xl ${item.color} group-hover:scale-110 transition-transform shadow-sm border border-slate-100 dark:border-slate-700`}>
+                    <div className={`w-8 h-8 flex items-center justify-center bg-slate-50 dark:bg-slate-800 rounded-xl ${item.color} group-hover:scale-110 transition-transform shadow-sm border border-slate-100 dark:border-slate-700`}>
                         {item.icon}
                     </div>
                     <div className="flex-1 min-w-0">
-                        <h4 className="font-bold text-slate-700 dark:text-slate-300 text-[14px] group-hover:text-blue-700 dark:group-hover:text-blue-400 leading-tight">
+                        <h4 className="font-bold text-slate-700 dark:text-slate-300 text-[13px] group-hover:text-blue-700 dark:group-hover:text-blue-400 leading-tight">
                             {getLabel(item.labelKey, activeDateString)}
                         </h4>
                     </div>
-                    <ChevronIcon size={14} className="text-slate-300 group-hover:text-blue-500 shrink-0 transition-transform group-hover:translate-x-1" />
+                    <ChevronIcon size={13} className="text-slate-300 group-hover:text-blue-500 shrink-0 transition-transform group-hover:translate-x-1" />
                 </button>
             ))}
         </nav>
       </div>
 
       {/* 3. FRESH PICKS (Related Dates from Today) */}
-      <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-6 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-5 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-red-500 to-orange-500"></div>
-        <div className="mb-6 flex items-center justify-between">
-             <div className="flex items-center gap-3">
-                <TrendingUp size={20} className="text-red-600" />
-                <h3 className="font-display font-black text-xl text-slate-900 dark:text-white tracking-tight">
+        <div className="mb-4 flex items-center justify-between">
+             <div className="flex items-center gap-2.5">
+                <TrendingUp size={18} className="text-red-600" />
+                <h3 className="font-display font-black text-base md:text-[17px] text-slate-900 dark:text-white tracking-tight">
                     {language === 'ar' ? 'اكتشف المزيد (More)' : 'More to Explore'}
                 </h3>
              </div>
         </div>
-        <nav className="flex flex-col space-y-4">
+        <nav className="flex flex-col space-y-3">
             {featuredArticles.map((art, idx) => (
                 <button 
                     key={idx}
                     onClick={() => handleNavigate(art.topicId, art.d, art.m)}
-                    className="flex items-center gap-4 group w-full text-left rtl:text-right"
+                    className="flex items-center gap-3.5 group w-full text-left rtl:text-right"
                 >
-                    <div className={`w-20 h-10 flex-shrink-0 bg-gradient-to-r ${art.color} rounded-xl flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform gap-1.5 px-3`}>
-                        <span className="text-lg font-black leading-none">{art.d}</span>
-                        <span className="text-[10px] font-black uppercase tracking-widest border-l border-white/30 pl-1.5 rtl:border-l-0 rtl:border-r rtl:pl-0 rtl:pr-1.5">{art.mShort}</span>
+                    <div className={`w-16 h-9 flex-shrink-0 bg-gradient-to-r ${art.color} rounded-xl flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform gap-1.5 px-2.5`}>
+                        <span className="text-base font-black leading-none">{art.d}</span>
+                        <span className="text-[9px] font-black uppercase tracking-widest border-l border-white/30 pl-1.5 rtl:border-l-0 rtl:border-r rtl:pl-0 rtl:pr-1.5">{art.mShort}</span>
                     </div>
                     <div className="flex-1 min-w-0">
-                        <h4 className="font-bold text-slate-800 dark:text-slate-200 text-[13px] group-hover:text-red-600 leading-tight line-clamp-2 transition-colors">
+                        <h4 className="font-bold text-slate-800 dark:text-slate-200 text-[12.5px] group-hover:text-red-600 leading-tight line-clamp-2 transition-colors">
                             {getLabel(art.labelKey, art.dStr)}
                         </h4>
                     </div>
@@ -169,21 +168,21 @@ const Sidebar: React.FC = () => {
       </div>
 
       {/* 4. TRIVIA */}
-      <div className="bg-amber-50 dark:bg-amber-900/10 rounded-[2rem] p-6 border border-amber-100 dark:border-amber-900/30 relative overflow-hidden">
-         <div className="flex items-center gap-3 mb-3 text-amber-700 dark:text-amber-500 font-black text-[9px] uppercase tracking-[0.2em]">
-            <HelpCircle size={16} /> {t('trivia_title')}
+      <div className="bg-amber-50 dark:bg-amber-900/10 rounded-[1.75rem] p-5 border border-amber-100 dark:border-amber-900/30 relative overflow-hidden">
+         <div className="flex items-center gap-2.5 mb-2.5 text-amber-700 dark:text-amber-500 font-black text-[9px] uppercase tracking-[0.2em]">
+            <HelpCircle size={14} /> {t('trivia_title')}
          </div>
-         <p className="text-slate-900 dark:text-slate-200 font-black text-lg leading-tight mb-4">
+         <p className="text-slate-900 dark:text-slate-200 font-black text-[15px] leading-snug mb-3.5">
              {t('trivia_q')}
          </p>
          {showRiddleAnswer ? (
-             <div className="bg-white dark:bg-slate-800 p-4 rounded-xl text-center shadow-sm border border-amber-200 dark:border-amber-900/40 animate-in zoom-in duration-200">
-                 <p className="font-black text-amber-600 text-lg">{t('trivia_a')}</p>
+             <div className="bg-white dark:bg-slate-800 p-3.5 rounded-xl text-center shadow-sm border border-amber-200 dark:border-amber-900/40 animate-in zoom-in duration-200">
+                 <p className="font-black text-amber-600 text-base">{t('trivia_a')}</p>
              </div>
          ) : (
              <button 
                 onClick={() => setShowRiddleAnswer(true)}
-                className="w-full py-3 bg-amber-600 text-white hover:bg-amber-700 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95"
+                className="w-full py-2.5 bg-amber-600 text-white hover:bg-amber-700 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95"
              >
                 {t('click_reveal')}
              </button>
