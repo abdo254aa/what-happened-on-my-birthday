@@ -105,7 +105,11 @@ const Home: React.FC = () => {
                                     <div className="space-y-1.5">
                                         <label className="text-[9.5px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest block text-center">{t('label_year')}</label>
                                         <div className="relative">
-                                            <select required value={year} onChange={(e) => setYear(Number(e.target.value))} className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-2 sm:px-3 py-2.5 md:py-2.5 outline-none font-black text-xs sm:text-sm md:text-[15px] text-center appearance-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-slate-900 dark:text-white cursor-pointer hover:border-blue-300">
+                                            <select required value={year} onChange={(e) => {
+                                                const val = Number(e.target.value);
+                                                setYear(val);
+                                                window.dispatchEvent(new CustomEvent('birthday-date-change', { detail: { day: day || undefined, month: month || undefined, year: val } }));
+                                            }} className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-2 sm:px-3 py-2.5 md:py-2.5 outline-none font-black text-xs sm:text-sm md:text-[15px] text-center appearance-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-slate-900 dark:text-white cursor-pointer hover:border-blue-300">
                                                 <option value="" disabled>{t('label_year')}</option>
                                                 {yearsArr.map(y => <option key={y} value={y}>{y}</option>)}
                                             </select>
@@ -114,7 +118,11 @@ const Home: React.FC = () => {
                                     <div className="space-y-1.5">
                                         <label className="text-[9.5px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest block text-center">{t('label_month')}</label>
                                         <div className="relative">
-                                            <select required value={month} onChange={(e) => setMonth(Number(e.target.value))} className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-2 sm:px-3 py-2.5 md:py-2.5 outline-none font-black text-xs sm:text-sm md:text-[15px] text-center appearance-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-slate-900 dark:text-white cursor-pointer hover:border-blue-300">
+                                            <select required value={month} onChange={(e) => {
+                                                const val = Number(e.target.value);
+                                                setMonth(val);
+                                                window.dispatchEvent(new CustomEvent('birthday-date-change', { detail: { day: day || undefined, month: val, year: year || undefined } }));
+                                            }} className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-2 sm:px-3 py-2.5 md:py-2.5 outline-none font-black text-xs sm:text-sm md:text-[15px] text-center appearance-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-slate-900 dark:text-white cursor-pointer hover:border-blue-300">
                                                 <option value="" disabled>{t('label_month')}</option>
                                                 {localizedMonths.map((m, i) => <option key={i} value={i+1}>{m}</option>)}
                                             </select>
@@ -123,7 +131,11 @@ const Home: React.FC = () => {
                                     <div className="space-y-1.5">
                                         <label className="text-[9.5px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest block text-center">{t('label_day')}</label>
                                         <div className="relative">
-                                            <select required value={day} onChange={(e) => setDay(Number(e.target.value))} className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-2 sm:px-3 py-2.5 md:py-2.5 outline-none font-black text-xs sm:text-sm md:text-[15px] text-center appearance-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-slate-900 dark:text-white cursor-pointer hover:border-blue-300">
+                                            <select required value={day} onChange={(e) => {
+                                                const val = Number(e.target.value);
+                                                setDay(val);
+                                                window.dispatchEvent(new CustomEvent('birthday-date-change', { detail: { day: val, month: month || undefined, year: year || undefined } }));
+                                            }} className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-2 sm:px-3 py-2.5 md:py-2.5 outline-none font-black text-xs sm:text-sm md:text-[15px] text-center appearance-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-slate-900 dark:text-white cursor-pointer hover:border-blue-300">
                                                 <option value="" disabled>{t('label_day')}</option>
                                                 {daysArr.map(d => <option key={d} value={d}>{d}</option>)}
                                             </select>
