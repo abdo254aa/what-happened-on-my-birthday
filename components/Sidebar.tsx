@@ -1,9 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { HelpCircle, Star, History, Sparkles, Heart, Crown, TrendingUp, BookOpen, ArrowLeft, ArrowRight } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getMonths } from '../utils/dateUtils';
 import AdPlaceholder from './AdPlaceholder';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { MONTHS } from '../types';
 import { editorialTemplates } from '../data/editorialArticles';
 
@@ -11,15 +11,48 @@ const Sidebar: React.FC = () => {
   const { t, language, dir } = useLanguage();
   const months = getMonths(language);
   const navigate = useNavigate();
+  const location = useLocation();
   
   const [showRiddleAnswer, setShowRiddleAnswer] = useState(false);
   
-  // ALWAYS use current system date for Sidebar content (Quick Links & More to Explore)
   const systemDate = new Date();
+  const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
 
-  const activeDay = systemDate.getDate();
-  const activeMonth = systemDate.getMonth() + 1;
-  const activeYear = systemDate.getFullYear();
+  const urlDay = Number(searchParams.get('day') || searchParams.get('d')) || 0;
+  const urlMonth = Number(searchParams.get('month') || searchParams.get('m')) || 0;
+  const urlYear = Number(searchParams.get('year')) || 0;
+
+  const [barDate, setBarDate] = useState<{ day?: number; month?: number; year?: number }>({});
+
+  useEffect(() => {
+    const handleDateBarChange = (e: Event) => {
+      const customEvent = e as CustomEvent<{ day?: number; month?: number; year?: number }>;
+      if (customEvent.detail) {
+        setBarDate((prev) => ({
+          day: customEvent.detail.day || prev.day,
+          month: customEvent.detail.month || prev.month,
+          year: customEvent.detail.year || prev.year,
+        }));
+      }
+    };
+    window.addEventListener('birthday-date-change', handleDateBarChange);
+    return () => window.removeEventListener('birthday-date-change', handleDateBarChange);
+  }, []);
+
+  // Reset local bar override when URL query parameters change
+  useEffect(() => {
+    if (urlDay || urlMonth || urlYear) {
+      setBarDate({
+        day: urlDay || undefined,
+        month: urlMonth || undefined,
+        year: urlYear || undefined,
+      });
+    }
+  }, [urlDay, urlMonth, urlYear]);
+
+  const activeDay = barDate.day || urlDay || systemDate.getDate();
+  const activeMonth = barDate.month || urlMonth || (systemDate.getMonth() + 1);
+  const activeYear = barDate.year || urlYear || systemDate.getFullYear();
 
   const activeMonthName = months[activeMonth - 1];
   const activeDateString = language === 'ar' ? `${activeDay} ${activeMonthName}` : `${activeMonthName} ${activeDay}`;

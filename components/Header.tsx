@@ -62,7 +62,11 @@ const Header: React.FC = () => {
                   <div className="flex-1 relative h-full flex items-center">
                       <select 
                         value={year} 
-                        onChange={(e) => setYear(Number(e.target.value))}
+                        onChange={(e) => {
+                          const val = Number(e.target.value);
+                          setYear(val);
+                          window.dispatchEvent(new CustomEvent('birthday-date-change', { detail: { day: day || undefined, month: month || undefined, year: val } }));
+                        }}
                         className={selectClass}
                       >
                         <option value="" disabled>{t('label_year')}</option>
@@ -77,7 +81,11 @@ const Header: React.FC = () => {
                   <div className="flex-1.5 relative h-full flex items-center min-w-[75px]">
                       <select 
                         value={month} 
-                        onChange={(e) => setMonth(Number(e.target.value))}
+                        onChange={(e) => {
+                          const val = Number(e.target.value);
+                          setMonth(val);
+                          window.dispatchEvent(new CustomEvent('birthday-date-change', { detail: { day: day || undefined, month: val, year: year || undefined } }));
+                        }}
                         className={selectClass}
                       >
                         <option value="" disabled>{t('label_month')}</option>
@@ -92,7 +100,11 @@ const Header: React.FC = () => {
                   <div className="flex-1 relative h-full flex items-center">
                       <select 
                         value={day} 
-                        onChange={(e) => setDay(Number(e.target.value))}
+                        onChange={(e) => {
+                          const val = Number(e.target.value);
+                          setDay(val);
+                          window.dispatchEvent(new CustomEvent('birthday-date-change', { detail: { day: val, month: month || undefined, year: year || undefined } }));
+                        }}
                         className={selectClass}
                       >
                         <option value="" disabled>{t('label_day')}</option>
