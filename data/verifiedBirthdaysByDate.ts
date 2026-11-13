@@ -265,12 +265,12 @@ export const buildFactCheckedFamousTwins = (day: number, month: number, monthNam
 
   if (exactTrio) {
     const [c1, c2, c3] = exactTrio;
-    const s1 = `${c1.name}, born on ${monthName} ${day}, ${c1.bornYear} in ${c1.birthplace}, is a celebrated ${c1.role} best known for ${c1.works}.`;
-    const s2 = `Over the course of a landmark career, ${c1.name} ${c1.achievement}.`;
-    const s3 = `${c2.name}, born on ${monthName} ${day}, ${c2.bornYear} in ${c2.birthplace}, rose to international prominence as a ${c2.role} through ${c2.works}.`;
-    const s4 = `In recognition of those performances and milestones, ${c2.name} ${c2.achievement}.`;
-    const s5 = `${c3.name}, born on ${monthName} ${day}, ${c3.bornYear} in ${c3.birthplace}, completes the ${monthName} ${day} trio as a ${c3.role} acclaimed for ${c3.works}.`;
-    const s6 = `Throughout a distinguished career, ${c3.name} ${c3.achievement}.`;
+    const s1 = `Every ${monthName} ${day} carries its own creative spark, shared first with ${c1.name}, who entered the world in ${c1.birthplace} in ${c1.bornYear} and grew into a beloved ${c1.role}.`;
+    const s2 = `Through unforgettable cultural touchstones including ${c1.works}, ${c1.name} ${c1.achievement}, leaving a lasting imprint on generations of fans.`;
+    const s3 = `That same ${monthName} ${day} birthday belongs to ${c2.name} (born in ${c2.birthplace} in ${c2.bornYear}), whose magnetic presence as a ${c2.role} came to life across ${c2.works}.`;
+    const s4 = `Following a path that reshaped modern entertainment and culture, ${c2.name} ${c2.achievement}.`;
+    const s5 = `Completing your ${monthName} ${day} circle of icons is ${c3.name}, born in ${c3.birthplace} in ${c3.bornYear} and celebrated worldwide as a ${c3.role} behind ${c3.works}.`;
+    const s6 = `With a creative journey that inspired millions across decades, ${c3.name} ${c3.achievement}.`;
 
     return {
       title: "🌟 Famous Twins: Icons Born on This Day",
@@ -281,15 +281,16 @@ export const buildFactCheckedFamousTwins = (day: number, month: number, monthNam
   // Strictly fact-checked fallback for any other day of that month: always states each icon's TRUE exact birth date in that same month!
   const monthTrio = VERIFIED_MONTH_BIRTHDAYS[month] || VERIFIED_MONTH_BIRTHDAYS[11];
   const [c1, c2, c3] = monthTrio;
-  const s1 = `Your ${monthName} ${day} birth date places you in the same ${monthName} birthday circle as ${c1.name} (born ${monthName} ${c1.exactDay}, ${c1.bornYear} in ${c1.birthplace}), a ${c1.role} famed for ${c1.works}.`;
-  const s2 = `Over a historic career, ${c1.name} ${c1.achievement}.`;
-  const s3 = `Also born in ${monthName} is ${c2.name} (born ${monthName} ${c2.exactDay}, ${c2.bornYear} in ${c2.birthplace}), a ${c2.role} celebrated for ${c2.works}.`;
-  const s4 = `Across decades of major releases and competitions, ${c2.name} ${c2.achievement}.`;
-  const s5 = `Rounding out your ${monthName} icons is ${c3.name} (born ${monthName} ${c3.exactDay}, ${c3.bornYear} in ${c3.birthplace}), a ${c3.role} recognized worldwide for ${c3.works}.`;
-  const s6 = `Through those career landmarks, ${c3.name} ${c3.achievement}.`;
+  const s1 = `Arriving on ${monthName} ${day} places you inside a remarkable ${monthName} creative lineage led by ${c1.name} (born ${monthName} ${c1.exactDay}, ${c1.bornYear} in ${c1.birthplace}), a ${c1.role} whose journey gave the world ${c1.works}.`;
+  const s2 = `Blending unmistakable style with cultural resonance, ${c1.name} ${c1.achievement}.`;
+  const s3 = `Sharing the spirit of ${monthName} is ${c2.name} (born ${monthName} ${c2.exactDay}, ${c2.bornYear} in ${c2.birthplace}), a visionary ${c2.role} remembered for ${c2.works}.`;
+  const s4 = `Across a storied career that captivated audiences everywhere, ${c2.name} ${c2.achievement}.`;
+  const s5 = `Rounding out your ${monthName} constellation of icons is ${c3.name} (born ${monthName} ${c3.exactDay}, ${c3.bornYear} in ${c3.birthplace}), an acclaimed ${c3.role} whose signature work includes ${c3.works}.`;
+  const s6 = `Carrying that creative torch onto the global stage, ${c3.name} ${c3.achievement}.`;
 
   return {
     title: "🌟 Famous Twins: Icons Born on This Day",
     content: `${s1} ${s2} ${s3} ${s4} ${s5} ${s6}`
   };
 };
+

@@ -60,7 +60,7 @@ export const MODERN_AND_CLASSIC_YEARS: Record<number, FullYearRecord> = {
     tech: "In July 2008, Apple launched the iPhone 3G alongside the iOS App Store, which recorded 10 million app downloads in its first weekend. In October 2008, HTC and T-Mobile released the T-Mobile G1 (HTC Dream), the world's first commercial smartphone running Google's Android operating system, and Spotify launched its desktop music streaming service in Sweden in October 2008. At the January 2008 Macworld Expo, Steve Jobs pulled the 0.76-inch-thin MacBook Air out of a standard manila interoffice envelope.",
     pop: "Flo Rida's 'Low' (featuring T-Pain) was the #1 Billboard Hot 100 song of 2008, followed by Leona Lewis's 'Bleeding Love' and Alicia Keys's 'No One.' Christopher Nolan's 'The Dark Knight' (starring Heath Ledger as the Joker) grossed $1.005 billion to become the #1 film of 2008 alongside Marvel Studios' inaugural film 'Iron Man' and Pixar's 'WALL-E.' On January 20, 2008, AMC premiered Vince Gilligan's crime drama 'Breaking Bad' starring Bryan Cranston.",
     car: "$23,200", ticket: "$7.18", gas: "$3.27 (peaking at $4.11 in July 2008)", burger: "$1.00 (Big Mac: $3.21)", income: "$50,303",
-    fashion: "Fashion in 2008 featured Ray-Ban Wayfarer sunglasses in bright plastic frames, gladiator flat sandals, plaid Arafat-style woven scarves, and slim-fit raw denim jeans. Young men and teenagers wore Justin Bieber-style side-swept bangs, Nike SB high-top dunks, and zippered cardigans.",
+    fashion: "Fashion in 2008 featured Ray-Ban Wayfarer sunglasses in bright plastic frames, gladiator flat sandals, plaid woven fringed scarves, and slim-fit raw denim jeans. Young men and teenagers wore Justin Bieber-style side-swept bangs, Nike SB high-top dunks, and zippered cardigans.",
     crime: "On December 11, 2008, FBI agents arrested former NASDAQ chairman Bernard Madoff at his Manhattan penthouse after he confessed to his sons that his wealth-management business was a $64.8 billion Ponzi scheme—the largest financial fraud in U.S. history. Madoff had fabricated decades of falsified paper trade confirmations from the 17th floor of the Lipstick Building in New York before pleading guilty to eleven federal felonies.",
     conflict: "On February 17, 2008, the Assembly of Kosovo unanimously adopted a formal declaration of independence in Pristina. In August 2008, the five-day Russo-Georgian War broke out in the Caucasus region over South Ossetia and Abkhazia before French President Nicolas Sarkozy negotiated a six-point ceasefire agreement.",
     weather: "On May 12, 2008, the magnitude 7.9 Sichuan (Wenchuan) earthquake struck southwestern China, prompting a massive national rescue mobilization, while in September 2008 Hurricane Ike struck Galveston Island and Houston, Texas with a 15-foot storm surge."
@@ -82,7 +82,7 @@ export const MODERN_AND_CLASSIC_YEARS: Record<number, FullYearRecord> = {
     car: "$24,200", ticket: "$7.89", gas: "$2.79", burger: "$1.00 (Big Mac: $3.58)", income: "$49,276",
     fashion: "Fashion in 2010 featured TOMS canvas slip-on alpargata shoes, chambray denim button-down shirts paired with dark jeans (the 'Canadian tuxedo'), feather hair extensions, and plastic vuvuzela horns from the 2010 FIFA World Cup in South Africa.",
     crime: "Over the night of May 19–20, 2010, a lone cat burglar named Vjeran Tomic ('Spider-Man') unscrewed a window frame at the Musée d'Art Moderne de la Ville de Paris after motion detectors malfunctioned and walked out with five masterpieces by Pablo Picasso, Henri Matisse, Georges Braque, Amedeo Modigliani, and Fernand Léger valued at €100 million.",
-    conflict: "On April 8, 2010, U.S. President Barack Obama and Russian President Dmitry Medvedev signed the New START nuclear arms reduction treaty inside Prague Castle in the Czech Republic, committing both nations to cut deployed strategic nuclear missile launchers in half.",
+    conflict: "In 2010, U.S. President Barack Obama and Russian President Dmitry Medvedev signed the New START nuclear arms reduction treaty inside Prague Castle in the Czech Republic, committing both nations to cut deployed strategic nuclear missile launchers in half. That same year, the European Union established the European External Action Service, and South Africa hosted the first FIFA World Cup on the African continent in a landmark celebration of international unity.",
     weather: "In April 2010, the eruption of the Eyjafjallajökull volcano beneath an ice cap in Iceland sent a 30,000-foot plume of fine glass ash across Europe, grounding over 100,000 commercial flights across twenty countries for eight days—the largest air-traffic shutdown since World War II."
   },
   2011: {
@@ -92,7 +92,7 @@ export const MODERN_AND_CLASSIC_YEARS: Record<number, FullYearRecord> = {
     car: "$25,000", ticket: "$7.93", gas: "$3.53", burger: "$1.00 (Big Mac: $4.07)", income: "$50,054",
     fashion: "In 2011, color-blocked skinny jeans in coral and mint green, Jeffrey Campbell Lita lace-up wooden platform boots, and chevron zig-zag print tops dominated street fashion alongside feather hair clip-ins.",
     crime: "On April 15, 2011 ('Black Friday' in the poker world), the U.S. Department of Justice unsealed federal bank-fraud indictments against the founders of PokerStars, Full Tilt Poker, and Absolute Poker, seizing their '.com' domain names and freezing player accounts worldwide.",
-    conflict: "On July 9, 2011, the Republic of South Sudan formally declared independence in Juba following a 98.8% referendum vote, becoming Africa's 54th sovereign state and the 193rd member of the United Nations.",
+    conflict: "In 2011, the Republic of South Sudan formally declared independence in Juba following a 98.8% referendum vote, becoming Africa's 54th sovereign state and the 193rd member of the United Nations. That same year, pro-democracy demonstrations swept across North Africa and the Middle East during the 'Arab Spring,' and Estonia officially adopted the Euro currency.",
     weather: "On March 11, 2011, the magnitude 9.0–9.1 Tōhoku undersea megathrust earthquake struck off northeastern Japan, while in April and May 2011 the 2011 Super Outbreak spawned 360 tornadoes across the American South and Midwest."
   },
   2012: {
@@ -122,7 +122,7 @@ export const MODERN_AND_CLASSIC_YEARS: Record<number, FullYearRecord> = {
     car: "$26,950", ticket: "$8.17", gas: "$3.36", burger: "$1.39 (Big Mac: $4.68)", income: "$53,657",
     fashion: "Fashion in 2014 centered on 'Normcore' minimalist basics—Adidas Stan Smith white leather tennis shoes, high-waisted American Apparel mom jeans, Blanket scarves in oversized tartan plaid, and matte liquid lipstick.",
     crime: "In February 2014, Tokyo-based Bitcoin exchange Mt. Gox—which handled over 70% of all Bitcoin transactions worldwide—suspended trading and filed for bankruptcy protection after discovering that hackers had silently siphoned off 850,000 Bitcoins (valued at $450 million at the time) over several years.",
-    conflict: "On December 17, 2014, U.S. President Barack Obama and Cuban President Raúl Castro simultaneously announced the 'Cuban Thaw,' restoring full diplomatic relations and reopening embassies in Havana and Washington after fifty-three years of severance.",
+    conflict: "In 2014, U.S. President Barack Obama and Cuban President Raúl Castro simultaneously announced the 'Cuban Thaw,' restoring full diplomatic relations and reopening embassies in Havana and Washington after fifty-three years of severance. Earlier in 2014, Latvia officially adopted the Euro as its national currency, and Scotland held a historic independence referendum with an 84.6% voter turnout.",
     weather: "In January 2014, a severe breakdown of the Arctic Polar Vortex plunged the American Midwest and Northeast into sub-zero temperatures (-37°F in Embarrass, Minnesota) and froze 92.5% of the surface area of the Great Lakes."
   },
   2015: {
@@ -132,7 +132,7 @@ export const MODERN_AND_CLASSIC_YEARS: Record<number, FullYearRecord> = {
     car: "$27,500", ticket: "$8.43", gas: "$2.43", burger: "$1.49 (Big Mac: $4.79)", income: "$56,516",
     fashion: "In 2015, Adidas Yeezy Boost 350 sneakers, distressed biker denim, suede button-front A-line skirts, and rose-gold accessories dominated street fashion, while 'The Dress' (a viral photograph of a striped dress debated as blue-and-black vs. white-and-gold) captivated the internet in February 2015.",
     crime: "Over the Easter bank holiday weekend in April 2015, a gang of elderly career burglars (aged 58 to 76) climbed down an elevator shaft at the Hatton Garden Safe Deposit Company in London and used a Hilti DD350 industrial diamond coring drill to bore through a 20-inch-thick concrete vault wall, stealing £14 million in gold, diamonds, and cash.",
-    conflict: "On December 12, 2015, delegates from 196 parties at the UN Climate Change Conference (COP21) in Le Bourget, Paris adopted the legally binding Paris Agreement to limit global temperature increases.",
+    conflict: "In 2015, delegates from 196 parties at the UN Climate Change Conference (COP21) in Paris adopted the legally binding Paris Agreement to limit global temperature increases. That same year, the United Nations General Assembly adopted the seventeen Sustainable Development Goals for 2030, and Lithuania joined the Eurozone as its nineteenth member.",
     weather: "On October 23, 2015, Hurricane Patricia off the Pacific coast of Mexico intensified into the strongest tropical cyclone ever recorded in the Western Hemisphere with 215-mph sustained winds and a central pressure of 872 millibars."
   },
   2016: {
@@ -152,7 +152,7 @@ export const MODERN_AND_CLASSIC_YEARS: Record<number, FullYearRecord> = {
     car: "$28,800", ticket: "$8.97", gas: "$2.42", burger: "$1.69 (Big Mac: $5.30)", income: "$61,372",
     fashion: "In 2017, 'Millennial Pink' monochromes, Champion reverse-weave hoodies, Gucci Princetown backless leather loafers, and tiny narrow 1990s-style sunglasses dominated street style.",
     crime: "On May 12, 2017, the 'WannaCry' ransomware cryptoworm exploited an NSA-linked Windows SMB vulnerability ('EternalBlue') to infect over 230,000 computers across 150 countries in a single day, locking systems at Britain's National Health Service (NHS), FedEx, and Telefónica until 22-year-old British researcher Marcus Hutchins halted the outbreak by registering a hidden $10.69 kill-switch domain name.",
-    conflict: "On June 5, 2017, Montenegro formally deposited its instrument of accession in Washington to become the 29th member state of NATO, and on July 7, 2017, 122 nations at the United Nations adopted the Treaty on the Prohibition of Nuclear Weapons.",
+    conflict: "In 2017, Montenegro formally deposited its instrument of accession in Washington to become the 29th member state of NATO. That same year, 122 nations at the United Nations adopted the landmark Treaty on the Prohibition of Nuclear Weapons, earning the International Campaign to Abolish Nuclear Weapons (ICAN) the 2017 Nobel Peace Prize.",
     weather: "Between August 25 and September 20, 2017, three catastrophic Category 4 and Category 5 hurricanes—Harvey (which dumped a U.S.-record 60.58 inches of rain on Nederland, Texas), Irma, and Maria—struck the Gulf Coast and Caribbean."
   },
   2018: {
@@ -162,7 +162,7 @@ export const MODERN_AND_CLASSIC_YEARS: Record<number, FullYearRecord> = {
     car: "$29,500", ticket: "$9.11", gas: "$2.72", burger: "$1.79 (Big Mac: $5.51)", income: "$63,179",
     fashion: "Fashion in 2018 embraced chunky 'Dad sneakers' (led by the triple-soled Balenciaga Triple S and Fila Disruptor II), neon lime-green streetwear, cycling shorts paired with oversized blazers, and cross-body belt bags worn across the chest.",
     crime: "On July 31, 2018, two thieves in broad-daylight business suits walked into Strängnäs Cathedral near Stockholm, Sweden, smashed display cases housing the 1611 royal burial regalia of King Charles IX and Queen Christina, and escaped with two gold-and-jewel-encrusted crowns via women's bicycles and a waiting speedboat across Lake Mälaren—before Swedish police recovered the crowns atop a trash bin outside Stockholm in February 2019.",
-    conflict: "On April 27, 2018, South Korean President Moon Jae-in and North Korean leader Kim Jong-un stepped across the concrete military demarcation line at Panmunjom to sign the Panmunjom Declaration, followed in July 2018 by Ethiopia and Eritrea signing a historic peace summit in Asmara that earned Prime Minister Abiy Ahmed the Nobel Peace Prize.",
+    conflict: "In 2018, South Korean President Moon Jae-in and North Korean leader Kim Jong-un stepped across the concrete military demarcation line at Panmunjom to sign the Panmunjom Declaration. That same year, Ethiopia and Eritrea signed a historic peace summit in Asmara that reopened embassies and earned Prime Minister Abiy Ahmed the Nobel Peace Prize, while eleven Pacific Rim nations signed the CPTPP trade accord.",
     weather: "In July 2018, the European heatwave and Scandinavian drought pushed temperatures above the Arctic Circle to 90°F (32°C), while in October 2018 Hurricane Michael made landfall at Mexico Beach, Florida as a Category 5 storm with 160-mph winds."
   },
   2019: {
@@ -172,7 +172,7 @@ export const MODERN_AND_CLASSIC_YEARS: Record<number, FullYearRecord> = {
     car: "$30,200", ticket: "$9.16", gas: "$2.60", burger: "$1.89 (Big Mac: $5.58)", income: "$68,703",
     fashion: "In 2019, the 'VSCO Girl' aesthetic swept high schools and college campuses with oversized pastel t-shirts, Birkenstock Arizona sandals, metal Hydro Flask water bottles covered in stickers, and velvet hair scrunchies worn on the wrist.",
     crime: "At 4:59 AM on November 25, 2019, thieves set fire to an electrical junction box beneath the Augustus Bridge in Dresden, Germany to disable streetlights, sawed through a wrought-iron window grille at Dresden Castle's historic 'Green Vault' museum, and used axes to shatter display cases, escaping with 18th-century Saxon royal diamond jewelry worth €113 million.",
-    conflict: "On February 12, 2019, the Prespa Agreement between Greece and its northern neighbor officially entered into force, resolving a 27-year diplomatic dispute by renaming the country the Republic of North Macedonia and paving the way for its NATO membership.",
+    conflict: "In 2019, the Prespa Agreement between Greece and its northern neighbor officially entered into force, resolving a 27-year diplomatic dispute by renaming the country the Republic of North Macedonia and paving the way for its NATO membership. That same year, fifty-four African nations launched the African Continental Free Trade Area (AfCFTA) at an African Union summit, and Emperor Naruhito ascended the Chrysanthemum Throne in Japan to begin the Reiwa era.",
     weather: "On September 1, 2019, Category 5 Hurricane Dorian made landfall at Elbow Cay in the Bahamas with 185-mph sustained winds and stalled over Grand Bahama for twenty-four hours, while record monsoon rains flooded Venice's St. Mark's Square under 6 feet of water in November 2019."
   },
   2020: {
@@ -182,7 +182,7 @@ export const MODERN_AND_CLASSIC_YEARS: Record<number, FullYearRecord> = {
     car: "$31,400", ticket: "$9.18", gas: "$2.17", burger: "$1.99 (Big Mac: $5.66)", income: "$67,521",
     fashion: "Fashion in 2020 shifted overnight to 'Work-From-Home' comfort: pastel tie-dye matching sweat-sets made in kitchen sinks, Crocs with Jibbitz charms, coordinated cloth face masks, and sourdough bread baking aprons.",
     crime: "On July 15, 2020, a group of teenage hackers led by 17-year-old Graham Ivan Clark of Tampa, Florida used a spear-phishing phone call to gain access to Twitter's internal administrative tools and hijacked 130 high-profile verified accounts—including those of Barack Obama, Elon Musk, Bill Gates, and Apple—to post a double-your-Bitcoin scam that collected $118,000 in minutes before federal agents traced the wallet addresses.",
-    conflict: "On September 15, 2020, the United Arab Emirates, Bahrain, and Israel signed the Abraham Accords on the South Lawn of the White House in Washington, establishing formal diplomatic relations, trade, and direct commercial flights for the first time.",
+    conflict: "In 2020, the United Arab Emirates, Bahrain, and Israel signed the Abraham Accords in Washington, establishing formal diplomatic relations, trade, and direct commercial flights for the first time. Earlier in 2020, the Republic of North Macedonia formally joined NATO as its 30th member state, and the United States–Mexico–Canada Agreement (USMCA) entered into force across North America.",
     weather: "The 2020 Atlantic hurricane season broke the all-time record set in 2005 by producing 30 named storms (including Hurricanes Laura, Sally, Eta, and Iota), while Death Valley, California recorded a reliable surface air temperature of 130°F (54.4°C) on August 16, 2020."
   },
   2021: {
@@ -202,7 +202,7 @@ export const MODERN_AND_CLASSIC_YEARS: Record<number, FullYearRecord> = {
     car: "$36,800", ticket: "$10.53", gas: "$3.95 (peaking at $5.01 in June 2022)", burger: "$2.39 (Big Mac: $5.81)", income: "$74,580",
     fashion: "Fashion in 2022 embraced 'Gorpcore' outdoor gear—Arc'teryx hardshell rain jackets, Salomon XT-6 trail-running shoes, and baggy parachute cargo pants—alongside hot-pink 'Barbiecore' monochromes.",
     crime: "In February 2022, federal agents arrested Manhattan couple Ilya Lichtenstein and Heather Morgan and seized 94,000 stolen Bitcoins valued at $3.6 billion—the largest single financial seizure in U.S. Department of Justice history—tracing funds stolen during the 2016 Bitfinex cryptocurrency exchange hack.",
-    conflict: "In May 2022, Finland and Sweden formally submitted joint applications in Brussels to join the North Atlantic Treaty Organization (NATO), ending decades of military non-alignment in response to the war in Ukraine.",
+    conflict: "In 2022, Finland and Sweden formally submitted joint applications in Brussels to join the North Atlantic Treaty Organization (NATO), ending decades of military non-alignment in response to the war in Ukraine. That same year, the United Nations brokered the Black Sea Grain Initiative in Istanbul to safeguard global food supplies, and 196 nations adopted the Kunming-Montreal Global Biodiversity Framework.",
     weather: "On January 15, 2022, the submarine volcano Hunga Tonga–Hunga Ha'apai in the South Pacific erupted with an atmospheric shockwave that circled the globe four times and sent a plume 36 miles into the mesosphere, while Hurricane Ian struck southwest Florida in September 2022."
   },
   2023: {
@@ -212,7 +212,7 @@ export const MODERN_AND_CLASSIC_YEARS: Record<number, FullYearRecord> = {
     car: "$38,500", ticket: "$10.78", gas: "$3.52", burger: "$2.49 (Big Mac: $5.58)", income: "$80,610",
     fashion: "In 2023, Adidas Samba and Gazelle indoor soccer shoes in gum soles became the #1 sneaker worldwide, paired with silver metallic trousers, 'Quiet Luxury' cashmere knitwear, and red monochromatic accessories.",
     crime: "In March 2023, police in Toronto opened an investigation into the 'Toronto Pearson Airport Gold Heist' after thieves presented falsified airway bills at an Air Canada cargo facility on April 17, 2023 and drove away with a shipping container holding 6,600 bars of .9999-pure gold (weighing 400 kg) and $2.5 million in foreign banknotes worth CAD $20 million.",
-    conflict: "On April 4, 2023, Finland officially became the 31st member state of NATO at alliance headquarters in Brussels, doubling NATO's land border in northern Europe.",
+    conflict: "In 2023, Finland officially became the 31st member state of NATO at alliance headquarters in Brussels, doubling NATO's land border in northern Europe. Earlier in 2023, Croatia joined both the Eurozone and Europe's borderless Schengen Area, and United Nations member states adopted the historic High Seas Treaty to protect marine biodiversity in international waters.",
     weather: "In September 2023, Mediterranean Cyclone Daniel brought catastrophic flooding to Greece and eastern Libya, while July 2023 was recorded by NASA and NOAA as the warmest single month on Earth since instrumental records began in 1880."
   },
   2024: {
@@ -222,7 +222,7 @@ export const MODERN_AND_CLASSIC_YEARS: Record<number, FullYearRecord> = {
     car: "$39,200", ticket: "$10.95", gas: "$3.30", burger: "$2.59 (Big Mac: $5.69)", income: "$81,800",
     fashion: "Fashion in 2024 featured Adidas SL 72 retro runners, barrel-leg denim jeans, suede barn jackets with corduroy collars, and bag charms clipped onto leather tote bags.",
     crime: "In April 2024, Los Angeles Police Department detectives and the FBI investigated the Easter Sunday burglary of the GardaWorld cash storage facility in Sylmar, Los Angeles, where thieves breached the roof and vault without tripping external alarms to steal up to $30 million in cash.",
-    conflict: "On March 7, 2024, the Kingdom of Sweden formally deposited its instrument of accession in Washington, D.C. to become the 32nd member state of the North Atlantic Treaty Organization (NATO).",
+    conflict: "In 2024, the Kingdom of Sweden formally deposited its instrument of accession in Washington, D.C. to become the 32nd member state of the North Atlantic Treaty Organization (NATO). That same year, Bulgaria and Romania joined Europe's borderless Schengen Area for air and maritime travel, and the African Union was welcomed as a permanent member of the G20.",
     weather: "On May 10–11, 2024, an extreme G5-class solar geomagnetic storm ('Gannon Storm') produced vivid aurora borealis displays visible as far south as Florida, Texas, and Puerto Rico, while Hurricane Helene caused historic flooding across western North Carolina in September 2024."
   },
   2025: {
@@ -232,7 +232,7 @@ export const MODERN_AND_CLASSIC_YEARS: Record<number, FullYearRecord> = {
     car: "$39,800", ticket: "$11.15", gas: "$3.15", burger: "$2.69 (Big Mac: $5.79)", income: "$83,200",
     fashion: "Fashion in 2025 highlighted monochromatic tailored workwear, low-profile motorsport sneakers, raw dark-indigo selvedge denim, and structured leather doctor bags.",
     crime: "In February 2025, blockchain forensic investigators tracked the record $1.46 billion Bybit cold-wallet security breach, mobilizing international cryptocurrency exchanges to freeze laundered digital assets in real time.",
-    conflict: "On January 1, 2025, Bulgaria and Romania became full members of Europe's Schengen Area by land, abolishing internal border checkpoints across southeastern Europe.",
+    conflict: "In 2025, Bulgaria and Romania became full members of Europe's Schengen Area by land, abolishing internal border checkpoints across southeastern Europe. That same year, international delegations convened at Expo 2025 in Osaka and the UN Ocean Conference in Nice to advance clean-energy and maritime treaties.",
     weather: "In January 2025, Winter Storm Blair brought heavy snowfall and freezing temperatures from Kansas to Washington, D.C., while rare winter snowfall blanketed New Orleans and the Gulf Coast beaches of Florida."
   },
   2026: {
@@ -242,7 +242,7 @@ export const MODERN_AND_CLASSIC_YEARS: Record<number, FullYearRecord> = {
     car: "$40,200", ticket: "$11.30", gas: "$3.10", burger: "$2.75 (Big Mac: $5.89)", income: "$84,500",
     fashion: "In 2026, retro national-team soccer jerseys (the 'Blokecore' World Cup wave), heritage track jackets, and sustainable bio-leather sneakers defined street fashion.",
     crime: "In 2026, international law-enforcement agencies deployed quantum-resistant cryptographic verification standards across central banks and aviation networks to counter deepfake voice-authorization fraud.",
-    conflict: "In 2026, the United Nations and international space agencies convened multilateral summits on lunar resource governance and orbital debris mitigation under the Artemis Accords framework.",
+    conflict: "In 2026, the United Nations and international space agencies convened multilateral summits on lunar resource governance and orbital debris mitigation under the Artemis Accords framework. Simultaneously, North American customs and transit authorities coordinated history's largest tri-national border logistics operation for the 48-nation FIFA World Cup.",
     weather: "On August 12, 2026, a dramatic Total Solar Eclipse crossed Greenland, western Iceland, and northern Spain, drawing millions of skywatchers to Reykjavik, Bilbao, and Mallorca."
   }
 };
@@ -257,7 +257,7 @@ export const getClassicYearRecord = (year: number): FullYearRecord => {
         car: "$3,542", ticket: "$1.55", gas: "$0.36", burger: "$0.25 (Big Mac: $0.65)", income: "$9,867",
         fashion: "In 1970, midi-length skirts, fringed suede vests inspired by the Woodstock era, two-toned saddle shoes, and wide-collared printed rayon shirts dominated wardrobes alongside long center-parted hair.",
         crime: "On August 24, 1970, anti-war saboteurs detonated an ammonium-nitrate truck bomb outside Sterling Hall at the University of Wisconsin–Madison, triggering a multi-year FBI Top Ten Most Wanted pursuit across the United States and Canada.",
-        conflict: "On March 5, 1970, the Treaty on the Non-Proliferation of Nuclear Weapons (NPT) officially entered into force after ratification by the United States, the Soviet Union, the United Kingdom, and forty other nations.",
+        conflict: "In 1970, the Treaty on the Non-Proliferation of Nuclear Weapons (NPT) officially entered into force after ratification by the United States, the Soviet Union, the United Kingdom, and forty other nations. That same year, West German Chancellor Willy Brandt signed the historic Treaties of Moscow and Warsaw under his 'Ostpolitik' initiative, and Fiji and Tonga achieved independence in the South Pacific.",
         weather: "On August 3, 1970, Category 3 Hurricane Celia struck Corpus Christi, Texas with 161-mph peak wind gusts, damaging 85% of the city's structures, while the May 31, 1970 Ancash earthquake in Peru triggered a massive rock avalanche on Mount Huascarán."
       },
       1971: {
@@ -277,7 +277,7 @@ export const getClassicYearRecord = (year: number): FullYearRecord => {
         car: "$3,879", ticket: "$1.70", gas: "$0.36", burger: "$0.28 (Big Mac: $0.65)", income: "$11,116",
         fashion: "In 1972, Nike released the original Cortez running shoe for the 1972 Olympic trials, while high-waisted bell-bottom trousers, cropped sweater vests worn over wide-collar shirts, and platform clogs ruled daily style.",
         crime: "At 2:30 AM on June 17, 1972, Washington, D.C. Metropolitan Police officers arrested five men inside the Democratic National Committee headquarters at the Watergate office complex after security guard Frank Wills noticed duct tape covering door latches.",
-        conflict: "On May 26, 1972, U.S. President Richard Nixon and Soviet General Secretary Leonid Brezhnev signed the Anti-Ballistic Missile (ABM) Treaty and the SALT I strategic arms limitation agreement in Moscow.",
+        conflict: "In 1972, U.S. President Richard Nixon and Soviet General Secretary Leonid Brezhnev signed the Anti-Ballistic Missile (ABM) Treaty and the SALT I strategic arms limitation agreement in Moscow. Earlier in 1972, Nixon's historic eight-day visit to Beijing produced the Shanghai Communiqué, and Okinawa was formally returned to Japanese administration.",
         weather: "In June 1972, Hurricane Agnes combined with an extratropical low over Pennsylvania and New York to dump 19 inches of rain across the Susquehanna River valley, causing the costliest U.S. flood disaster up to that time."
       },
       1973: {
@@ -297,7 +297,7 @@ export const getClassicYearRecord = (year: number): FullYearRecord => {
         car: "$4,440", ticket: "$1.89", gas: "$0.53", burger: "$0.30 (Big Mac: $0.70)", income: "$12,836",
         fashion: "In 1974, Diane von Fürstenberg introduced her iconic jersey knit wrap dress, while Earth Shoes with 'negative heels,' puka-shell necklaces from Hawaii, and corduroy flares dominated everyday fashion.",
         crime: "On November 20, 1974, British Member of Parliament John Stonehouse faked his own drowning by leaving a neatly folded pile of clothes on a beach at the Fontainebleau Hotel in Miami Beach, Florida—only to be arrested on Christmas Eve 1974 in Melbourne, Australia by police who initially thought he was the fugitive Lord Lucan.",
-        conflict: "On April 25, 1974, the peaceful 'Carnation Revolution' in Lisbon—named because citizens placed red carnations into the barrels of soldiers' rifles—restored democracy to Portugal after forty-eight years of authoritarian rule.",
+        conflict: "In 1974, the peaceful 'Carnation Revolution' in Lisbon—named because citizens placed red carnations into the barrels of soldiers' rifles—restored democracy to Portugal after forty-eight years of authoritarian rule. That same year, Greece restored civilian democratic government in Athens, and U.S. President Gerald Ford and Soviet leader Leonid Brezhnev met at the Vladivostok Summit on strategic arms control.",
         weather: "On April 3–4, 1974, the historic '1974 Super Outbreak' spawned 148 confirmed tornadoes across thirteen U.S. states and Ontario, Canada in just 18 hours, termasuk thirty F4 and F5 tornadoes."
       }
     };

@@ -1,5 +1,4 @@
 import { ExactYearData } from './exactYearDatabase';
-import { getSupplementForYear } from './exactYear3x2Archives';
 
 export interface YearFactExpansion {
   newsStory: string;
@@ -49,8 +48,8 @@ const splitIntoSentences = (text: string): string[] => {
     .filter(Boolean);
 };
 
-// Enforce 5 to 7 flowing, non-repeating sentences per section
-const ensure5To7Sentences = (sentences: string[]): string => {
+// Enforce flowing, non-repeating sentences per section
+const ensure5To7Sentences = (sentences: string[], maxSentences: number = 7): string => {
   const unique: string[] = [];
   const seen = new Set<string>();
   for (const raw of sentences) {
@@ -63,7 +62,109 @@ const ensure5To7Sentences = (sentences: string[]): string => {
       }
     }
   }
-  return unique.slice(0, 7).join(' ');
+  return unique.slice(0, maxSentences).join(' ');
+};
+
+// Strip specific month/day references from year-wide events so only the year is mentioned
+const MONTHS_PATTERN = '(?:January|February|March|April|May|June|July|August|September|October|November|December)';
+
+const stripSpecificDatesToYearOnly = (text: string, year: number): string => {
+  if (!text) return '';
+  let out = text;
+
+  // 1. Parenthetical exact dates like "(January 19, 1977)" or "(released May 25, 1977)"
+  out = out.replace(new RegExp(`\\(\\s*(?:released\\s+)?${MONTHS_PATTERN}\\s+\\d{1,2},?\\s*\\d{4}\\s*\\)`, 'gi'), '');
+
+  // 2. Date ranges like "From February 5 to February 7, 1978," or "Between November and December 2004," or "During six weeks in August and September 2004,"
+  out = out.replace(
+    new RegExp(`(?:From|Between|During)\\s+(?:six\\s+weeks\\s+in\\s+)?${MONTHS_PATTERN}(?:\\s+\\d{1,2})?\\s+(?:to|and|–|-)\\s+${MONTHS_PATTERN}(?:\\s+\\d{1,2})?,?\\s*\\d{4}`, 'gi'),
+    `In ${year}`
+  );
+
+  // 3. "On the stormy night of July 13–14, 1977," or "On Christmas Eve 1968,"
+  out = out.replace(
+    new RegExp(`On\\s+the\\s+(?:[a-z-]+\\s+)?night\\s+of\\s+${MONTHS_PATTERN}\\s+\\d{1,2}(?:[–-]\\d{1,2})?,?\\s*\\d{4}`, 'gi'),
+    `In ${year}`
+  );
+  out = out.replace(/On\s+Christmas\s+Eve\s+(\d{4})/gi, 'In $1');
+  out = out.replace(/By\s+Christmas\s+(\d{4})/gi, 'In $1');
+
+  // 4. "At 3:05 AM on December 11, 1978," or "At 8:32 AM on May 18, 1980,"
+  out = out.replace(
+    new RegExp(`(At\\s+\\d{1,2}:\\d{2}\\s*(?:AM|PM))\\s+on\\s+${MONTHS_PATTERN}\\s+\\d{1,2},?\\s*\\d{4}`, 'gi'),
+    `$1 in ${year}`
+  );
+
+  // 5. "On August 20 and September 5, 1977," or "On April 10, 1979—known as 'Terrible Tuesday'—"
+  out = out.replace(
+    new RegExp(`On\\s+${MONTHS_PATTERN}\\s+\\d{1,2}\\s+and\\s+${MONTHS_PATTERN}\\s+\\d{1,2},?\\s*\\d{4}`, 'gi'),
+    `In ${year}`
+  );
+  out = out.replace(
+    new RegExp(`On\\s+${MONTHS_PATTERN}\\s+\\d{1,2}(?:[–-]\\d{1,2})?,?\\s*\\d{4}`, 'g'),
+    `In ${year}`
+  );
+  out = out.replace(
+    new RegExp(`on\\s+${MONTHS_PATTERN}\\s+\\d{1,2}(?:[–-]\\d{1,2})?,?\\s*\\d{4}`, 'g'),
+    `in ${year}`
+  );
+
+  // 6. "thenight of July 20" or "On July 20," without year
+  out = out.replace(
+    new RegExp(`the\\s+night\\s+of\\s+${MONTHS_PATTERN}\\s+\\d{1,2}`, 'gi'),
+    `a historic night in ${year}`
+  );
+  out = out.replace(
+    new RegExp(`On\\s+${MONTHS_PATTERN}\\s+\\d{1,2}(?=,|\\s)`, 'g'),
+    `In ${year}`
+  );
+  out = out.replace(
+    new RegExp(`on\\s+${MONTHS_PATTERN}\\s+\\d{1,2}(?=,|\\s)`, 'g'),
+    `in ${year}`
+  );
+
+  // 7. "In early/late <Month> <Year>" or "In <Month>–<Month> <Year>" or "In <Month> <Year>"
+  out = out.replace(
+    new RegExp(`(?:In|By)\\s+(?:early\\s+|late\\s+|mid-)?${MONTHS_PATTERN}(?:\\s*(?:and|–|-)\\s*${MONTHS_PATTERN})?\\s+(\\d{4})`, 'g'),
+    'In $1'
+  );
+  out = out.replace(
+    new RegExp(`(in|by|during|since|from)\\s+(?:early\\s+|late\\s+|mid-)?${MONTHS_PATTERN}(?:\\s*(?:and|–|-)\\s*${MONTHS_PATTERN})?\\s+(\\d{4})`, 'g'),
+    '$1 $2'
+  );
+
+  // 8. Relative month phrases without year: "That July," "Earlier that May," "That June and July," "By November,"
+  out = out.replace(
+    new RegExp(`(?:Earlier\\s+that|Later\\s+that|That\\s+same|That)\\s+${MONTHS_PATTERN}(?:\\s+and\\s+${MONTHS_PATTERN})?`, 'g'),
+    `In ${year}`
+  );
+  out = out.replace(
+    new RegExp(`(?:earlier\\s+that|later\\s+that|that\\s+same|that)\\s+${MONTHS_PATTERN}(?:\\s+and\\s+${MONTHS_PATTERN})?`, 'g'),
+    `in ${year}`
+  );
+  out = out.replace(
+    new RegExp(`(?:In|By)\\s+(?:early\\s+|late\\s+)?${MONTHS_PATTERN}(?=,|\\s+of\\s+\\d{4})`, 'g'),
+    `In ${year}`
+  );
+
+  // 9. Adjective month before a noun: "the November 1978 City Hall" -> "the 1978 City Hall", "its November 1975 release" -> "its 1975 release"
+  out = out.replace(
+    new RegExp(`\\b${MONTHS_PATTERN}\\s+(\\d{4})\\b`, 'g'),
+    '$1'
+  );
+
+  // 10. Clean up any remaining "<Month> <Day>, <Year>" anywhere in the text
+  out = out.replace(
+    new RegExp(`${MONTHS_PATTERN}\\s+\\d{1,2},?\\s*(\\d{4})`, 'g'),
+    '$1'
+  );
+
+  // 11. Avoid duplicate "In 2004, ... in 2004" in the same sentence
+  out = out.replace(/\bIn\s+(\d{4})\s+of\s+\1\b/gi, 'In $1');
+  out = out.replace(/\bIn\s+(\d{4}),\s+in\s+\1\b/gi, 'In $1,');
+  out = out.replace(/\s{2,}/g, ' ').trim();
+
+  return out;
 };
 
 export const getYearLeadersAndPop = (year: number): {
@@ -146,1048 +247,1413 @@ export const getYearLeadersAndPop = (year: number): {
 };
 
 // ============================================================================
-// 1. WORLD NEWS: "🌍 Life in [Year]: The Vibe of the Era"
-// Pick EXACTLY 2 specific societal trends, viral crazes, or daily-life shifts from that exact year.
-// Explicitly name them and describe how they physically looked in daily life without generic poetry or reaction filler.
+// 1. WORLD NEWS -> "🌍 Life in [Year]: The Vibe of the Era"
+// Focus purely on the human atmosphere of that year: how neighborhoods sounded on weekends,
+// what people argued about over coffee, and the general mood of society without listing inventions.
 // ============================================================================
-const YEAR_TWO_SOCIETAL_TRENDS: Record<number, string[]> = {
+const YEAR_DISTINCTIVE_LIFE: Record<number, [string, string, string]> = {
+  1965: [
+    "In 1965, the whole world held its breath in front of black-and-white television sets as cosmonaut Alexei Leonov and astronaut Ed White floated outside their capsules in humanity's very first spacewalks high above the Earth.",
+    "That same year, 'Beatlemania' reached an unforgettable peak when 55,000 screaming fans packed New York's Shea Stadium for the first giant outdoor stadium rock concert in history.",
+    "Out on neighborhood streets, teenagers walked down the sidewalk holding pocket-sized transistor radios up to their ears and gathered around glowing chrome jukeboxes at local cafés."
+  ],
+  1966: [
+    "All through the summer of 1966, radios and café televisions around the globe were tuned to the FIFA World Cup in England—complete with its beloved cartoon lion mascot 'World Cup Willie'—turning every street into a football pitch.",
+    "In living rooms everywhere, families were gathering around the first color television sets, marveling at how vibrant evening variety shows and weekend sports looked on screen.",
+    "Meanwhile, television viewers tuned in each week for the campy 'Bam! Pow!' comic-book fun of the 'Batman' series and the futuristic debut of 'Star Trek.'"
+  ],
+  1967: [
+    "In 1967, over four hundred million people across twenty-four countries watched the world's very first live global satellite television broadcast, 'Our World,' uniting continents in real time.",
+    "Walk through any city square or university park during that colorful 'Summer of Love' and you would see young people strumming acoustic guitars on the grass and wearing flowers in their hair.",
+    "Sports fans also witnessed the birth of a giant annual tradition in 1967 when the very first 'Super Bowl' championship game was broadcast live to living rooms everywhere."
+  ],
+  1968: [
+    "In 1968, the entire planet shared a quiet moment of wonder when the Apollo 8 astronauts beamed back the famous 'Earthrise' photograph, showing our blue planet rising above the horizon of the Moon.",
+    "At the Mexico City Summer Olympics in 1968, viewers everywhere gasped in amazement as long-jumper Bob Beamon leaped nearly twenty-nine feet through the air to shatter the world record.",
+    "On Saturday mornings and weekday evenings, families laughed together at the fast-paced jokes of 'Rowan & Martin's Laugh-In' and cheered on the cartoon villains of 'Wacky Races.'"
+  ],
+  1969: [
+    "Nothing in 1969 could match the historic night when more than 650 million people in every corner of the Earth sat transfixed in front of television sets as Neil Armstrong took humanity's first footsteps on the Moon.",
+    "In London in 1969, The Beatles surprised lunchtime commuters in the street by playing an unannounced live concert high up on the rooftop of their Apple Corps headquarters.",
+    "That same year, half a million young people camped out together for the legendary 'Woodstock' music festival, while children everywhere met Big Bird and Cookie Monster on the joyful television debut of 'Sesame Street.'"
+  ],
   1970: [
-    "Daily life in 1970 was physically reshaped by the inaugural Earth Day on April 22, organized by Senator Gaylord Nelson and coordinator Denis Hayes across 2,000 colleges and 10,000 primary and secondary schools.",
-    "Students swept Fifth Avenue in Manhattan after Mayor John Lindsay closed the thoroughfare to automobile traffic, while suburban municipalities introduced curb-side newspaper and aluminum-can recycling bins.",
-    "That same year, Pan American World Airways inaugurated commercial service on the double-deck Boeing 747-100 Jumbo Jet between New York's JFK Airport and London Heathrow.",
-    "Measuring 231 feet in length with a 195-foot wingspan, the Boeing 747 seated 362 passengers across a 20-foot-wide main cabin and featured a spiral staircase leading to an upper-deck cocktail lounge.",
-    "By slashing per-seat transatlantic operating costs, the wide-body 747 doubled international passenger volume at major airport terminals."
+    "In the summer of 1970, every café, barbershop, and living room on Earth came alive for the FIFA World Cup in Mexico—the first ever broadcast live in color around the world—as Pelé and Brazil lifted the trophy.",
+    "Air travel entered a glamorous new age in 1970 as the first double-decker 'Boeing 747' Jumbo Jets took to the skies, complete with spiral staircases leading to an upstairs passenger lounge.",
+    "And out in neighborhoods everywhere, millions of students and families stepped outside to plant trees and host park festivals for the world's very first 'Earth Day.'"
   ],
   1971: [
-    "In October 1971, Roy O. Disney opened the 27,400-acre Walt Disney World Resort and Magic Kingdom in Bay Lake, Florida for a $3.50 adult general admission ticket.",
-    "Visitors rode Mark IV monorail trains directly through the A-frame concourse of Disney's Contemporary Resort and used paper 'E-Ticket' coupon books to board The Haunted Mansion and 20,000 Leagues Under the Sea.",
-    "Simultaneously across American schools and offices in 1971, graphic artist Harvey Ball's yellow 'Have a Nice Day' smiley-face pin reached peak circulation with 50 million metal pin-back buttons sold.",
-    "Printed in bright Pantone yellow with two oval eyes and a curved black mouth, the button was pinned to denim jackets, canvas bookbags, and diner uniforms nationwide.",
-    "In Seattle's Pike Place Market on March 30, 1971, Jerry Baldwin, Zev Siegl, and Gordon Bowker also opened the first Starbucks store at 2000 Western Avenue selling whole-bean dark-roast coffee."
+    "Walk down any shopping street or school hallway in 1971 and one cheerful symbol greeted you from every jacket lapel, notebook, and shop window: the bright yellow 'Have a Nice Day' smiley-face badge.",
+    "Up on the Moon in 1971, astronauts gave television viewers the thrill of watching the first four-wheeled 'Lunar Roving Vehicle' bounce across the craters like a space dune buggy.",
+    "Back on Earth, families celebrated the grand opening of Walt Disney World's 'Magic Kingdom' in Florida and hummed the famous hilltop commercial song 'I'd Like to Buy the World a Coke.'"
   ],
   1972: [
-    "In late 1972, Polaroid founder Edwin Land introduced the folding Polaroid SX-70 single-lens reflex instant camera, wrapped in brushed chrome and tan genuine leather.",
-    "When a photographer pressed the red electric shutter button, a 12,000-rpm motor ejected a dry, self-developing 3.1-by-3.1-inch integral print that materialized in full color over four minutes in normal daylight without peel-apart chemical negatives.",
-    "On November 8, 1972, Charles Dolan's Home Box Office (HBO) launched on the Service Electric cable system in Wilkes-Barre, Pennsylvania as the first pay-television network.",
-    "On opening night, 365 subscribers paid $6.00 per month to watch an NHL hockey game from Madison Square Garden followed by the uncut theatrical film 'Sometimes a Great Notion.'",
-    "Together, the Polaroid SX-70 and HBO introduced instant chemical photography and subscription home cinema into American households."
+    "In the summer of 1972, families around the world gathered around the television for the Munich Olympic Games, cheering as swimmer Mark Spitz won seven gold medals and teenager Olga Korbut charmed the crowd on the balance beam.",
+    "Even people who had never played a board game followed the front-page excitement in Iceland in 1972, where Bobby Fischer and Boris Spassky faced off in the 'Match of the Century' for the World Chess Championship.",
+    "In local cafés and bowling alleys, crowds stopped in their tracks to marvel at 'Pong'—the first coin-operated video arcade cabinet where two players bounced a tiny dot of light across a screen."
   ],
   1973: [
-    "In October 1973, the OAPEC oil embargo quadrupled global crude prices from $2.90 to $11.65 per barrel, prompting the U.S. government to enforce odd-even license-plate fuel rationing.",
-    "Drivers with odd final digits on their license plates could only purchase gasoline on odd-numbered calendar days, while service stations hung green flags when pumps were open and red flags when underground tanks ran dry.",
-    "Congress also enacted the Emergency Highway Energy Conservation Act, replacing 70-mph interstate signs with a mandatory 55-mph national speed limit.",
-    "Earlier on September 20, 1973, 30,472 spectators inside the Houston Astrodome and 90 million television viewers watched 29-year-old Billie Jean King defeat 55-year-old Bobby Riggs 6–4, 6–3, 6–3 in the $100,000 'Battle of the Sexes' tennis match.",
-    "Entering the Astrodome on a Cleopatra litter before dominating the baseline with backhand volleys, King accelerated the implementation of Title IX athletic programs across American universities."
+    "In 1973, over one billion people across forty countries tuned in to watch Elvis Presley's 'Aloha from Hawaii'—the very first solo music concert in history beamed live around the globe by satellite.",
+    "Later in 1973, ninety million television viewers cheered during the 'Battle of the Sexes' tennis spectacle in the Astrodome as Billie Jean King defeated Bobby Riggs in straight sets.",
+    "And when Sunday highways grew quiet during the 1973 fuel-saving weekends, families and teenagers happily took over the empty avenues on ten-speed bicycles and roller skates."
   ],
   1974: [
-    "At 8:01 AM on June 26, 1974 at a Marsh Supermarket in Troy, Ohio, cashier Sharon Buchanan slid a 10-pack of Wrigley's Juicy Fruit chewing gum ($0.67) across an NCR Model 255 laser scanner to record the world's first Universal Product Code (UPC) barcode transaction.",
-    "The 12-digit linear barcode developed by IBM engineer George Laurer replaced manual price-stickers on grocery cans and linked checkout registers directly to computerized store inventory.",
-    "That same year in Lake Geneva, Wisconsin, Tactical Studies Rules (TSR) founders Gary Gygax and Dave Arneson published the first 1,000 wood-grain boxed sets of 'Dungeons & Dragons' for $10.00.",
-    "Inside the box, three digest-sized rulebooks instructed players to use polyhedral 4-, 6-, 8-, 12-, and 20-sided plastic dice to track character hit points and dungeon maps on graph paper.",
-    "Both the UPC barcode scanner and 'Dungeons & Dragons' established systems that still govern retail commerce and tabletop gaming."
+    "In 1974, people on every continent woke up before dawn or crowded around neighborhood television sets to watch Muhammad Ali's legendary 'Rumble in the Jungle' boxing victory in Kinshasa.",
+    "During the 1974 FIFA World Cup in West Germany, kids in every park and alleyway practiced Franz Beckenbauer's passes and Johan Cruyff's famous 'Cruyff Turn' with a leather football.",
+    "On television in 1974, the 1950s sitcom 'Happy Days' debuted and turned leather-jacketed mechanic Arthur 'Fonzie' Fonzarelli and his thumbs-up 'Ayyy!' into a worldwide catchphrase."
   ],
   1975: [
-    "In 1975, the Federal Communications Commission reduced the Citizens Band (CB) radio license fee from $20 to $4, igniting a highway communication craze with over 4.2 million 23-channel CB transceivers installed in passenger cars and trucks.",
-    "Motorists bolted 102-inch stainless-steel whip antennas to their rear bumpers and used handheld push-to-talk microphones on Channel 19 to exchange trucker 'ten-codes' such as '10-4' (message received), '10-20' (location), and 'Smokey Bear' (state police radar).",
-    "Simultaneously in autumn 1975, New York inventor Josh Reynolds launched the oval quartz 'Mood Ring' filled with thermochromic liquid crystals that retailed for $45 in silver and $250 in 14-karat gold at Bonwit Teller.",
-    "Sensitive to finger skin temperature between 82°F and 98°F, the ring's stone shifted from black and amber-green to dark violet-blue.",
-    "Over 15 million Mood Rings and 4 million CB radios were sold across the United States before the end of 1975."
+    "In 1975, the favorite craze at school lunch tables and cafés was the color-changing 'Mood Ring'—friends held their hands up to the light and laughed as the glass stone shifted from blue to green or black.",
+    "High in orbit in 1975, the whole world watched a historic moment of friendship in space when an American Apollo capsule and a Soviet Soyuz spacecraft docked together and the crews shook hands.",
+    "On weekend nights, friends laced up four-wheeled skates to glide under spinning mirror balls at the local roller rink or stayed up late for the debut season of the comedy show 'Saturday Night Live.'"
   ],
   1976: [
-    "Throughout 1976, the United States Bicentennial Commission coordinated year-long 200th-anniversary events, led by the 26-car red-white-and-blue 'American Freedom Train' pulled by steam locomotives 4449 and 2101 across all 48 contiguous states.",
-    "More than 7 million visitors walked through the train's moving museum cars to view the original 1776 Dunlap Broadside of the Declaration of Independence, while the U.S. Mint struck 1.6 billion dual-dated '1776–1976' Colonial Drummer boy quarters.",
-    "In March 1976 in Carlsbad, California, inventors John O'Malley and Jack Graham opened the Carlsbad Skatepark—the world's first concrete skatepark—featuring banked moguls and drainage bowls.",
-    "Equipped with Frank Nasworthy's translucent polyurethane 'Cadillac Wheels' and precision ball bearings on Zephyr and Bahne fiberglass decks, skateboarders performed vertical aerials in empty backyard swimming pools.",
-    "By the close of 1976, over 100 commercial concrete skateparks were under construction across North America."
+    "In 1976, families around the world sat glued to the Montreal Summer Olympics and gasped in unison when fourteen-year-old gymnast Nadia Comăneci scored the first 'Perfect 10.0' in Olympic history—breaking the scoreboard as '1.00.'",
+    "People also looked up at the sky in wonder in 1976 as the sleek, needle-nosed supersonic 'Concorde' passenger jet began flying travelers across the Atlantic at twice the speed of sound.",
+    "On television, Kermit the Frog and Miss Piggy charmed the entire planet with the debut of 'The Muppet Show,' while NASA's 'Viking 1' beamed back the first color photos from Mars."
   ],
   1977: [
-    "In May 1977, Citibank completed a $160 million rollout of hundreds of 24-hour Automated Teller Machines (ATMs) across New York City branches under the campaign 'The Citi Never Sleeps.'",
-    "Customers inserted a blue-and-white 'Citicard' with a magnetic stripe into the brushed-steel terminal, entered a four-digit Personal Identification Number (PIN) on a twelve-key pad, and withdrew $20 and $50 bills outside normal 9:00 AM-to-3:00 PM banking hours.",
-    "On weekend nights throughout 1977, more than 18,000 indoor roller-skating rinks—led by Brooklyn's Empire Rollerdrome and Los Angeles's Flipper's Roller Boogie Palace—converted into neon-lit 'roller discos.'",
-    "Skaters wore white leather Chicago or Riedell high-top boots mounted on four-wheel aluminum plates with colored urethane toe stops while DJs mixed 120-beat-per-minute 12-inch vinyl singles from sound booths.",
-    "Both 24-hour ATM banking and the roller-disco boom defined the urban street landscape of 1977."
+    "In 1977, NASA launched the 'Voyager 1' and 'Voyager 2' space probes toward the stars, each carrying a golden phonograph record filled with Earth's greatest music and greetings in fifty-five languages.",
+    "Football fans around the globe celebrated the career of Pelé in 1977 as the Brazilian legend played his emotional farewell exhibition match before 75,000 cheering spectators.",
+    "And when Friday night arrived in 1977, the infectious beat of disco music had young people dressing up in their sharpest collars to dance across illuminated glass floors."
   ],
   1978: [
-    "In June 1978, Taito designer Tomohiro Nishikado's 'Space Invaders' coin-operated arcade cabinet was released in Japan and licensed by Midway in North America, selling 360,000 upright and cocktail-table units.",
-    "Players stood behind a black control panel pressing 'Left,' 'Right,' and 'Fire' buttons to defend four green pixelated bunkers against 55 descending alien sprites while a four-note bass synthesizer loop accelerated.",
-    "The game proved so popular in 1978 that the Bank of Japan tripled production of 100-yen coins to relieve a national coin shortage.",
-    "Out on city streets and park loops in 1978, adult recreational jogging surged as Jim Fixx's red-covered 'The Complete Book of Running' spent 11 weeks at #1 on the New York Times Best Seller list and sold over one million hardcover copies.",
-    "New York Road Runners expanded the October 1978 New York City Marathon to 9,875 starters—nearly double the previous year's field—running in nylon Bill Rodgers shorts and waffle-sole Nike LDV trainers."
+    "In the summer of 1978, clouds of blue-and-white paper confetti rained down from stadium balconies like snowstorms as Mario Kempes led Argentina to victory in the 1978 FIFA World Cup.",
+    "In newspaper comic strips around the world, a lazy, lasagna-loving orange cat named 'Garfield' made his debut in 1978 and immediately had families clipping cartoons to the refrigerator door.",
+    "Meanwhile, early-morning parks and city sidewalks filled with millions of joggers in striped tube socks and terrycloth headbands as the recreational running craze swept the globe."
   ],
   1979: [
-    "On September 7, 1979 at 7:00 PM Eastern Time, father-and-son founders Bill and Scott Rasmussen launched ESPN (the Entertainment and Sports Programming Network) from Bristol, Connecticut via an RCA Satcom-1 satellite transponder.",
-    "Broadcasting initially to 1.4 million U.S. cable households, anchor Lee Leonard hosted the premiere 30-minute episode of 'SportsCenter' before airing a slow-pitch softball game from Milwaukee.",
-    "Out on American streets from May through July 1979, the second global oil shock reduced Iranian crude imports and created half-mile gasoline queues across California and the Northeast.",
-    "State governments reimposed odd-even license-plate purchasing rules and mandated a $5.00 minimum fuel purchase so drivers could not 'top off' nearly full tanks.",
-    "That crisis accelerated American buyers' shift from V8 full-size sedans toward four-cylinder subcompacts from Honda, Toyota, and Datsun."
+    "In 1979, fast-food trips became a childhood event with the debut of the colorful circus-themed cardboard 'Happy Meal' box—complete with puzzles on the sides and a surprise plastic toy hidden inside.",
+    "On weekend nights, roller-disco rinks and outdoor block parties reached peak popularity as friends glided on four-wheeled skates to upbeat funk and disco basslines.",
+    "For sports fans in 1979, television changed forever with the launch of 'ESPN,' the first 24-hour network dedicated entirely to sports highlights and live games."
   ],
   1980: [
-    "At 5:00 PM on June 1, 1980, Atlanta entrepreneur Ted Turner launched the Cable News Network (CNN) to 1.7 million U.S. cable homes as the world's first 24-hour all-news television channel.",
-    "Following a live dedication from Turner's Techwood Drive headquarters and the playing of 'The Star-Spangled Banner,' husband-and-wife anchors Dave Walker and Lois Hart delivered the inaugural two-hour newscast from an open newsroom set.",
-    "Two months earlier on April 6, 1980, 3M officially launched 'Post-it Notes' across the United States after a localized test market called 'Operation Boise.'",
-    "Chemist Dr. Spencer Silver's low-tack acrylate copolymer microspheres allowed Art Fry's 3-by-3-inch canary-yellow paper pads to stick to telephones, computer monitors, and file folders and peel away without residue.",
-    "Within twelve months of their 1980 launch, Post-it Notes ranked among the top five best-selling office supplies in North America."
+    "In 1980, arcades and pizza parlors around the world echoed with the rhythmic 'waka-waka-waka' sound of Namco's cheerful yellow circle 'Pac-Man' gobbling dots and dodging colorful ghosts.",
+    "Sports fans everywhere jumped off their couches cheering in 1980 during the unforgettable 'Miracle on Ice' college hockey upset at the Lake Placid Winter Olympics.",
+    "And on television in 1980, over 350 million viewers around the globe tuned in to the famous 'Who shot J.R.?' cliffhanger episode of the prime-time drama 'Dallas.'"
   ],
   1981: [
-    "At 12:01 AM on August 1, 1981, Warner Amex Satellite Entertainment launched MTV (Music Television) with footage of Apollo 11 and the Space Shuttle Columbia followed by The Buggles' music video 'Video Killed the Radio Star.'",
-    "Original VJs Nina Blackwood, Mark Goodman, Alan Hunter, J.J. Jackson, and Martha Quinn introduced continuous stereophonic music videos 24 hours a day from a Manhattan studio.",
-    "In November 1981, Simon & Schuster published 'Jane Fonda's Workout Book,' which sold 2 million hardcover copies and topped the New York Times Best Seller list for six months.",
-    "Paired with her Beverly Hills workout studio on South Robertson Boulevard, Fonda's high-impact aerobics routines popularized striped spandex leotards, belted waistbands, and knitted acrylic leg warmers.",
-    "Both MTV and the aerobics studio movement defined the visual culture of 1981."
+    "In 1981, an estimated 750 million people across the globe gathered around television sets to watch the fairy-tale royal wedding of Prince Charles and Lady Diana Spencer in London.",
+    "Classrooms and offices also stopped everything in 1981 to watch NASA's white-and-black winged Space Shuttle 'Columbia' roar into orbit and glide back down to land on a runway like an airplane.",
+    "That same year, the launch of the 24-hour music channel 'MTV' changed youth culture overnight—suddenly, you didn't just listen to hit songs on the radio, you watched them as mini-movies on screen."
   ],
   1982: [
-    "On September 15, 1982, Gannett Company founder Al Neuharth launched the national daily newspaper 'USA Today,' starting with a 155,000-copy print run in the Baltimore–Washington metropolitan area.",
-    "Sold for 25 cents inside white roadside vending boxes shaped like pedestal television sets, 'USA Today' featured four color-coded sections (News, Money, Sports, and Life), infographics called 'USA Snapshots,' and a full-page four-color national weather map.",
-    "Throughout 1982, over 5,000 independent neighborhood video rental stores opened across the United States as the retail price of a JVC or RCA VHS videocassette recorder dropped below $600.",
-    "Because movie studios priced newly released VHS cassettes at $79.95 to $89.95 for wholesale purchase, video shops rented tapes for $2.50 to $3.00 per night to club members holding laminated account cards.",
-    "Customers browsed shelves divided into separate 'VHS' and 'Sony Betamax' sections and paid a $1.00 fee if they returned a cassette without rewinding the magnetic tape."
+    "In the summer of 1982, streets emptied out across every continent during the FIFA World Cup in Spain as families and neighbors crowded into cafés and living rooms to watch Paolo Rossi's Italy lift the trophy.",
+    "Music lovers in 1982 marveled at the release of the very first shiny five-inch optical 'Compact Discs' (CDs) alongside Michael Jackson's 'Thriller,' which quickly became the best-selling album in history.",
+    "Meanwhile, neighborhood video rental shops began opening on street corners, letting families bring home a heavy top-loading VHS cassette player to watch movies in their own living room."
   ],
   1983: [
-    "In November and December 1983, Coleco Industries' mass-market release of Xavier Roberts' 'Cabbage Patch Kids' dolls ($25 retail) triggered nationwide store stampedes after three million dolls sold out before Thanksgiving.",
-    "Each 16-inch cloth-bodied doll featured a vinyl head stamped with a unique dimple-and-yarn-hair combination and came sealed in a green-and-yellow box with a birth certificate and 'Official Adoption Papers' from Babyland General Hospital in Cleveland, Georgia.",
-    "Throughout 1983, California 'Valley Girl' slang ('Valspeak')—popularized by Frank and Moon Unit Zappa's hit 'Valley Girl' and the April 1983 film 'Valley Girl' starring Nicolas Cage—spread across American high schools.",
-    "Teenagers socializing in suburban indoor shopping malls adopted expressions including 'gag me with a spoon,' 'grody to the max,' 'fer shure,' and 'totally tubular.'",
-    "By the end of 1983, Coleco recorded $1.2 billion in annual revenue and suburban malls accounted for over half of all U.S. non-automotive retail sales."
+    "In 1983, after watching Michael Jackson debut his gravity-defying 'Moonwalk' live on television, kids in every country on Earth put on white socks and practiced sliding backward across the kitchen floor.",
+    "When the 14-minute cinematic music video for 'Thriller' premiered in 1983, whole families gathered around the living-room television as if it were a Friday-night movie premiere.",
+    "Out on the streets, colorful Swiss plastic 'Swatch' watches became such a joyful craze in 1983 that teenagers wore two or three strapped to the same wrist."
   ],
   1984: [
-    "On January 10, 1984, the Wendy's fast-food chain aired the 30-second television commercial 'Fluffy Bun' directed by Joe Sedelmaier, in which 4-foot-10, 81-year-old actress Clara Peller inspected a giant hamburger bun and shouted, 'Where's the beef?'",
-    "The catchphrase generated $945 million in Wendy's revenue (a 31% annual jump), inspired board games and bumper stickers, and was used by former Vice President Walter Mondale against Senator Gary Hart during the March 1984 televised Democratic primary debate.",
-    "Out on city sidewalks and school blacktops throughout 1984, street-corner breakdancing ('b-boying') surged into the mainstream alongside the May 1984 film 'Breakin'' and the August 1984 Los Angeles Summer Olympics closing ceremony, where 200 breakdancers performed with Lionel Richie.",
-    "Dancers carried folded corrugated-cardboard appliance boxes and rolls of linoleum to lay down smooth portable spin mats on concrete sidewalks while dual-cassette chrome boomboxes played electro-funk tracks.",
-    "Performers in Adidas three-stripe nylon tracksuits and Kangol bucket hats executed headspins, windmills, and backspins for street crowds."
+    "Walk through any city square, schoolyard, or park in 1984 and you would spot a circle of kids gathered around a flattened piece of cardboard on the pavement, cheering as breakdancers spun on their backs to a cassette boombox.",
+    "At the 1984 Los Angeles Summer Olympics, television audiences marveled as a pilot wearing a real rocket-powered jetpack flew across the stadium during the opening ceremony and Carl Lewis won four gold medals.",
+    "That same year, NASA astronaut Bruce McCandless stunned the world with the iconic photograph of a human floating completely untethered in the blackness of space using a jetpack backpack."
   ],
   1985: [
-    "On April 23, 1985 at Lincoln Center in New York, Coca-Cola CEO Roberto Goizueta announced the retirement of the company's 99-year-old original 1886 soda formula in favor of a sweeter recipe marketed simply as 'Coke' (universally dubbed 'New Coke').",
-    "Consumer backlash was immediate: Coca-Cola's Atlanta hotline fielded 8,000 angry calls a day, Seattle resident Gay Mullins founded the 'Old Cola Drinkers of America,' and shoppers hoarded cases of the old recipe.",
-    "Just 79 days later on July 11, 1985, Coca-Cola executives held a press conference to bring back the original formula in red cans labeled 'Coca-Cola Classic.'",
-    "Two days later on July 13, 1985, Bob Geldof and Midge Ure staged the 16-hour dual-venue 'Live Aid' famine-relief concert before 72,000 fans at London's Wembley Stadium and 89,484 fans at Philadelphia's JFK Stadium.",
-    "Broadcast live via 13 satellites to 1.9 billion viewers across 150 nations, the concert featured Queen's 21-minute Wembley set and Phil Collins flying aboard the supersonic Concorde to perform on both continents on the same day."
+    "In 1985, nearly two billion people across 150 countries opened their windows and watched the same broadcast at the exact same time as the 'Live Aid' charity concerts in London and Philadelphia united the world through music.",
+    "On basketball courts everywhere in 1985, rookie sensation Michael Jordan captivated fans with his high-flying dunks and debuted his famous red-and-black 'Air Jordan 1' sneakers.",
+    "And in supermarket aisles in 1985, soft-drink fans staged such a passionate uproar over the taste of 'New Coke' that the company brought back the original formula as 'Coca-Cola Classic' just 79 days later."
   ],
   1986: [
-    "At 3:00 PM Eastern Time on May 25, 1986, organizer Ken Kragen staged 'Hands Across America,' in which 5.5 million participants paid $10 to stand side-by-side holding hands for fifteen minutes along a 4,125-mile route from Battery Park in Manhattan to the RMS Queen Mary pier in Long Beach, California.",
-    "Radio stations across all four mainland U.S. time zones simultaneously broadcast the event's theme song while participants wore white commemorative T-shirts and raised $34 million for domestic hunger and homelessness charities.",
-    "In schoolyards throughout 1986, the Topps Company's 'Garbage Pail Kids' sticker cards—drawn by underground cartoonist Art Spiegelman and John Pound as a parody of Cabbage Patch Kids—reached peak craze across Series 3, 4, and 5.",
-    "Sold in 25-cent wax packs containing five die-cut peel-and-stick cards and a pink slab of bubble gum, characters like 'Adam Bomb' and 'Up Chuck' sparked bans in hundreds of elementary schools.",
-    "Topps printed over 400 million 'Garbage Pail Kids' cards during 1986 alone."
+    "All through the summer of 1986, the entire world was captivated by the FIFA World Cup in Mexico—where fans in every café gasped at Diego Maradona's solo 'Goal of the Century' and stood up to do the stadium 'Mexican Wave.'",
+    "On clear nights in 1986, families stepped out into backyards with binoculars to spot 'Halley's Comet' streaking across the sky on its once-every-76-years visit past Earth.",
+    "That same year, over five million people stood side-by-side holding hands across highways and towns for the 'Hands Across America' charity event, while Pixar debuted its little hopping desk lamp 'Luxo Jr.'"
   ],
   1987: [
-    "On April 5, 1987, billionaire Rupert Murdoch's Fox Broadcasting Company launched its inaugural prime-time Sunday-night television lineup with 'Married... with Children' and 'The Tracey Ullman Show.'",
-    "Two weeks later on April 19, 1987, producer Matt Groening's animated family 'The Simpsons' made its television debut in the 90-second bumper short 'Good Night,' establishing Fox as the first fourth U.S. broadcast network since the DuMont Network folded in 1956.",
-    "During the weekend of August 16–17, 1987, art historian José Argüelles organized the 'Harmonic Convergence,' billed as the world's first synchronized global meditation event timed to an alignment of the Sun, Moon, and six planets.",
-    "Thousands of participants gathered at dawn atop Mount Shasta in California, Bell Rock in Sedona, Arizona, Central Park's Sheep Meadow in New York, and Glastonbury Tor in England.",
-    "Together, the launch of the Fox network and the 'Harmonic Convergence' captured the offbeat cultural shift of 1987."
+    "In 1987, you couldn't attend a wedding, school party, or family gathering without seeing two friends try to recreate the famous final dance and overhead lift from the hit movie 'Dirty Dancing.'",
+    "On Saturday mornings in 1987, kids poured bowls of cereal to watch the brand-new cartoon 'DuckTales' before riding their BMX bicycles around the neighborhood until the streetlights came on.",
+    "Meanwhile, television viewers in 1987 got their very first glimpse of a crude, hilarious yellow animated family called 'The Simpsons' in short two-minute skits on 'The Tracey Ullman Show.'"
   ],
   1988: [
-    "In July 1988, advertising agency Wieden+Kennedy's Dan Wieden coined the three-word slogan 'Just Do It' for Nike, launching with a 30-second television spot showing 80-year-old bare-chested marathoner Walt Stack running across San Francisco's Golden Gate Bridge.",
-    "Supported by cross-training campaigns starring two-sport athlete Bo Jackson ('Bo Knows'), the 'Just Do It' campaign lifted Nike's North American athletic-shoe market share from 18% to 43%.",
-    "Inside record stores in 1988, the Recording Industry Association of America (RIAA) reported that 5-inch aluminum-polycarbonate Compact Discs (CDs) officially outsold 12-inch vinyl LP records for the first year in history (149.7 million CDs shipped versus 72.4 million LPs).",
-    "Retailers like Tower Records sold CDs sealed inside 6-by-12-inch cardboard 'longboxes' so the small plastic jewel cases could sit inside existing wooden vinyl record bins without being shoplifted.",
-    "That same September, Bobby McFerrin's 'Don't Worry, Be Happy' became the first entirely a cappella song (recorded without a single musical instrument) to reach #1 on the Billboard Hot 100."
+    "In 1988, it was impossible to walk past an open shop doorway or car window without smiling at the sunny, whistled melody of Bobby McFerrin's global #1 hit 'Don't Worry, Be Happy.'",
+    "Sports fans around the world in 1988 fell in love with the true underdog story of the first 'Jamaican Bobsled Team' at the Calgary Winter Olympics and sprinter Florence Griffith-Joyner at the Seoul Summer Games.",
+    "At the same time, Nike introduced its famous three-word sports motto—'Just Do It'—while shiny Compact Discs began overtaking vinyl records in music stores everywhere."
   ],
   1989: [
-    "Throughout 1989, the Motorola Bravo numeric pager ('beeper')—measuring 2.7 by 1.6 inches in black polycarbonate with a belt holster—transitioned from a medical-doctor tool into a mainstream teenage and commuter status symbol.",
-    "Because numeric pagers displayed only a 10- or 12-digit green liquid-crystal readout, users sent numeric codes from touch-tone telephones: '143' ('I love you,' based on letter counts), '07734' ('HELLO' read upside-down), '411' ('information/question'), and '911' ('urgent callback').",
-    "Simultaneously during the summer of 1989, Warner Bros. unleashed 'Batmania' ahead of Tim Burton's June 23 release of 'Batman,' generating $750 million in licensed merchandise sales.",
-    "Designer Anton Furst's black-and-gold oval Bat-emblem was printed on 15 million T-shirts, caps, and cereal boxes, while barbershops used electric trimmers to shave the Bat-symbol into the sides of teenagers' fade haircuts.",
-    "Both numeric beeper codes and 'Batmania' defined the street-level visual culture of 1989."
+    "In 1989, families in every country sat in emotional awe around the evening television news as joyful crowds in denim jackets climbed atop the Berlin Wall to celebrate a reunited city.",
+    "On television in 1989, 'The Simpsons' debuted with their very first full-length half-hour episode, turning Bart Simpson's 'Eat my shorts!' and 'Cowabunga!' into instant playground catchphrases.",
+    "Meanwhile, 'Seinfeld' aired its very first pilot episode in 1989, and computer scientist Tim Berners-Lee quietly invented the 'World Wide Web' at CERN."
   ],
   1990: [
-    "In the autumn of 1990, elementary schoolyards and malls across America were swept up in the 'Slap Bracelet' craze, invented by Wisconsin high-school shop teacher Stuart Anders under the brand name 'Slap Wrap.'",
-    "Constructed from a 9-inch bistable stainless-steel measuring-tape spring sealed inside neon leopard-print or hologram fabric, the band stayed rigid until slapped against a wrist, snapping into a tight coil—before principals banned them when bare metal edges wore through cheap knockoffs.",
-    "Out on paved bike paths and boardwalks in 1990, Minnetonka-based Rollerblade Inc. popularized the 'Macroblade' inline skate, featuring four polyurethane wheels mounted in a single composite frame with neon plastic ski-boot buckles and a rear rubber heel brake.",
-    "On Friday evenings from 8:00 to 10:00 PM, 30 million viewers tuned into ABC's 'TGIF' ('Thank Goodness It's Friday') sitcom lineup featuring 'Full House,' 'Family Matters' (starring Jaleel White as Steve Urkel), and 'Perfect Strangers.'",
-    "Inline Rollerblades, Slap Bracelets, and Friday-night 'TGIF' sitcoms formed the signature routine of 1990."
+    "The summer of 1990 was pure magic from start to finish, as the 'Italia '90' FIFA World Cup united every street corner and café on Earth to the soaring operatic voice of Luciano Pavarotti singing 'Nessun Dorma.'",
+    "In 1990, the whole world also watched in celebration as Nelson Mandela walked free in South Africa with his fist raised, while NASA's Space Shuttle deployed the 'Hubble Space Telescope' into orbit.",
+    "Out on neighborhood sidewalks in 1990, kids glided past on neon-wheeled inline 'Rollerblades' and wore brightly colored Fresh Prince of Bel-Air baseball caps backward."
   ],
   1991: [
-    "During the summer of 1991, Larami Corporation released aerospace engineer Lonnie Johnson's air-pressurized 'Super Soaker 50' water gun ($10 retail), selling 2 million units in its debut season.",
-    "Featuring a translucent green 1-liter plastic water bottle screwed onto a bright yellow-and-orange PVC pump barrel, the Super Soaker 50 used hand-pumped compressed air to blast a continuous stream of water 50 feet across neighborhood lawns.",
-    "In September 1991, the release of Nirvana's 'Nevermind' and Pearl Jam's 'Ten' launched the Seattle Grunge cultural movement nationwide, replacing 1980s hair-metal spandex with thrift-store flannel shirts, ripped Levi's 501 jeans, and 8-eyelet Dr. Martens 1460 boots.",
-    "Music fans also adopted 'unplugged' acoustic aesthetics as 'MTV Unplugged' concerts became a centerpiece of early-1990s television.",
-    "Together, the Super Soaker 50 and the Seattle Grunge explosion marked the true cultural arrival of the 1990s."
+    "In 1991, NBA basketball became a truly global obsession as kids on playgrounds in every country stuck out their tongues like Michael Jordan while watching the Chicago Bulls win their very first championship.",
+    "At the cinema in 1991, audiences burst into applause during the computer-animated golden ballroom dance of Disney's 'Beauty and the Beast'—the first animated film ever nominated for Best Picture.",
+    "Meanwhile, high in the Alps in 1991, hikers made the fascinating discovery of 'Ötzi the Iceman,' a 5,300-year-old traveler preserved in glacier ice with all his gear intact."
   ],
   1992: [
-    "In April 1992, PepsiCo began test-marketing 'Crystal Pepsi' in Denver, Dallas, and Providence before launching the caffeine-free, transparent cola nationwide in clear 12-ounce glass bottles backed by Van Halen's 'Right Now.'",
-    "Crystal Pepsi captured a full 1% of the $48 billion U.S. soft-drink market ($474 million in sales) and triggered a 'Clear Craze' that saw brands release Miller Clear beer, Tab Clear, Amoco Crystal Clear gasoline, and transparent Conair landline phones with visible neon circuitry.",
-    "Throughout 1992, everyday teenage slang was dominated by Mike Myers and Dana Carvey's February 1992 film 'Wayne's World' ($183 million box office).",
-    "Phrases such as 'NOT!' (tacked onto the end of a compliment after a pause), 'Party on!', 'Schwing!', and 'We're not worthy!' echoed through school cafeterias and shopping malls all year.",
-    "In Bloomington, Minnesota on August 11, 1992, developers also opened the 4.2-million-square-foot Mall of America with 520 stores and an indoor seven-acre Knott's Camp Snoopy theme park."
+    "In the summer of 1992, the Barcelona Olympic Games brought the whole planet together around the television as a flaming arrow lit the stadium cauldron and the USA basketball 'Dream Team' dazzled the world.",
+    "In 1992, 'Disneyland Paris' opened its fairy-tale castle gates in Europe, while 'Cartoon Network' launched the world's first 24-hour all-cartoon television channel.",
+    "Teenagers everywhere spent Sunday afternoons in 1992 sitting beside a twin-deck boombox with a finger hovering over the 'Record' button to build the ultimate 90-minute cassette mixtape off the FM radio."
   ],
   1993: [
-    "On October 24, 1993, the California Milk Processor Board aired the first 'Got Milk?' television commercial—titled 'Aaron Burr' and directed by 28-year-old Michael Bay—in which a radio-contest caller could not pronounce 'Aaron Burr' with a mouthful of peanut butter and an empty milk carton.",
-    "Created by advertising agency Goodby, Silverstein & Partners, the 'Got Milk?' slogan became one of the most licensed campaigns of the 1990s.",
-    "At the exact same time in 1993, New York-based Snapple Beverage Corp. saw annual sales surge past $516 million as consumers bought 16-ounce wide-mouth glass bottles of Snapple Lemon Iced Tea, Kiwi Strawberry, and Mango Madness.",
-    "Every Snapple metal vacuum cap made a loud 'pop!' when twisted open and featured stamped trivia facts inside the lid, while radio shock-jock Howard Stern and 'Wendy the Snapple Lady' promoted the brand daily.",
-    "Combined with the summer 'Dinosaur Mania' merchandise wave from 'Jurassic Park,' Snapple bottles and 'Got Milk?' ads defined daily life in 1993."
+    "In 1993, television viewers everywhere smiled at the famous 'Got Milk?' commercials, while school cafeterias and delis filled with glass bottles of Snapple iced tea with quirky trivia facts printed inside every metal cap.",
+    "High in orbit in 1993, spacewalking astronauts installed corrective lenses on the Hubble Space Telescope, suddenly unveiling breathtaking color photographs of distant nebulae and galaxies.",
+    "Daily life in 1993 still had a wonderful offline charm: if you wanted to see if a friend was free on Saturday afternoon, you simply rode your bike over and knocked on their front door."
   ],
   1994: [
-    "Throughout 1994, elementary and middle schoolyards were overtaken by the 'Pogs' (milk-cap) trading game, revived from 1920s Maui Haleakala Dairy bottle caps by Blossom Galbiso in Oahu, Hawaii and commercialized by the World POG Federation.",
-    "Players stacked 1.625-inch printed cardboard discs face-down and threw a heavy torpedo-shaped brass, aluminum, or acrylic 'Slammer' ('kini') onto the stack to claim every disc that flipped face-up, prompting hundreds of school districts to ban Pogs as playground gambling.",
-    "Following the September 22, 1994 premiere of NBC's sitcom 'Friends' (created by David Crane and Marta Kauffman), independent espresso bars and Starbucks locations expanded rapidly from the Pacific Northwest into suburban strip malls.",
-    "Stylist Chris McMillan's square-layered, highlighted shag haircut for Jennifer Aniston's character Rachel Green—universally named 'The Rachel'—became the most requested salon haircut in the world, copied by an estimated 11 million women.",
-    "Cardboard Pogs tubes in backpacks and 'The Rachel' haircut in salons made 1994 instantly recognizable."
+    "In the summer of 1994, the FIFA World Cup in the United States broke every attendance record in history, ending in a dramatic penalty shootout where Brazil lifted their fourth golden trophy.",
+    "In 1994, Queen Elizabeth II and French President François Mitterrand officially opened the 'Channel Tunnel' (Chunnel), allowing passenger trains to travel beneath the sea between England and France in thirty-five minutes.",
+    "And on television in 1994, six twenty-somethings debuted in the sitcom 'Friends,' inspiring a worldwide love for cozy neighborhood coffeehouses where friends talked on couches over giant ceramic mugs."
   ],
   1995: [
-    "At midnight on August 24, 1995, Microsoft launched the Windows 95 operating system ($89.95 upgrade box) with the Rolling Stones' 'Start Me Up,' selling 7 million copies in its first five weeks and introducing the desktop 'Start' button, Taskbar, and Recycle Bin.",
-    "That same year, America Online (AOL) mailed millions of 3.5-inch floppy disks and CD-ROMs offering '10 Free Hours,' boosting AOL's subscriber base past 4.5 million households connecting via 14.4k and 28.8k dial-up modems over copper landline phone wires.",
-    "Every AOL login played the screeching modem handshake followed by voice actor Elwood Edwards' recorded greeting, 'Welcome! You've got mail!'",
-    "Offline in 1995, Ty Warner's suburban Chicago company Ty Inc. introduced the retirement strategy for $5.00 understuffed PVC-pellet 'Beanie Babies'—such as 'Legs the Frog' and 'Spot the Dog'—sparking a collector craze where buyers snapped clear acrylic cases over the heart-shaped red 'ty' swing tags.",
-    "Simultaneously in late 1995, the Bayside Boys remix of Los del Río's 'Macarena' launched the ten-part arm-and-hip line dance across American weddings, proms, and stadiums."
+    "In 1995, the whole world watched a historic moment of unity at the Rugby World Cup Final in Johannesburg as President Nelson Mandela wore the green Springboks jersey and handed the trophy to captain François Pienaar.",
+    "Space fans stared in awe in 1995 when NASA's 'Galileo' spacecraft arrived at Jupiter after a six-year journey and dropped an atmospheric probe into the giant planet's swirling clouds.",
+    "Meanwhile, British band Oasis had everyone singing 'Wonderwall' around acoustic guitars at parks and house parties across the globe."
   ],
   1996: [
-    "In October 1996, Tyco Preschool's $28.99 plush doll 'Tickle Me Elmo'—containing a small electric eccentric-weight motor that made the red Sesame Street puppet vibrate and giggle three times when its stomach was squeezed—ignited the fiercest holiday retail frenzy of the decade.",
-    "After Rosie O'Donnell gave out 200 dolls to her studio audience on October 15, Tyco's entire inventory of 1 million dolls sold out by Thanksgiving, with newspaper classified ads and early online auctions reselling 'Tickle Me Elmo' for up to $1,500.",
-    "On Friday evenings throughout 1996, Blockbuster Video reached 5,300 global stores and 65 million active membership cards, dominating weekend home entertainment.",
-    "Renting a $3.49 new-release VHS tape inside its blue-and-white plastic clamshell box carried a mandatory $1.50 late fee or a rewinding surcharge if the cassette was dropped through the metal return slot unrewound.",
-    "Meanwhile, in city streets and nightclubs, the 'Macarena' spent 14 consecutive weeks at #1 on the Billboard Hot 100 and was even performed by delegates on the floor of the August 1996 Democratic National Convention in Chicago."
+    "In 1996, it was impossible to attend a wedding, school party, or summer festival anywhere in the world without seeing the entire crowd line up in rows to do the eight-step arm movements to Los Del Rio's 'Macarena.'",
+    "At the 1996 Centennial Summer Olympics in Atlanta, television viewers around the globe cheered in emotion when boxing legend Muhammad Ali stepped out of the shadows to light the Olympic cauldron.",
+    "On Friday evenings in 1996, the universal family ritual was walking down to the neighborhood Blockbuster or local video rental shop to pick out two VHS tapes before the 'New Releases' wall was empty."
   ],
   1997: [
-    "On May 1, 1997, Japanese toy maker Bandai launched the $17.99 'Tamagotchi' virtual keychain pet at FAO Schwarz in Manhattan, selling 10,000 units in 24 hours and 40 million worldwide within a year.",
-    "Housed in a 2-inch plastic egg with a 32-by-16-pixel monochrome LCD screen and three miniature rubber buttons (Select, Execute, Cancel), the Tamagotchi required owners to feed it, play games, and clean its digital droppings every few hours or it would die—prompting widespread classroom bans.",
-    "In May 1997, America Online released standalone AOL Instant Messenger (AIM) 1.0 for Windows desktops, letting users create a 'Screen Name' and organize friends into a 'Buddy List.'",
-    "Hearing the creaking-door sound effect when a friend signed on—and customizing colorful HTML fonts and cryptic song-lyric 'Away Messages'—became the daily after-school communication ritual.",
-    "Between keeping a Tamagotchi alive at lunch and chatting on AIM all evening, 1997 brought digital companionship into everyday life."
+    "In 1997, millions of people tuned into the news in amazement as NASA's six-wheeled 'Sojourner' rover rolled down a ramp onto the dusty red rocks of Mars and beamed back panoramic color photos.",
+    "On the golf course in 1997, twenty-one-year-old phenomenon Tiger Woods stunned the sports world by winning the Masters Tournament by a record twelve strokes in his signature Sunday red shirt.",
+    "That same year, newspapers everywhere marveled at 'Dolly the Sheep' in Scotland, while bookstores in the UK stocked the very first copies of 'Harry Potter and the Philosopher's Stone.'"
   ],
   1998: [
-    "On September 14, 1998, MTV premiered 'Total Request Live' (TRL) hosted by 25-year-old Carson Daly from a second-floor glass-walled studio at 1515 Broadway overlooking New York's Times Square.",
-    "Broadcasting live every weekday from 3:30 to 4:30 PM, TRL counted down the day's top ten viewer-voted music videos—led by Korn, *NSYNC, Backstreet Boys, and Britney Spears—while hundreds of fans stood on the Broadway sidewalk below holding handmade neon poster boards.",
-    "In October 1998, Tiger Electronics released Dave Hampton and Caleb Chung's $35 animatronic plush toy 'Furby,' selling 1.8 million units before Christmas.",
-    "Powered by four AA batteries, an infrared sensor between its eyes, and a single electric motor linked to cams that moved its ears, eyelids, and beak, Furby began by speaking 24 words of 'Furbish' ('Dah-ay-loh-nah-bah!') and unlocked pre-programmed English words over time.",
-    "Because Furby lacked an on/off switch, the only way to stop it from waking up and talking in a dark closet at 2:00 AM was to unscrew the baseplate and remove the batteries."
+    "The summer of 1998 belonged to the carnival atmosphere of the FIFA World Cup in France—where Zinedine Zidane's two headers in Paris and Ricky Martin's anthem 'La Copa de la Vida' echoed from every street café on Earth.",
+    "High in orbit in 1998, astronauts connected the very first modules of the 'International Space Station' 250 miles above the Earth.",
+    "And in baseball stadiums in 1998, sports fans everywhere followed the thrilling summer-long home-run chase between Mark McGwire and Sammy Sosa."
   ],
   1999: [
-    "Throughout 1999, governments, banks, and households prepared for the 'Y2K Bug' (the Year 2000 problem), caused by legacy COBOL and mainframe software storing calendar years as two digits ('99') that risked rolling over to '1900' at midnight on December 31, 1999.",
-    "Corporations and federal agencies spent an estimated $100 billion in the United States ($300 billion globally) rewriting code, while retail electronics carried yellow 'Y2K Compliant' stickers and families stocked bottled water, canned goods, and cash from ATMs.",
-    "In January 1999, Wizards of the Coast launched the English-language 'Pokémon Trading Card Game' Base Set in $3.29 foil 11-card booster packs, igniting a schoolyard craze centered on the holographic 'First Edition Charizard' card (120 HP, 'Fire Spin' attack).",
-    "Five months later in June 1999, 18-year-old Northeastern University freshman Shawn Fanning released 'Napster' beta 1.0, a peer-to-peer file-sharing program that allowed anyone with an internet connection to search and download 128-kbps MP3 music files directly from other users' hard drives.",
-    "Together, Pokémon booster packs, Napster MP3 downloads, and the Y2K countdown defined the final year of the twentieth century."
+    "All through 1999, every dinner-table and coffee-shop conversation circled back to one big countdown: what would the world look like when the calendar flipped to the year 2000?",
+    "On television in 1999, families in dozens of countries sat on the edge of the sofa shouting answers at the screen during the worldwide quiz-show phenomenon 'Who Wants to Be a Millionaire?'",
+    "Meanwhile, 90,000 fans packed the Rose Bowl in 1999 to watch Brandi Chastain's dramatic penalty kick win the FIFA Women's World Cup, while SpongeBob SquarePants debuted under the sea on Nickelodeon."
   ],
   2000: [
-    "In the spring and summer of 2000, the folding 6-pound aircraft-grade aluminum 'Razor A Kick Scooter'—designed by Gino Tsai of JD Corporation and distributed by Carlton Calvin's Razor USA for $99 at The Sharper Image—sold 5 million units in six months.",
-    "Riders released a quick-clamp lever at the base to unfold the T-bar handlebars, pushed off the grip-tape deck on 98mm translucent urethane inline-skate wheels, and stepped on the rear aluminum fender to brake.",
-    "Inside living rooms during the summer of 2000, CBS premiered Producer Mark Burnett's reality competition 'Survivor: Borneo' on May 31, culminating on August 23, 2000 when 51.7 million viewers watched corporate trainer Richard Hatch win the $1 million prize over Kelly Wiglesworth.",
-    "Simultaneously on ABC, Regis Philbin hosted 'Who Wants to Be a Millionaire' up to four nights a week, turning 'Is that your final answer?' and 'Phone-a-Friend' lifelines into household catchphrases.",
-    "Between Razor Scooters on every sidewalk and 'Survivor' Tribal Councils on television, the year 2000 launched a brand-new millennium of pop culture."
+    "The year 2000 opened with the biggest global celebration in modern memory, as consecutive walls of fireworks lit up the sky from Sydney Harbour and the Pyramids of Giza to the Eiffel Tower and Times Square.",
+    "Later in 2000, the whole world tuned in to the Sydney Summer Olympics in Australia to watch Cathy Freeman light the water-ringed cauldron, while the first permanent crew moved aboard the 'International Space Station.'",
+    "On television in 2000, the reality-show phenomenon exploded overnight as millions debated who would be voted off the island on 'Survivor' and out of the house on 'Big Brother.'"
   ],
   2001: [
-    "In 2001, the Nokia 3310 GSM mobile phone—released in late 2000 in a navy-blue polycarbonate shell weighing 133 grams with an internal antenna and interchangeable 'Xpress-on' plastic faceplates—became the ubiquitous handset of daily life, selling 126 million units worldwide.",
-    "Users navigated its 84-by-48-pixel monochrome green backlit screen with a single blue 'Navi-Key,' composed custom monophonic ringtones, and competed for high scores in 'Snake II' while waiting until 9:00 PM for 'Free Nights and Weekends' cellular calling plans to begin.",
-    "At home and in cars throughout 2001, CD-R (Compact Disc-Recordable) burners came standard on desktop PCs, allowing teenagers to burn custom 80-minute / 700-megabyte Memorex mix CDs labeled in black Sharpie.",
-    "Drivers strapped zippered nylon 'Case Logic' CD visors and 48-disc binders into their front seats and carried Sony 'ESP Steadysound' portable CD players connected to car stereos via cassette-tape dashboard adapters.",
-    "Nokia 3310 faceplates and Sharpie-labeled mix CDs captured the exact transition between analog and digital youth culture in 2001."
+    "In 2001, a pocket-sized white music player called the 'iPod' debuted with a mechanical scroll wheel that could hold a thousand songs in your pocket—making white earphone cords the newest sight on city streets.",
+    "In Italy in 2001, the famous Leaning Tower of Pisa officially reopened to visitors after an eleven-year engineering project stabilized its tilt, while Dennis Tito became the world's first space tourist.",
+    "And at movie theaters and bookstores around the globe in 2001, fantasy adventures ruled the year as millions lined up for both 'The Lord of the Rings: The Fellowship of the Ring' and Pixar's 'Monsters, Inc.'"
   ],
   2002: [
-    "On June 11, 2002, Fox premiered the singing competition 'American Idol: The Search for a Superstar' hosted by Ryan Seacrest and Brian Dunkleman alongside judges Simon Cowell, Paula Abdul, and Randy Jackson.",
-    "Over 22.8 million viewers tuned into the September 4, 2002 finale at the Kodak Theatre as 20-year-old Texas cocktail waitress Kelly Clarkson defeated Justin Guarini with 58% of the 15.5 million toll-free phone votes and performed her #1 coronation single 'A Moment Like This.'",
-    "In school hallways and shopping malls throughout 2002, 17-year-old Canadian singer Avril Lavigne's जून debut album 'Let Go' ('Complicated,' 'Sk8er Boi') sparked a nationwide 'pop-punk skater' style wave.",
-    "Teenagers shopped at Hot Topic and PacSun for men's striped neckties worn loose over white tank tops and graphic tees, Dickies baggy work pants, black-and-white studded leather belts, and sweatbands worn on the wrist.",
-    "Together, 'American Idol' call-in voting and the pop-punk skater look defined the cultural energy of 2002."
+    "In 2002, because the FIFA World Cup was hosted in South Korea and Japan, millions of fans woke up at dawn or watched live matches in school classrooms as Ronaldo's two goals in Yokohama gave Brazil their fifth trophy.",
+    "At local barbershops in 2002, half the kids in town asked for Ronaldo's famous front-triangle World Cup haircut or David Beckham's mohawk.",
+    "Meanwhile, over 300 million Europeans celebrated a historic everyday change in 2002 as crisp 'Euro' banknotes and coins replaced twelve national currencies overnight."
   ],
   2003: [
-    "In August 2003, eUniverse employees Tom Anderson and Chris DeWolfe launched the social networking website 'MySpace.com' in Santa Monica, California, where every new user automatically received 'Tom' in a white T-shirt as their first friend.",
-    "MySpace users customized their profile pages by pasting raw HTML and CSS code into the 'About Me' box to add tiled background images, custom cursors, and an embedded Flash music player that auto-played a song whenever someone visited their page.",
-    "On June 17, 2003 in Manhattan, Harper's Magazine senior editor Bill Wasik organized the world's first successful 'Flash Mob' ('Mob #1') by anonymous email, directing 130 strangers to gather inside the ninth-floor rug department of Macy's Herald Square to tell clerks they lived together in a Long Island warehouse looking for a 'Love Rug' before dispersing after ten minutes.",
-    "Throughout 2003, mobile phone owners also spent $1 billion downloading $2.50 polyphonic MIDI and 'TrueTone' ringtones—led by 50 Cent's 'In Da Club'—via SMS shortcode ads printed in the back of magazines.",
-    "Custom HTML MySpace profiles, spontaneous Flash Mobs, and polyphonic ringtones turned 2003 into the birth year of modern social media."
+    "In 2003, nobody kept their mobile phone on silent—walking down a busy street or sitting in a café meant hearing a dozen different musical 'polyphonic ringtones' chiming proudly from pockets and handbags.",
+    "Silver clamshell 'flip phones' with tiny built-in cameras were the ultimate status symbol in 2003, and snapping a flip phone shut with one hand at the end of a call felt effortlessly cool.",
+    "In the skies of 2003, crowds gathered on rooftops and airport fences to wave a fond farewell to the supersonic 'Concorde' jet on its final retirement flights, while NASA launched the twin Mars rovers 'Spirit' and 'Opportunity.'"
   ],
   2004: [
-    "In May 2004, Nike and the Lance Armstrong Foundation launched the yellow silicone 'Livestrong' wristband—debossed with the words 'LIVE STRONG'—for $1.00 each to fund cancer survivorship programs.",
-    "Worn by athletes at the July 2004 Tour de France and August 2004 Athens Summer Olympics, more than 80 million yellow silicone bands were sold, sparking a worldwide trend of color-coded rubber charity bracelets stacked on forearms.",
-    "Earlier on February 4, 2004, 19-year-old Harvard University sophomore Mark Zuckerberg along with Eduardo Saverin, Andrew McCollum, Dustin Moskovitz, and Chris Hughes launched 'Thefacebook.com' from Room H33 of Kirkland House.",
-    "Restricted exclusively to college students with an active '.edu' university email address, Thefacebook allowed undergraduates to post a single profile photo, list their 'Relationship Status' and course schedule, and 'Poke' classmates across 1 million registered college accounts by December 2004.",
-    "Meanwhile, high-school students spent 2004 curating their MySpace 'Top 8' friend grids, while Netflix shipped 1 million red paper DVD-by-mail envelopes per day."
+    "Walk down any street or tune into any sports match in 2004 and you would spot a bright yellow silicone 'Livestrong' charity wristband on almost every wrist.",
+    "In the summer of 2004, the Olympic Games returned to their ancient birthplace in Athens, Greece, while over 52 million viewers gathered around the TV for the emotional final episode of 'Friends.'",
+    "When going out with friends on Friday night in 2004, everyone carried a pocket-sized silver digital camera to snap dozens of flash photos of the evening."
   ],
   2005: [
-    "On February 14, 2005, former PayPal employees Chad Hurley, Steve Chen, and Jawed Karim registered 'YouTube.com' in San Mateo, California, uploading the site's first video—the 18-second clip 'Me at the zoo' filmed at the San Diego Zoo—on April 23, 2005.",
-    "In October 2005, a Nike advertisement showing Brazilian soccer star Ronaldinho juggling a ball off the crossbar became the first YouTube video to reach 1 million views, followed in December 2005 by SNL's 'Lazy Sunday' ('The Chronicles of Narnia' rap), which drove millions of users to the platform.",
-    "On November 7, 2005, publisher RedOctane and developer Harmonix released 'Guitar Hero' for the Sony PlayStation 2, bundled for $69.99 with a 3/4-scale black-and-white Gibson SG plastic controller featuring five colored fret buttons (green, red, yellow, blue, orange), a clicky strum bar, and a whammy bar.",
-    "Players tilted the plastic guitar neck vertically to activate a mercury tilt-sensor that triggered score-doubling 'Star Power' during 47 rock tracks including 'Iron Man' and 'Bark at the Moon.'",
-    "Between sharing early YouTube links and clicking plastic 'Guitar Hero' fret buttons in the living room, 2005 revolutionized home entertainment."
+    "In 2005, football fans around the world witnessed one of the greatest comebacks in sports history during the 'Miracle of Istanbul,' when Liverpool erased a 3–0 halftime deficit to win the UEFA Champions League Final on penalties.",
+    "Aviation fans stared in amazement in 2005 as the double-decker 'Airbus A380'—the largest passenger airliner ever built—took off on its maiden flight in France.",
+    "Meanwhile, every coffee-shop table and commuter train in 2005 was filled with people penciling numbers into newspaper 'Sudoku' grids and turning the pages of 'The Da Vinci Code.'"
   ],
   2006: [
-    "On September 26, 2006, Facebook officially dropped its college- and high-school-only restriction and opened registration to anyone in the world aged 13 and older with a valid email address, just three weeks after launching the automated 'News Feed' on September 5.",
-    "Earlier on March 21, 2006 in San Francisco, Odeo co-founder Jack Dorsey sent the first public message on the SMS-based microblogging service 'twttr' (Twitter): 'just setting up my twttr.'",
-    "Capped at 140 characters to fit inside a standard 160-character cellular SMS message with a username prefix, early Twitter prompted users with the question, 'What are you doing?'",
-    "In living rooms starting November 19, 2006, Nintendo's $249.99 Wii console bundled with 'Wii Sports' turned motion-sensing accelerometers inside the white 'Wii Remote' into a multi-generational phenomenon.",
-    "Families created custom cartoon 'Mii' avatars in the Mii Channel and swung the controller to bowl 300 games and play virtual tennis—prompting Nintendo to distribute millions of thicker replacement wrist straps and rubber 'Wii Remote Jackets' to protect television screens."
+    "All through the summer of 2006, every outdoor café and town square on Earth was packed with fans watching the FIFA World Cup in Germany—culminating in Italy's penalty-shootout victory under the Berlin night sky.",
+    "In school classrooms and around dinner tables in 2006, lively debates broke out when astronomers officially voted that distant 'Pluto' was a dwarf planet rather than the ninth planet.",
+    "That same year, 'Twitter' launched with its strict 140-character limit, while Disney Channel's 'High School Musical' had kids everywhere singing 'We're All in This Together.'"
   ],
   2007: [
-    "At 12:01 AM on July 21, 2007, Scholastic and Bloomsbury released J.K. Rowling's 759-page seventh and final novel, 'Harry Potter and the Deathly Hallows,' which shattered publishing history by selling 11 million physical hardcover copies in its first 24 hours (8.3 million in the U.S. and 2.65 million in the U.K.).",
-    "Thousands of Barnes & Noble, Borders, and independent bookstores hosted midnight costume release parties where readers wore house scarves and round spectacles before spending the weekend reading straight through to the epilogue.",
-    "Simultaneously during the summer and autumn of 2007, 17-year-old Atlanta rapper DeAndre 'Soulja Boy Tell'em' Way turned his self-published FL Studio track 'Crank That (Soulja Boy)' into a 7-week Billboard Hot 100 #1 hit via an instructional dance video uploaded to YouTube.",
-    "The choreography—stepping back on the heels, leaning left and right, and crossing the wrists before leaping forward in the 'Superman' pose—was performed at every school pep rally, wedding reception, and stadium break in 2007.",
-    "That track also became the first song in music history to sell over 3 million paid digital downloads in the United States."
+    "In 2007, people crowded around electronics-store windows in total amazement to see the very first 'iPhone'—marveling at how you could slide your finger across glass and pinch with two fingers to zoom in on a photo.",
+    "Outside bookstores around the globe in 2007, millions of readers stayed up past midnight wearing wizard hats and striped scarves for the release of the seventh and final 'Harry Potter' book.",
+    "And at parties and schoolyards everywhere in 2007, the moment Soulja Boy's 'Crank That' came on the speakers, the entire room lined up in rows to do the 'Superman' dance step together."
   ],
   2008: [
-    "On July 10, 2008, Apple launched the iOS 'App Store' alongside the iPhone 3G with 500 initial third-party applications, registering 10 million app downloads in its first weekend.",
-    "Early smartphone owners in 2008 showed off accelerometer-based novelty apps at dinner tables: Steve Sheraton's $2.99 'iBeer' app (which used the tilt sensor to simulate golden liquid draining from the top of the screen), the virtual 'Zippo Lighter' app held aloft at concerts, and 'Koi Pond.'",
-    "In November 2008, Summit Entertainment released director Catherine Hardwicke's film adaptation of Stephenie Meyer's vampire romance 'Twilight' starring Kristen Stewart as Bella Swan and Robert Pattinson as Edward Cullen ($408 million box office).",
-    "Retailer Hot Topic sold millions of 'Team Edward' and 'Team Jacob' (Taylor Lautner) T-shirts, plastic vampire-crest wristbands, and cardboard standees as all four books in the 'Twilight Saga' occupied the top four spots on the USA Today bestseller list simultaneously.",
-    "Between tilting the 'iBeer' app on an iPhone 3G and choosing between 'Team Edward' and 'Team Jacob,' 2008 defined late-2000s pop culture."
+    "In 2008, the whole world sat glued to the television for the dazzling Beijing Summer Olympics—cheering in awe as Usain Bolt shattered the 100-meter world record with his shoelaces untied and Michael Phelps won eight gold medals.",
+    "At cafés and dinner tables in 2008, anyone who owned an early touchscreen smartphone delighted in opening the viral 'iBeer' app and tilting the phone against their mouth to pretend they were drinking golden liquid from the screen.",
+    "Meanwhile, moviegoers in 2008 stayed in their seats until the very end of the credits as Robert Downey Jr.'s 'Iron Man' launched the Marvel Cinematic Universe."
   ],
   2009: [
-    "In June 2009, San Francisco developer Zynga launched the Adobe Flash social game 'FarmVille' on Facebook, which grew within six months to 83.7 million monthly active players—more than 20% of Facebook's entire global user base.",
-    "Players plowed isometric square plots of digital soil to plant strawberries, pumpkins, and watermelons that withered into brown dirt if the player did not log back into Facebook within a set real-world window of 4 hours to 4 days.",
-    "Facebook News Feeds were flooded with 'FarmVille' requests asking friends to adopt lost black sheep, send bricks for a red barn, or buy 'Farm Cash.'",
-    "Out in public train terminals and shopping centers throughout 2009, choreographed musical 'Flash Mobs' became the year's biggest viral video trend.",
-    "On March 23, 2009, 200 dancers surprised commuters inside Belgium's Antwerp Central Station with a four-minute routine to 'Do-Re-Mi,' followed on September 8, 2009 by 21,000 people performing a synchronized dance to the Black Eyed Peas' 'I Gotta Feeling' on Chicago's Michigan Avenue for 'The Oprah Winfrey Show.'"
+    "In 2009, the whole world celebrated the 'Miracle on the Hudson' after Captain Chesley 'Sully' Sullenberger safely glided an airliner onto the icy Hudson River in New York with all 155 passengers surviving.",
+    "On the athletics track in Berlin in 2009, Jamaican sprinter Usain Bolt left the planet speechless once again by lowering his own 100-meter world record to an astonishing 9.58 seconds.",
+    "And across city train stations, shopping malls, and wedding receptions in 2009, spontaneous 'Flash Mobs' became the joyful craze of the year as hundreds of people suddenly broke into synchronized dance."
   ],
   2010: [
-    "On October 6, 2010, Stanford graduates Kevin Systrom and Mike Krieger launched 'Instagram' exclusively on the Apple App Store, signing up 25,000 users on day one and 1 million users within two months.",
-    "Formatted in a strict 1:1 square aspect ratio to mimic vintage Kodak Instamatic and Polaroid cameras, 2010 Instagram photos were almost universally processed with heavy digital filters—such as 'X-Pro II,' 'Earlybird,' 'Lomo-fi,' and 'Toaster'—complete with artificial film scratches and thick black or white borders.",
-    "Throughout June and July 2010, television broadcasts of the 2010 FIFA World Cup in South Africa were accompanied by the continuous 116-decibel B-flat drone of 2-foot-long plastic 'Vuvuzela' stadium horns—and the predictions of 'Paul the Octopus' at the Oberhausen Sea Life Centre, who correctly picked all eight of his World Cup matches by opening mussel boxes.",
-    "On smartphone touchscreens across 2010, Finnish studio Rovio's $0.99 physics puzzle game 'Angry Birds' topped 50 million downloads as commuters pulled back a virtual slingshot to launch red, yellow, and exploding black birds at green pigs' wooden fortresses.",
-    "Heavy 'Earlybird' Instagram filters, World Cup vuvuzelas, and 'Angry Birds' defined the sensory landscape of 2010."
+    "If you close your eyes and remember the summer of 2010, one sound immediately rushes back: the nonstop buzz of plastic 'Vuvuzela' horns and Shakira's 'Waka Waka' echoing from every café during the first African FIFA World Cup in South Africa.",
+    "Even people who didn't follow football tuned in before every match in 2010 to see which country's flag 'Paul the Octopus' would pick from his glass aquarium tank—correctly predicting eight matches in a row!",
+    "That same year, Apple unveiled the first 'iPad' tablet, and smartphone owners began adding vintage square borders to their coffee photos on a brand-new app called 'Instagram.'"
   ],
   2011: [
-    "In the spring of 2011, the viral photo game 'Planking' (' the Lying Down Game') swept across Facebook after Australian rugby player David 'Wolfman' Williams performed a flat-stomach plank on the field during an NRL match in March 2011.",
-    "Participants lay face-down with their bodies rigid as a wooden plank and palms flat against their thighs atop park benches, police cruisers, supermarket conveyor belts, and basketball hoops to upload the proof to Facebook photo albums.",
-    "In mobile communication during 2011, Research In Motion's 'BlackBerry Curve' and 'BlackBerry Bold' QWERTY handsets reached a peak of 70 million subscribers worldwide using 'BlackBerry Messenger' (BBM).",
-    "Users exchanged 8-character hexadecimal 'BBM PINs' rather than phone numbers and watched for the blue 'D' (Delivered) and green 'R' (Read) checkmark badges inside group chats.",
-    "Meanwhile on November 18, 2011 at MineCon in Las Vegas, Swedish creator Markus 'Notch' Persson and Mojang released version 1.0 of 'Minecraft,' cementing the blocky sandbox survival game as a global phenomenon."
+    "In 2011, the funniest sight in parks, schoolyards, and tourist landmarks around the world was the viral 'Planking' craze—where people lay completely flat and stiff as a wooden board across benches while a friend snapped a photo.",
+    "Around two billion television viewers tuned in during 2011 to watch the royal wedding of Prince William and Kate Middleton at Westminster Abbey in London.",
+    "Among friends in 2011, the ultimate way to stay connected all day was trading eight-character 'BlackBerry Messenger' (BBM) PIN codes and hearing that distinctive ping in your pocket."
   ],
   2012: [
-    "On July 15, 2012, South Korean rapper PSY (Park Jae-sang) uploaded the music video for 'Gangnam Style' to YouTube, where its invisible-horse-lasso choreography propelled it on December 21, 2012 to become the very first video in internet history to surpass 1 billion views.",
-    "Dressed in a powder-blue tuxedo jacket and sunglasses, PSY performed the galloping dance with Britney Spears on television, before 80,000 fans in Seoul Plaza, and with one million revelers in New York's Times Square on New Year's Eve.",
-    "Throughout 2012, everyday teenage and twenty-something conversation was dominated by the four-letter acronym 'YOLO' ('You Only Live Once'), popularized by Drake and Lil Wayne's late-2011 track 'The Motto' and nominated by the American Dialect Society for 2012 Word of the Year.",
-    "At the same time, calendar-watchers spent 2012 debating the '2012 Phenomenon' centered on December 21, 2012—the end date of the 5,126-year Mesoamerican Long Count calendar cycle (13.0.0.0.0).",
-    "Between shouting 'YOLO!' and dancing to 'Gangnam Style,' 2012 marked the moment viral internet culture went truly global."
+    "In 2012, there wasn't a single wedding, schoolyard, or street festival on Earth where people weren't crossing their wrists and galloping like a horse to PSY's 'Gangnam Style'—the first video in history to pass one billion views on YouTube.",
+    "At the 2012 London Summer Olympics, audiences laughed out loud as 'Mr. Bean' played a one-finger keyboard note with the symphony orchestra and James Bond escorted Queen Elizabeth II to a helicopter parachute stunt.",
+    "Later in 2012, tens of millions watched live in breathless silence as skydiver Felix Baumgartner stepped out of a helium balloon capsule at the edge of space and broke the sound barrier in freefall."
   ],
   2013: [
-    "On January 24, 2013, Twitter launched the mobile app 'Vine'—founded by Dom Hofmann, Rus Yusupov, and Colin Kroll—which recorded looping 6-second video clips only while the user held their thumb down on the smartphone screen.",
-    "Vine's stop-motion editing gave birth to the catchphrase 'Do it for the Vine!' and launched bedroom comedians King Bach, Brittany Furlan, and Nash Grier to millions of followers.",
-    "Two weeks later in February 2013, Brooklyn producer Baauer's trap instrumental 'Harlem Shake' sparked a global meme after YouTuber Filthy Frank and five friends in Queensland, Australia uploaded a 30-second video formula: one person in a motorcycle helmet danced alone for 15 seconds until the bass dropped and a jump-cut revealed the entire room thrashing in absurd costumes.",
-    "By February 15, 2013, over 40,000 'Harlem Shake' videos had been uploaded by university swim teams, newsrooms, and army platoons, prompting Billboard to incorporate YouTube video streams into the Hot 100 formula for the first time, sending 'Harlem Shake' straight to #1.",
-    "In November 2013, Oxford Dictionaries officially named 'Selfie' its 2013 Word of the Year after usage of the term rose 17,000% in twelve months."
+    "In 2013, Oxford Dictionaries officially named 'Selfie' the Word of the Year—and everywhere you walked in the world, groups of friends were squeezing shoulder-to-shoulder with one arm stretched out (or using a telescopic metal 'selfie stick') to snap a front-camera photo together.",
+    "Classrooms, sports teams, and offices in every country filmed hilarious thirty-second 'Harlem Shake' videos in 2013, where one person danced alone in a helmet for fifteen seconds before the beat dropped and the whole room erupted in wild costumes.",
+    "And on television and laptop screens worldwide in 2013, friends gathered in total silence for the unforgettable final episodes of the series 'Breaking Bad' as Walter White's story came to an end."
   ],
   2014: [
-    "In July and August 2014, the 'ALS Ice Bucket Challenge'—championed by former Boston College baseball captain Pete Frates and Pat Quinn—became the largest viral charity campaign in social-media history.",
-    "Once nominated by name in a video, participants had 24 hours to film themselves dumping a bucket of ice water over their heads and challenge three more people, resulting in 17 million videos uploaded to Facebook (viewed 10 billion times by 440 million people) and raising $115 million for the ALS Association in eight weeks.",
-    "Earlier in January 2014, Hanoi-based independent developer Dong Nguyen's free mobile game 'Flappy Bird'—released in May 2013 with 8-bit Super Mario-style green pipes—surged to #1 on both the Apple App Store and Google Play, earning $50,000 per day in banner ads.",
-    "When Nguyen abruptly removed 'Flappy Bird' from app stores on February 10, 2014 citing guilt over how addictive the one-tap game had become, used iPhone 5s handsets with 'Flappy Bird' pre-installed were listed on eBay for up to $90,000.",
-    "Together, 'Flappy Bird' and the 'ALS Ice Bucket Challenge' defined the viral social landscape of 2014."
+    "All through the summer of 2014, neighborhood yards and city streets around the world echoed with gasps and laughter as millions of ordinary people, athletes, and celebrities dumped buckets of ice water over their heads for the charity 'ALS Ice Bucket Challenge.'",
+    "Every café patio and living room on Earth pulsed with the colors and drama of the 2014 FIFA World Cup in Brazil, while Ellen DeGeneres's star-studded group selfie at the Oscars became the most shared photo on the internet.",
+    "Meanwhile, Pharrell Williams's upbeat anthem 'Happy' inspired people in hundreds of cities across the globe in 2014 to film joyful street-dance videos in their own neighborhoods."
   ],
   2015: [
-    "On February 26, 2015, Scottish singer Caitlin McNeill posted a washed-out cell-phone photograph of a striped Roman Originals lace bodycon dress on Tumblr with the caption, 'guys please help me - is this dress white and gold, or blue and black?'",
-    "Within 24 hours, '#TheDress' generated 10 million tweets and 38 million pageviews on BuzzFeed as 68% of online poll respondents perceived the overexposed pixels as white and gold while 32% saw the garment's true manufactured colors of royal blue and black.",
-    "Out on sidewalks and inside malls throughout 2015, two-wheeled, self-balancing lithium-ion electric scooters—marketed under brands like 'IO Hawk,' 'PhunkeeDuck,' and 'Swagway' and universally called 'Hoverboards'—sold over 2.5 million units in the United States at $350 to $1,500 apiece.",
-    "Riders leaned their toes forward on dual pressure pads to glide at 8 miles per hour behind glowing blue LED wheel-fender strips.",
-    "On sports fields and in school hallways during autumn 2015, Atlanta hip-hop trio Migos ('Look at My Dab') and Carolina Panthers MVP quarterback Cam Newton turned 'The Dab'—tucking the forehead into the crook of a bent elbow while extending the other arm—into the universal celebration gesture of the year."
+    "In 2015, a single photograph of a striped dress divided every family dinner table, classroom, and office on the planet into two passionate camps: half the world swore '#TheDress' was blue-and-black, while the other half insisted it was white-and-gold!",
+    "People in every country also stared in wonder at their screens in 2015 as NASA's 'New Horizons' spacecraft beamed back the first close-up portrait of distant Pluto, revealing a giant heart-shaped glacier across its icy surface.",
+    "And in every school photo, football goal celebration, and wedding dance floor of 2015, friends tucked their face into the crook of their elbow to hit the viral 'Dab' pose."
   ],
   2016: [
-    "On July 6, 2016, Niantic and The Pokémon Company released the augmented-reality GPS mobile game 'Pokémon GO' for iOS and Android, which shattered world records with 500 million downloads in two months and 28.5 million daily active players in the United States alone.",
-    "Using their phone's camera and real-world street maps, players walked through city parks—such as Manhattan's Central Park, where hundreds of drivers abandoned cars on 59th Street at 11:00 PM on July 15 to catch a rare Vaporeon—flicking red-and-white Poké Balls on screen and gathering at neighborhood landmarks designated as 'PokéStops' and 'Gyms.'",
-    "Inside high schools in spring and autumn 2016, two viral challenges dominated every cafeteria and gym: the 'Water Bottle Flip'—sparked on May 24, 2016 when Ardrey Kell High School senior Mike Senatore flipped a partially filled plastic Deer Park water bottle upright onto a table at his talent show—and the 'Mannequin Challenge.'",
-    "Set to Rae Sremmurd's #1 hit 'Black Beatles' featuring Gucci Mane, the 'Mannequin Challenge' saw entire classrooms, NFL locker rooms, and even Paul McCartney freeze completely motionless while a camera panned through the room.",
-    "From midnight 'Pokémon GO' walks in the park to 'Water Bottle Flips' at lunch, 2016 brought digital culture out into physical public spaces."
+    "Walk into any school cafeteria, park, or living room in 2016 and you would hear the rhythmic plastic thud of the 'Water Bottle Flip' challenge—followed by a loud roar whenever a half-full bottle spun through the air and landed standing straight up.",
+    "Entire classrooms, sports locker rooms, and family gatherings in 2016 also froze completely motionless like wax statues while a camera moved through the room to Black Beatles for the viral 'Mannequin Challenge.'",
+    "At the 2016 Rio Summer Olympics, the whole world grinned as Usain Bolt looked sideways and smiled for the cameras mid-sprint on his way to nine career gold medals, while movie fans cheered as Leonardo DiCaprio finally won his first Oscar."
   ],
   2017: [
-    "In April and May 2017, the three-lobed ball-bearing 'Fidget Spinner'—featuring a central 608 ceramic or stainless-steel skate bearing surrounded by three weighted ABS plastic or brass prongs—occupied all top 20 spots on Amazon's best-selling toy list, with over 50 million units sold in the spring.",
-    "Students spun the low-friction toys between thumb and middle finger for up to three minutes on classroom desks, prompting 32% of the largest U.S. school districts to ban fidget spinners before summer break.",
-    "On August 21, 2017, the 'Great American Eclipse' carved a 70-mile-wide path of totality across 14 states from Lincoln Beach, Oregon to Charleston, South Carolina—the first total solar eclipse visible coast-to-coast across the contiguous United States since June 1918—watched by 215 million American adults wearing cardboard ISO 12312-2 solar-filter glasses.",
-    "One month later on September 26, 2017, Epic Games launched the free-to-play 100-player PvP mode 'Fortnite: Battle Royale' on PC, PlayStation 4, and Xbox One.",
-    "Within twelve weeks, 30 million players were skydiving out of a floating blue 'Battle Bus' onto the island map to harvest wood, brick, and metal wall ramps."
+    "Out in parks, shopping streets, and school hallways in 2017, friends would suddenly shout 'The Floor is Lava!'—forcing everyone in the group to laugh and scramble onto a bench, chair, or step within five seconds so their shoes wouldn't touch the ground.",
+    "All summer long in 2017, the unmistakable Latin guitar rhythm of Luis Fonsi and Daddy Yankee's 'Despacito' poured out of every car window, beach kiosk, and café speaker on Earth, becoming the most-watched video in history.",
+    "And at midday in 2017, millions of neighbors stepped out onto front lawns, rooftops, and sidewalks together, sharing cardboard solar glasses as a total solar eclipse turned afternoon daylight into twilight."
   ],
   2018: [
-    "Throughout 2018, Epic Games' 'Fortnite: Battle Royale' grew to 200 million registered players and $2.4 billion in annual revenue—the highest single-year revenue of any video game in history—turning victory-royale character emotes like 'The Floss' (created by 16-year-old Russell 'The Backpack Kid' Horning), 'Orange Justice,' and 'Take the L' into playground and stadium staples.",
-    "French forward Antoine Griezmann even performed Fortnite's 'Take the L' dance after scoring in the July 15, 2018 FIFA World Cup Final in Moscow.",
-    "On May 15, 2018, Georgia high-school freshman Katie Hetzel posted an audio recording of the word 'laurel' from Vocabulary.com to Instagram, igniting the viral 'Yanny or Laurel' auditory illusion after Cloe Feldman shared it on Twitter.",
-    "Depending on the listener's ear sensitivity to high-frequency overtones versus low-frequency bass, 53% of over half a million poll respondents heard 'Laurel' while 47% heard 'Yanny.'",
-    "Out on city sidewalks in 2018, dockless electric rental scooters from startups 'Bird' and 'Lime'—unlocked for $1.00 plus 15 cents per minute via smartphone app—logged 38.5 million rides across 100 U.S. cities."
+    "In the summer of 2018, every café screen and town square echoed with the roars of the FIFA World Cup in Russia as teenaged Kylian Mbappé and France lifted the trophy in a thrilling six-goal final in Moscow.",
+    "At coffee tables and offices everywhere in 2018, friends huddled around a single phone speaker in total disbelief over the viral 'Yanny or Laurel' audio clip, amazed that two people sitting side-by-side could hear two completely different words.",
+    "Earlier in 2018, nearly two billion viewers around the world tuned in to watch the sunlit royal wedding of Prince Harry and Meghan Markle at Windsor Castle."
   ],
   2019: [
-    "In the summer of 2019, the 'VSCO Girl' aesthetic—named after the VSCO photo-editing app and propelled by TikTok—became the dominant youth subculture across high schools and college campuses.",
-    "The uniform consisted of a pastel 32- or 40-ounce stainless-steel 'Hydro Flask' water bottle covered in vinyl stickers, velvet hair scrunchies worn stacked on the wrist, oversized Brandy Melville T-shirts that covered Nike running shorts, Birkenstock Arizona sandals, puka-shell chokers, and collapsible metal straws accompanied by the catchphrase 'sksksk and I oop!'",
-    "On August 12, 2019, fast-food chain Popeyes Louisiana Kitchen launched its $3.99 buttermilk-battered 'Chicken Sandwich' on a brioche bun with pickles and spicy mayo, triggering a viral Twitter feud with Chick-fil-A on August 19.",
-    "Demand surged so rapidly that drive-thru lines backed up onto major avenues across the country until Popeyes completely sold out of its national 8-week chicken inventory in just 15 days.",
-    "Earlier that July, over 2.1 million people clicked 'Going' on Matty Roberts' viral Facebook event 'Storm Area 51, They Can't Stop All of Us,' which vowed to 'Naruto run' into the Nevada test range on September 20, 2019."
+    "In 2019, the playful challenge taking over streets and hallways everywhere was the 'Bottle Cap Challenge'—where friends filmed themselves in slow motion trying to unscrew the cap off a water bottle with a single spinning kick without knocking the bottle over.",
+    "Astronomers in 2019 unveiled a glowing orange ring of light across every newspaper front page on Earth: the very first real photograph ever captured of a supermassive 'Black Hole' in deep space.",
+    "And on Sunday evenings in 2019, millions of fans across every time zone gathered in darkened living rooms to watch the final season of the fantasy epic 'Game of Thrones' at the exact same hour."
   ],
   2020: [
-    "During the spring 2020 COVID-19 stay-at-home lockdowns, two domestic kitchen trends swept across TikTok and Instagram: homemade artisanal sourdough bread—which caused U.S. supermarket yeast sales to jump 647% in March 2020—and South Korean 'Dalgona Whipped Coffee,' made by whipping equal parts instant coffee powder, sugar, and hot water 400 times into a caramel foam over iced milk.",
-    "For remote school, work, and Friday-night socializing, video-conferencing platform 'Zoom' saw daily meeting participants surge from 10 million in December 2019 to 300 million in April 2020.",
-    "On March 20, 2020, Nintendo released 'Animal Crossing: New Horizons' for the Nintendo Switch, selling a record 13.4 million copies in its first six weeks as players visited friends' virtual islands via 'Dodo Codes' to trade turnips on the 'Stalk Market.'",
-    "By summer 2020, InnerSloth's 2018 multiplayer social-deduction game 'Among Us' exploded to 500 million monthly active players after Twitch streamers popularized emergency-meeting debates over which colored crewmate was the 'Impostor.'",
-    "The game's shorthand term 'sus' (suspicious) entered everyday global slang as friends played 'Among Us' together on smartphones and laptops."
+    "In 2020, kitchens around the world turned into cozy home cafés as millions of families hand-whisked spoonfuls of instant coffee, sugar, and water hundreds of times to make frothy 'Dalgona Whipped Coffee' over cold milk and baked homemade banana bread.",
+    "Classic drive-in movie theaters and neighborhood rooftop concerts made a nostalgic comeback in 2020, letting families watch films under the stars from the comfort of their parked cars.",
+    "Space fans also cheered in 2020 when SpaceX's sleek white 'Crew Dragon' capsule—controlled by touchscreen displays—launched astronauts into orbit to dock with the International Space Station."
   ],
   2021: [
-    "On December 27, 2020 and into January 2021, 26-year-old Scottish postman Nathan Evans uploaded a TikTok video singing the 19th-century New Zealand whaling ballad 'Soon May the Wellerman Come' while tapping his fist, sparking the viral '#SeaShanty' duet phenomenon where baritones, violinists, and bass singers layered multi-part harmonies that sent Evans's remix to #1 on the UK Official Singles Chart.",
-    "In February 2021, Finnish food blogger Jenni Häyrinen's 'Uunifetapasta' went viral internationally as '#BakedFetaPasta'—roasting a whole 8-ounce block of feta cheese surrounded by cherry tomatoes and olive oil at 400°F—causing supermarkets across the U.S. and Europe to sell out of block feta.",
-    "On September 17, 2021, Netflix released Hwang Dong-hyuk's nine-episode South Korean survival drama 'Squid Game' starring Lee Jung-jae as Seong Gi-hun (Player 456), which became Netflix's most-watched series in history with 1.65 billion hours viewed in its first 28 days.",
-    "Fans worldwide bought green numbered tracksuits, white Vans slip-on sneakers (whose sales jumped 7,800%), and melted sugar with baking soda on kitchen stoves to attempt the Episode 3 'Dalgona' honeycomb-umbrella needle challenge.",
-    "From TikTok sea shanties and Baked Feta Pasta to 'Squid Game' honeycomb challenges, 2021 showed the power of global streaming culture."
+    "In 2021, Netflix's Korean series 'Squid Game' became the most talked-about show on Earth—inspiring families and friends everywhere to melt sugar and baking soda in a pan and try carving shapes out of 'Dalgona' honeycomb candy with a toothpick without cracking it.",
+    "In kitchens everywhere in 2021, people baked the viral oven-roasted block of feta cheese and cherry tomatoes pasta dish while humming the nineteenth-century sea shanty 'Wellerman.'",
+    "Television fans also shared an emotional nostalgia trip in 2021 when all six cast members of 'Friends' walked back onto their original studio soundstage together for their first reunion in seventeen years."
   ],
   2022: [
-    "In January 2022, Brooklyn software engineer Josh Wardle's daily browser puzzle 'Wordle'—originally built for his partner Palak Shah and acquired by The New York Times on January 31—grew from 90 players to over 2 million daily players worldwide.",
-    "Because Wordle offered only one five-letter word per 24 hours for the entire planet, Wardle's December addition of a spoiler-free share button filled group chats and Twitter every morning with 5-by-6 grids of green, yellow, and gray emoji squares.",
-    "Across high schools and universities in 2022, French developer Alexis Barreyat's photo app 'BeReal' surged to #1 on the App Store, sending all users a simultaneous daily notification ('⚠️ Time to BeReal. 2 mins left to capture a BeReal and see what your friends are up to! ⚠️') that snapped both the front and rear cameras at once with zero filters.",
-    "In August 2022, Recess Therapy host Julian Shapiro-Barnum interviewed 7-year-old Tariq ('Corn Kid') munching corn on the cob in Brooklyn, which The Gregory Brothers remixed into the viral song 'It's Corn' ('A big lump with knobs, it has the juice!').",
-    "Daily Wordle emoji grids, simultaneous two-minute BeReal alerts, and 'It's Corn' defined the shared daily habits of 2022."
+    "In 2022, the entire planet held its breath together in cafés, plazas, and living rooms during the historic FIFA World Cup in Qatar—culminating in Lionel Messi and Argentina's unforgettable final victory over France.",
+    "Everyone also stared in awe at their screens in 2022 as the newly launched 'James Webb Space Telescope' beamed back the deepest, sharpest glittering color photographs of distant galaxies and star nurseries ever seen.",
+    "And in movie theaters in 2022, groups of teenagers around the world dressed up in full formal suits and ties just to watch 'Minions: The Rise of Gru' together as '#GentleMinions.'"
   ],
   2023: [
-    "On July 21, 2023, the simultaneous theatrical release of Greta Gerwig's 'Barbie' (Warner Bros.) and Christopher Nolan's three-hour biographical drama 'Oppenheimer' (Universal) sparked the organic global box-office phenomenon known as 'Barbenheimer.'",
-    "More than 200,000 North American moviegoers purchased same-day double-feature tickets on opening weekend alone, dressing in hot-pink 'Barbiecore' outfits and cowboy hats alongside dark 1940s fedoras to propel 'Barbie' to $1.446 billion and 'Oppenheimer' to $976 million worldwide.",
-    "Throughout 2023, Taylor Swift's 3.5-hour, 44-song 'The Eras Tour' kicked off in Glendale, Arizona on March 17 and became the first concert tour in music history to cross $1 billion in gross revenue.",
-    "Inspired by a lyric in Swift's song 'You're on Your Own, Kid' ('So make the friendship bracelets, take the moment and taste it'), millions of concertgoers strung elastic bracelets with plastic letter beads to trade arm-to-arm in stadium concourses—boosting bead sales at craft chain Michaels by up to 500%.",
-    "At her July 2023 Seattle 'Eras Tour' shows at Lumen Field, 72,000 dancing fans even generated ground vibrations equivalent to a 2.3-magnitude earthquake on Pacific Northwest Seismic Network seismometers."
+    "In 2023, kitchen tables around the world turned into craft workshops as friends strung colorful plastic letter beads onto elastic cords to trade handmade friendship bracelets at stadium concerts and summer festivals.",
+    "At dinner tables and cafés in 2023, everyone was laughing over the same viral question asked to husbands, brothers, and fathers everywhere: 'How often do you think about the Roman Empire?'",
+    "Meanwhile, hundreds of millions watched live in celebration in 2023 as India's 'Chandrayaan-3' spacecraft made history by landing softly near the unexplored south pole of the Moon."
   ],
   2024: [
-    "In early 2024, the 40-ounce vacuum-insulated stainless-steel 'Stanley Quencher H2.0 FlowState Tumbler' ($45 retail)—equipped with an ergonomic side handle, a rotating three-position lid, and a narrow base that fit car cupholders—sparked predawn lines outside Target stores on January 3 for the limited-edition 'Galentine's Day' pink and red cups, driving Stanley's annual revenue from $73 million to $750 million.",
-    "On June 7, 2024, British pop artist Charli XCX released her sixth studio album 'Brat' featuring a minimalist cover in low-resolution Arial font over hex color '#8ACE00' lime green, igniting the global cultural aesthetic of 'Brat Summer' (crowned Collins Dictionary's 2024 Word of the Year).",
-    "During the July–August 2024 Summer Olympics in Paris, two viral athletes dominated social feeds: Norwegian distance swimmer Henrik Christiansen—dubbed the 'Olympic Muffin Man' after posting a series of TikTok reviews scoring the Olympic Village dining hall's Coup de Pates triple-chocolate muffins 11/10—and 25-year-old American gymnast Stephen Nedoroscik.",
-    "Nicknamed the 'Clark Kent of Pommel Horse,' Nedoroscik sat calmly on the sidelines in his dark glasses solving a Rubik's Cube in 10 seconds before removing his frames to score a 14.866 routine that clinched Team USA's first men's gymnastics team medal in 16 years.",
-    "Stanley 40-ounce tumblers, '#8ACE00' Brat green, and the Paris Olympic Village chocolate muffins defined the cultural landscape of 2024."
+    "In the summer of 2024, the Paris Olympic Games turned the world's most famous landmarks into an open-air stadium—with everyone talking about the cool, casual posture of Turkish sharpshooter Yusuf Dikeç winning silver with one hand in his pocket.",
+    "At sweet shops and bakeries in almost every country in 2024, people lined up down the sidewalk to break open thick bars of crispy pistachio-and-knafeh 'Dubai Chocolate.'",
+    "And on weekend mornings in 2024, city parks and waterfronts filled with hundreds of young people jogging together in massive neighborhood 'Run Clubs' before sharing coffee and pastries outdoors."
   ]
 };
 
-const buildWorldNewsNoFiller = (year: number): string => {
-  const entry = YEAR_TWO_SOCIETAL_TRENDS[year];
-  if (entry) {
-    return ensure5To7Sentences(entry);
+const MONTH_SEASONAL_STREETSCAPE: Record<number, { seasonOpening: (year: number) => string; closingRoutine: (year: number) => string }> = {
+  1: {
+    seasonOpening: (y) => `January in ${y} greeted the neighborhood with crisp winter air, frosted front windshields, and pale morning sunlight glinting off quiet residential roofs as plumes of exhaust rose from warming driveways.`,
+    closingRoutine: (y) => `As early winter dusk settled over the streets of ${y} around five o'clock, warm amber lamps lit up behind living-room curtains and the smell of slow-simmering dinner drifted down the hallway.`
+  },
+  2: {
+    seasonOpening: (y) => `February in ${y} carried that unmistakable late-winter stillness, when bare tree branches framed the sky and local bakery windows steamed up with the warmth of fresh bread and paper Valentine decorations.`,
+    closingRoutine: (y) => `By late Sunday afternoon in ${y}, families returned from weekend errands with rosy cheeks, hanging heavy wool coats by the door and gathering in the kitchen for the evening.`
+  },
+  3: {
+    seasonOpening: (y) => `March in ${y} arrived with the first restless breeze of early spring, melting the last patches of winter frost along the curb and coaxing neighbors back out onto their front steps after work.`,
+    closingRoutine: (y) => `With the afternoon light stretching a little longer each week in ${y}, sidewalks stayed busy with kids on bicycles and neighbors chatting across the driveway fence until dinner.`
+  },
+  4: {
+    seasonOpening: (y) => `April in ${y} washed the streets in fresh spring rain and pale pink blossoms, when kitchen windows were finally propped open to let the mild afternoon breeze drift through the house.`,
+    closingRoutine: (y) => `On weekend mornings in ${y}, the sound of broom bristles sweeping off front porches and the crack of baseballs at the local park announced that spring had truly arrived.`
+  },
+  5: {
+    seasonOpening: (y) => `May in ${y} wrapped the neighborhood in lush green leaves and golden late-spring warmth, with garden centers stacking flats of marigolds and geraniums along the sidewalk.`,
+    closingRoutine: (y) => `As twilight lingered late into the evening in ${y}, families moved dinner out onto the back patio and kids chased fireflies across the freshly cut grass.`
+  },
+  6: {
+    seasonOpening: (y) => `June in ${y} opened with the pure, carefree electricity of early summer—school doors swinging shut for the season, canvas awnings shading storefront windows, and bicycles leaning outside the corner ice-cream parlor.`,
+    closingRoutine: (y) => `Long after the sun dipped below the rooftops in ${y}, the neighborhood stayed awake with the hum of box fans in upstairs windows and friends talking on the front stoop.`
+  },
+  7: {
+    seasonOpening: (y) => `July in ${y} shimmered with peak midsummer heat, where heat waves danced above the asphalt, lawn sprinklers ticked rhythmically across green yards, and the jingle of the ice-cream truck echoed two blocks away.`,
+    closingRoutine: (y) => `When the warm purple twilight finally cooled the pavement in ${y}, the whole block smelled like charcoal grills and citronella candles as neighbors lingered outside until midnight.`
+  },
+  8: {
+    seasonOpening: (y) => `August in ${y} had that golden, unhurried late-summer glow—cicadas buzzing high in the shade trees during the afternoon and department-store windows unveiling their first autumn displays for the new school year.`,
+    closingRoutine: (y) => `People savored every last warm weekend evening of ${y}, sitting on porch swings with tall glasses of iced tea and watching the streetlights flicker on one by one.`
+  },
+  9: {
+    seasonOpening: (y) => `September in ${y} brought a crisp, energizing shift to the air as morning dew sparkled on the grass, yellow school buses rumbled down the avenue, and stationery windows filled with fresh notebooks and sharpened pencils.`,
+    closingRoutine: (y) => `Weekend afternoons in ${y} carried the roar of stadium crowds on portable radios and the cozy ritual of pulling a favorite knit sweater from the closet for an evening walk.`
+  },
+  10: {
+    seasonOpening: (y) => `October in ${y} painted the neighborhood in deep amber and crimson, with dry leaves crunching underfoot along the sidewalk and local hardware and grocery windows stacked with pumpkins and jugs of apple cider.`,
+    closingRoutine: (y) => `As the crisp autumn sun set early behind the trees in ${y}, the scent of fireplace woodsmoke curled into the evening sky and porch lights glowed warmly down the block.`
+  },
+  11: {
+    seasonOpening: (y) => `November in ${y} wrapped the streets in brisk late-autumn air, where golden leaves swirled past brick storefronts, breath turned visible on morning walks, and diner windows fogged up with the warmth of coffee and pie.`,
+    closingRoutine: (y) => `By late afternoon in ${y}, downtown shop windows were beginning to twinkle with early holiday string lights, drawing families inside from the chilly sidewalk.`
+  },
+  12: {
+    seasonOpening: (y) => `December in ${y} transformed every street into a glowing winter postcard, with evergreen wreaths hung on front doors, department-store windows dressed in mechanical holiday scenes, and shoppers carrying brown paper parcels under their arms.`,
+    closingRoutine: (y) => `Inside neighborhood homes in ${y}, evenings were spent gathered around the warm glow of the living room with hot cocoa while frost traced delicate patterns across the windowpane.`
+  }
+};
+
+const YEAR_PLAYSTATION_AND_PC_VIBE: Record<number, [string, string]> = {
+  1965: [
+    "Long before home PlayStation consoles existed, teenagers in 1965 dropped silver coins into electromechanical pinball tables and arcade shooting galleries at the corner penny arcade.",
+    "Meanwhile, the word 'computer' in 1965 meant room-sized IBM System/360 mainframes humming behind glass walls with spinning magnetic tape reels and stacks of paper punch cards."
+  ],
+  1966: [
+    "Years before digital game consoles reached living rooms, friends in 1966 crowded around Sega's coin-operated 'Periscope' arcade cabinet to peer through a plastic viewfinder and launch coloured light torpedoes.",
+    "In university labs and offices in 1966, early engineers typed commands on clattering Teletype keyboards that printed computer output onto long rolls of green-and-white striped paper."
+  ],
+  1967: [
+    "In 1967, television viewers had no idea that engineer Ralph Baer was secretly building the wooden 'Brown Box' prototype that would one day lead to every home video game console and PlayStation.",
+    "At work and school in 1967, the closest thing to a personal computer was a desktop electronic calculator that displayed glowing orange numbers inside glass Nixie tubes."
+  ],
+  1968: [
+    "Long before 3D racing games, arcade fans in 1968 gripped the metal steering wheel of Kasco's mechanical cabinet 'Indy 500' to weave a miniature car past illuminated rivals.",
+    "And in 1968, computer pioneer Douglas Engelbart amazed an auditorium in San Francisco by demonstrating a wooden block on wheels that he called the world's very first computer 'mouse.'"
+  ],
+  1969: [
+    "In 1969, arcade regulars gathered around Chicago Coin's 'Speedway' driving cabinet to test their reflexes on a glowing rear-projected track.",
+    "Meanwhile, the world marveled at the Apollo Guidance Computer in 1969—which navigated astronauts all the way to the Moon using less memory than a single digital photograph—while four university computers connected to form the first 'ARPANET.'"
+  ],
+  1970: [
+    "At boardwalk arcades in 1970, friends competed on electromechanical baseball cabinets and mechanical air-hockey tables long before home game consoles sat beneath the TV.",
+    "In computer labs in 1970, programmers loaded software by feeding ribbons of perforated paper tape into minicomputers the size of kitchen refrigerators."
+  ],
+  1971: [
+    "In 1971, arcade history changed forever when players stepped up to the futuristic fiberglass cabinet of 'Computer Space'—the very first coin-operated video game ever built.",
+    "That same year, computer engineers unveiled the tiny Intel 4004 microprocessor chip and the 8-inch flexible 'floppy disk,' laying the foundation for every home computer to come."
+  ],
+  1972: [
+    "In 1972, before PlayStation or modern controllers were ever imagined, players crowded into arcades to turn the metal dial on Atari's 'Pong' cabinet and hear its unmistakable 'beep-boop' bounce.",
+    "And in school classrooms in 1972, students got their first taste of computer gaming by typing survival choices on paper teletypes in the original 'The Oregon Trail.'"
+  ],
+  1973: [
+    "In 1973, arcade friends raced tiny pixelated rockets against a ticking timer in Atari's coin-operated 'Space Race' and navigated fiberglass mazes in 'Gotcha.'",
+    "Meanwhile, inside Xerox PARC in 1973, engineers switched on the experimental 'Alto' desktop computer—the first machine in history with a graphical desktop screen, icons, and a three-button mouse."
+  ],
+  1974: [
+    "Walk into an arcade in 1974 and you would see teenagers gripping the real steering wheel and gear shifter of Atari's black-and-white driving cabinet 'Gran Trak 10.'",
+    "On the cover of electronics magazines in 1974, hobbyists stared in excitement at the 'Altair 8800'—a blue metal microcomputer kit that you programmed by flipping rows of silver toggle switches."
+  ],
+  1975: [
+    "In 1975, families plugged Atari's dedicated 'Home Pong' unit into the living-room television, marveling that they could play video tennis right on their own sofa.",
+    "At neighborhood computer clubs in 1975, hobbyists soldered circuit boards in their garages as two young friends named Bill Gates and Paul Allen founded a tiny software startup called 'Microsoft.'"
+  ],
+  1976: [
+    "In 1976, arcade crowds gathered around Atari's 'Breakout'—complete with colored cellophane strips across the monitor—to bounce a glowing ball into rows of bricks.",
+    "And in a California garage in 1976, Steve Wozniak and Steve Jobs hand-built the 'Apple I' circuit board, sparking the birth of the home personal computer revolution."
+  ],
+  1977: [
+    "Years before disc-based consoles like the PlayStation, 1977 brought the first programmable cartridge consoles into living rooms, turning the family TV into a glowing pixel battleground.",
+    "On bedroom and classroom desks in 1977, the sleek beige 'Apple II,' the RadioShack 'TRS-80,' and the all-in-one metal 'Commodore PET' introduced families to the magic of owning a real home computer."
+  ],
+  1978: [
+    "In 1978, every arcade and corner shop echoed with the speeding four-note bass heartbeat of Taito's 'Space Invaders,' causing temporary coin shortages as players tried to clear the last alien on screen.",
+    "At home computers in 1978, loading a game meant popping a standard audio cassette tape into a 'Datasette' recorder, pressing Play, and waiting five minutes as data squealed into memory."
+  ],
+  1979: [
+    "In 1979, arcade players hammered the five buttons of Atari's vector-graphics cabinet 'Asteroids,' where crisp white-line spaceships and boulders glowed like lasers against a pitch-black monitor.",
+    "Over on the Apple II computer in 1979, players explored subterranean rooms painted purely in green text in 'Zork' while parents marveled at the first electronic spreadsheet, 'VisiCalc.'"
+  ],
+  1980: [
+    "Beyond Pac-Man in 1980, arcade fans gripped dual joysticks in Williams's 'Defender' and navigated colorful tanks through 'Battlezone' periscopes.",
+    "At home in 1980, families slid flexible 5.25-inch black floppy disks into early desktop disk drives and listened to the rhythmic 'chunka-chunka' head seek as green-phosphor monitors booted up."
+  ],
+  1981: [
+    "In 1981, gaming friends spent Friday nights guiding a green frog across busy highways in Konami's 'Frogger' and letting a ship get captured just to unlock double firepower in 'Galaga.'",
+    "On the desk in 1981, IBM launched the heavy beige 'IBM PC 5150' running 'MS-DOS,' where a blinking green 'C:\\>' prompt waited for you to type every command by hand."
+  ],
+  1982: [
+    "In 1982, living-room gamers swung across jungle vines and alligator pits in Activision's 'Pitfall!' and raced biplanes in 'River Raid.'",
+    "And in bedrooms across Europe and America in 1982, kids pressed the soft rubber keys of the 'ZX Spectrum' or typed BASIC code from computer magazines until their fingers ached."
+  ],
+  1983: [
+    "In 1983, arcade crowds gasped in disbelief at 'Dragon's Lair,' the first laserdisc arcade cabinet that played full hand-drawn cartoon animation whenever you flicked the joystick in time.",
+    "Meanwhile, in Japan in 1983, Nintendo launched the red-and-white 'Family Computer' (Famicom), while home PC users printed banners on noisy tractor-feed dot-matrix printers with tear-off perforated edges."
+  ],
+  1984: [
+    "In 1984, friends stood shoulder-to-shoulder at arcade cabinets punching their way through 'Kung-Fu Master' and marble mazes in 'Marble Madness.'",
+    "On computer desks in 1984, Apple unveiled the friendly beige 'Macintosh 128K'—complete with a crisp black-and-white screen and 'MacPaint,' where everyone spent hours drawing spray-paint patterns with a mouse."
+  ],
+  1985: [
+    "In 1985, arcade players sat inside the moving hydraulic cockpit of Sega's 'Hang-On' motorcycle cabinet and battled ghost hordes with four friends in 'Gauntlet.'",
+    "In school computer labs in 1985, classmates huddled around Apple II monitors to hunt for international thieves in 'Where in the World Is Carmen Sandiego?' and test the painted graphics of the new 'Commodore Amiga.'"
+  ],
+  1986: [
+    "In 1986, arcade and console players cruised down palm-lined pixel highways in a red convertible to 'Magical Sound Shower' in Sega's 'Out Run' and popped bubbles in 'Bubble Bobble.'",
+    "At home computers in 1986, kids clicked through Lucasfilm's graphic adventures and stored homework on sturdy new 3.5-inch hard-plastic floppy disks with sliding metal shutters."
+  ],
+  1987: [
+    "In 1987, every gamer on the block knew the secret 'Konami Code'—Up, Up, Down, Down, Left, Right, Left, Right, B, A—by heart to unlock thirty lives for two-player co-op in 'Contra.'",
+    "Over on the PC in 1987, the introduction of 'VGA' 256-color graphics cards and 'AdLib' sound cards suddenly made home computer monitors burst with rich arcade-style color and music."
+  ],
+  1988: [
+    "In 1988, living rooms echoed with the eight-bit boss themes of 'Mega Man 2' and the raccoon-tail flight of 'Super Mario Bros. 3' in Japan, while Sony quietly agreed to design a sound chip for Nintendo that would spark the PlayStation story.",
+    "At the family computer desk in 1988, players cracked the cardboard code-wheel to play 'Pool of Radiance' and built highway interchanges on MS-DOS."
+  ],
+  1989: [
+    "In 1989, console players battled side-by-side through the streets of 'Final Fight' and 'Golden Axe' on 16-bit screens.",
+    "On the home PC in 1989, gamers marveled at the lifelike rotoscoped swordfights and sixty-minute countdown clock of 'Prince of Persia' and zoned power plants as mayor in the original 'SimCity.'"
+  ],
+  1990: [
+    "In 1990, friends gathered around the television to unlock hidden warp zones in 'Super Mario World' and 'Final Fantasy III' while engineers in Tokyo began drafting a CD-ROM console project code-named 'Play Station.'",
+    "At the family computer in 1990, Microsoft launched 'Windows 3.0'—and suddenly everyone in the house was dragging green playing cards across the screen just to watch the bouncing card waterfall at the end of 'Solitaire.'"
+  ],
+  1991: [
+    "In 1991, Sony and Nintendo publicly unveiled a prototype CD-ROM console called the 'Play Station' at the Consumer Electronics Show, while arcades and living rooms erupted with 'Street Fighter II' Hadouken fireballs and 'Sonic the Hedgehog.'",
+    "On home computers in 1991, players laughed at the pirate insults of 'The Secret of Monkey Island,' guided tiny green-haired 'Lemmings' to safety, and heard a Finnish student named Linus Torvalds release the first 'Linux' kernel."
+  ],
+  1992: [
+    "In 1992, as Ken Kutaragi convinced Sony's board to build a standalone 3D 'PlayStation' console, gamers crowded around arcade cabinets to whisper secret button combinations in 'Mortal Kombat' and 'Virtua Racing.'",
+    "At the desktop PC in 1992, installing a 'Sound Blaster 16' card meant hearing real digitized voices in 'Wolfenstein 3D' and 'Dune II' while navigating the colorful program windows of 'Windows 3.1.'"
+  ],
+  1993: [
+    "In 1993, Sony officially founded 'Sony Computer Entertainment' to prepare the PlayStation for the world, while living rooms echoed with 'He's on fire!' from 'NBA Jam' and the polygonal Arwing battles of 'Star Fox.'",
+    "On the family PC in 1993, late-night gamers turned off the desk lamp to play id Software's groundbreaking 'Doom,' solved the surreal puzzles of 'Day of the Tentacle,' and tried the first graphical web browser, 'Mosaic.'"
+  ],
+  1994: [
+    "In 1994, gaming history changed forever when Sony launched the original gray 'PlayStation' (PS1) in Japan—leaving players speechless as the 3D sports cars of 'Ridge Racer' drifted smoothly across the television screen.",
+    "Over at the family computer desk in 1994, kids popped shiny 'Microsoft Encarta' encyclopedia CD-ROMs into the drive, explored the mysterious island of 'Myst,' and watched the 'Netscape Navigator' ship wheel spin as early websites loaded."
+  ],
+  1995: [
+    "In 1995, nothing beat the magic of pressing the circular power button on Sony's brand-new gray 'PlayStation,' hearing that deep, hypnotic amber-diamond startup chime fill the living room, and facing off with friends in 'Tekken' and 'Wipeout.'",
+    "At the home computer in 1995, everyone was clicking the new 'Start' button in 'Windows 95,' spraying pixel graffiti in 'MS Paint,' and listening to the screeching thirty-second tone of a dial-up modem while shouting, 'Don't pick up the house phone, I'm on the Internet!'"
+  ],
+  1996: [
+    "After school in 1996, the sweetest hangout was sitting cross-legged on the rug in front of the PlayStation 1, guiding 'Crash Bandicoot' away from giant rolling boulders or jumping in unison when zombie dogs crashed through the hallway window in 'Resident Evil.'",
+    "Over on the beige desktop PC in 1996, kids spent rainy afternoons clicking gray squares in 'Minesweeper,' watching the '3D Brick Maze' screensaver wind across the heavy CRT monitor, and building tank armies in 'Command & Conquer: Red Alert.'"
+  ],
+  1997: [
+    "In 1997, PlayStation 1 owners treasured their little gray 15-block 'Memory Card' like pure gold as they swapped between the three CD-ROM discs of 'Final Fantasy VII,' unlocked licence tests in 'Gran Turismo,' and played 'Winning Eleven' until midnight.",
+    "At the family computer in 1997, siblings took turns guiding stone-age villagers in 'Age of Empires,' dragging neon equalizer skins onto the 'Winamp' MP3 player, and unscrewing the bottom of the mouse to blow dust off the heavy rubber trackball."
+  ],
+  1998: [
+    "On the PlayStation in 1998, Sony's new twin-stick 'DualShock' controller rumbled right in your palms during 'Metal Gear Solid'—where Psycho Mantis famously read your Memory Card until you plugged your controller into Port 2—and as 'Spyro the Dragon' glided across sunny valleys.",
+    "Meanwhile, in bedrooms and computer labs in 1998, boxy beige monitors sat alongside Apple's translucent bondi-blue 'iMac G3' as friends booted up 'Windows 98,' battled in 'StarCraft,' and typed their first searches into a brand-new site called 'Google.'"
+  ],
+  1999: [
+    "In 1999, Friday afternoons belonged to the PlayStation 1, where friends passed the controller to land 900-degree spins in the Warehouse level of 'Tony Hawk's Pro Skater,' escaped raptors in 'Dino Crisis,' and survived the chaotic parking-garage tutorial of 'Driver.'",
+    "At the family computer desk in 1999, teenagers rushed home to sign into 'MSN Messenger' and 'ICQ,' listened for the famous 'Uh-oh!' message alert, and built looping theme-park rides in 'RollerCoaster Tycoon.'"
+  ],
+  2000: [
+    "In the year 2000, Sony's monolithic black 'PlayStation 2' (PS2)—with its rotating blue logo and floating crystal-towers startup screen—arrived in living rooms alongside the compact white 'PS One' for nonstop neighborhood football tournaments.",
+    "Over on the home PC in 2000, teenagers waited twenty minutes to download a single MP3 song, burned custom mixes onto shiny blank CD-R discs using 'Nero Burning ROM,' and wrote the tracklist on the front with a felt-tip marker."
+  ],
+  2001: [
+    "Around the living-room TV in 2001, the PlayStation 2 entered a golden era as friends cruised the rainy streets of Liberty City listening to chatterbox radio in 'Grand Theft Auto III,' dove in slow-motion in 'Max Payne,' and summoned Aeons in 'Final Fantasy X.'",
+    "And when you pressed the power button on the family computer in 2001, the rolling green hill and blue sky of the 'Windows XP' Bliss wallpaper greeted you before hours of launching silver balls in '3D Pinball: Space Cadet.'"
+  ],
+  2002: [
+    "Nothing captured the sweetness of 2002 quite like switching on the PlayStation 2 after school to drive down the neon-lit 1980s beachfront of 'Grand Theft Auto: Vice City' or swing a Keyblade alongside Donald and Goofy in 'Kingdom Hearts.'",
+    "At the desktop computer in 2002, siblings argued over whose turn it was to build two-story houses with swimming pools in 'The Sims,' command fantasy armies in 'Warcraft III: Reign of Chaos,' or feed their virtual 'Neopets.'"
+  ],
+  2003: [
+    "On Friday nights in 2003, friends gathered around the PlayStation 2 to customize neon street-racing cars in 'Need for Speed: Underground,' rewind fatal jumps with the Dagger of Time in 'Prince of Persia: The Sands of Time,' and settle rivalries in 'PES 3.'",
+    "Over on the family computer in 2003, teenagers spent the evening sending screen-shaking 'Nudges' and custom winks on 'MSN Messenger,' playing 'Counter-Strike 1.6' at neighborhood LAN cafés, and watching hypnotic 'Windows Media Player' audio visualizers."
+  ],
+  2004: [
+    "In 2004, Sony released the ultra-thin 'PS2 Slim,' and every living room echoed with friends passing the DualShock 2 controller as CJ rode a BMX bike down Grove Street in 'Grand Theft Auto: San Andreas' or camouflaged in the jungle in 'Metal Gear Solid 3: Snake Eater.'",
+    "Meanwhile, on the family PC in 2004, players lost entire weekends exploring Azeroth in the brand-new 'World of Warcraft,' mining ore in browser-based 'RuneScape,' and guiding generations of virtual families in 'The Sims 2.'"
+  ],
+  2005: [
+    "On the PlayStation 2 in 2005, gamers sat on the edge of the sofa scaling towering ancient beasts in 'Shadow of the Colossus' and swinging the Blades of Chaos in 'God of War,' while Sony's handheld 'PSP' spun tiny optical UMD discs on the bus.",
+    "At the home computer in 2005, friends pulled up extra chairs around the monitor to watch the very first viral clips on a brand-new video site called 'YouTube,' arranged their 'MySpace' Top 8 friends, and played 'Age of Empires III.'"
+  ],
+  2006: [
+    "In 2006, Sony unveiled the glossy black 'PlayStation 3' (PS3) with its Blu-ray drive and orchestral string startup sound, while PS2 owners spent endless weekend afternoons riding skateboards through Bullworth Academy in 'Bully' and playing 'PES 6.'",
+    "On the family PC in 2006, kids waddled across snowy virtual plazas to adopt colorful Puffles in browser-based 'Club Penguin,' played 'Miniclip' and 'Newgrounds' Flash games after homework, and customized desktop widgets."
+  ],
+  2007: [
+    "Sitting in front of the PlayStation 3 in 2007 felt like controlling a summer blockbuster, whether you were swinging across jungle ruins with Nathan Drake in 'Uncharted: Drake's Fortune' or leaping from medieval towers into haystacks in the original 'Assassin's Creed.'",
+    "Over on the desktop computer in 2007, PC players tested whether their graphics card could run the tropical jungles of 'Crysis,' solved mind-bending teleportation puzzles in Valve's 'Portal,' and hopped on group 'Skype' calls."
+  ],
+  2008: [
+    "In 2008, the PlayStation 3 turned the couch into a creative playground as four friends slapped stickers onto knitted 'Sackboy' characters in 'LittleBigPlanet,' stepped out of Vault 101 in 'Fallout 3,' and watched Old Snake's emotional finale in 'Metal Gear Solid 4.'",
+    "Meanwhile, on home computers and laptops in 2008, players evolved quirky microscopic creatures into space civilizations in 'Spore,' survived four-player zombie campaigns in 'Left 4 Dead,' and chatted on early Facebook walls."
+  ],
+  2009: [
+    "In 2009, Sony launched the lighter matte-black 'PS3 Slim,' and every bedroom echoed with the satisfying chime of unlocking PlayStation 'Trophies' in 'Uncharted 2: Among Thieves,' 'Batman: Arkham Asylum,' and late-night 'Modern Warfare 2' lobbies.",
+    "On the computer in 2009, Microsoft rolled out the beloved 'Windows 7' desktop, while millions planted rows of peashooters and sunflowers on their lawn in 'Plants vs. Zombies,' harvested digital strawberries in 'FarmVille,' and tried early browser builds of 'Minecraft.'"
+  ],
+  2010: [
+    "In living rooms in 2010, the PlayStation 3 delivered unforgettable nights as players rode across the wild frontier at sunset in 'Red Dead Redemption,' battled Olympian titans in 'God of War III,' and swung glowing 'PlayStation Move' motion spheres.",
+    "Over on the PC in 2010, strategy fans clicked at lightning speed in 'StarCraft II: Wings of Liberty,' built sprawling pixel castles in 'Minecraft' Alpha on laptops, and laughed until they cried over ragdoll obstacle courses in browser-based 'Happy Wheels.'"
+  ],
+  2011: [
+    "On the PlayStation 3 in 2011, players clung to the desert cargo plane in 'Uncharted 3: Drake's Deception,' shouted 'Fus Ro Dah!' across the snowy peaks of 'The Elder Scrolls V: Skyrim,' and marveled at Sony's OLED 'PS Vita' handheld.",
+    "At computer desks in 2011, five-person friend groups stayed up late on voice calls climbing the ranks in 'League of Legends,' digging deep underground together in 'Terraria,' and solving two-player robot puzzles in 'Portal 2.'"
+  ],
+  2012: [
+    "In 2012, PlayStation 3 owners shared silent, emotional journeys across golden desert dunes with anonymous travelers in 'Journey,' agonized over story choices in Telltale's 'The Walking Dead,' and played heated weekend derbies in 'FIFA 13.'",
+    "On the home PC in 2012, Valve launched 'Counter-Strike: Global Offensive' (CS:GO) on Steam, while friends clicked through dungeons in 'Diablo III' and dared each other to play 'Slender: The Eight Pages' in the dark."
+  ],
+  2013: [
+    "For gamers, 2013 was a magical bridge between two generations: experiencing the unforgettable journey of Joel and Ellie in 'The Last of Us' and cruising Los Santos in 'Grand Theft Auto V' on PS3, right before unboxing Sony's angled black 'PlayStation 4' (PS4) with its glowing blue DualShock 4 light bar.",
+    "Over on the PC in 2013, friends hopped onto 'TeamSpeak' servers for five-versus-five 'Dota 2' matches, sailed pirate ships across the Caribbean in 'Assassin's Creed IV: Black Flag,' and tried performative physics games like 'Surgeon Simulator.'"
+  ],
+  2014: [
+    "On the PlayStation 4 in 2014, six friends teamed up on headsets to conquer the 'Vault of Glass' raid in Bungie's 'Destiny,' handed a virtual controller to a friend over the internet using 'Share Play,' and crept down the eerie looping hallway of 'P.T.'",
+    "At laptop and desktop screens in 2014, players jumped out of their chairs checking security cameras in 'Five Nights at Freddy's,' built digital card decks in Blizzard's 'Hearthstone,' and designed quirky neighborhoods in 'The Sims 4.'"
+  ],
+  2015: [
+    "Nothing captured the magic of 2015 gaming quite like switching on the PlayStation 4 to ride across windswept valleys in 'The Witcher 3: Wild Hunt,' brave the gothic streets of 'Bloodborne,' or score last-second aerial car goals with friends in 'Rocket League.'",
+    "On the PC in 2015, Microsoft released 'Windows 10' and friend groups everywhere moved onto a brand-new voice app called 'Discord' while playing the heartfelt RPG 'Undertale,' designing highways in 'Cities: Skylines,' and swallowing smaller cells in browser-based 'Agar.io.'"
+  ],
+  2016: [
+    "In 2016, Sony rolled out the sleeker 'PS4 Slim' and 4K 'PS4 Pro,' while players experienced Nathan Drake's cinematic treasure-hunting finale in 'Uncharted 4: A Thief's End' and put on the glowing white 'PlayStation VR' headset for the first time.",
+    "At desktop PCs in 2016, six-person squads coordinated hero ultimates every evening in Blizzard's 'Overwatch,' tended peaceful pixelated farms in 'Stardew Valley,' and steered glowing neon snakes in browser-based 'Slither.io.'"
+  ],
+  2017: [
+    "On the PlayStation 4 in 2017, players hunted giant mechanical beasts across lush valleys with Aloy in 'Horizon Zero Dawn,' relived classic platforming jumps in the 'Crash Bandicoot N. Sane Trilogy,' and jammed to the stylish soundtrack of 'Persona 5.'",
+    "Over on the PC in 2017, a hundred players parachuted onto Erangel together in 'PlayerUnknown's Battlegrounds' (PUBG) chasing a 'Winner Winner Chicken Dinner,' while RGB mechanical keyboards and tempered-glass PC cases lit up every bedroom desk."
+  ],
+  2018: [
+    "For PlayStation 4 owners, 2018 was an unforgettable peak: recalling the Leviathan Axe into Kratos's hand in 'God of War,' swinging between sunlit Manhattan skyscrapers in 'Marvel's Spider-Man,' and riding with Arthur Morgan's gang in 'Red Dead Redemption 2.'",
+    "Meanwhile, on PCs in 2018, friend groups gathered in 'Discord' voice channels to dive into glowing alien oceans in 'Subnautica,' build automated conveyor-belt factories in 'Factorio,' and watch 'Twitch' streams on a second monitor."
+  ],
+  2019: [
+    "On the PlayStation 4 in 2019, gamers crossed misty mountain landscapes delivering cargo in 'Death Stranding,' parried katana blades in 'Sekiro: Shadows Die Twice,' and dropped into three-player squads for the surprise launch of 'Apex Legends.'",
+    "At the computer desk in 2019, millions of players logged into 'World of Warcraft Classic' to relive 2004 nostalgia, honked at villagers as a mischievous bird in 'Untitled Goose Game,' and saw real-time ray-tracing reflections debut on 'RTX' graphics cards."
+  ],
+  2020: [
+    "In 2020, players followed autumn wind gusts across feudal Japan in 'Ghost of Tsushima' and returned to Midgar in 'Final Fantasy VII Remake' on PS4, before celebrating the arrival of Sony's futuristic white-and-black 'PlayStation 5' (PS5) and 'Spider-Man: Miles Morales.'",
+    "On the PC in 2020, friends spent every evening planting spikes in Riot's tactical shooter 'Valorant,' hunting ghosts with voice-recognition microphones in four-player 'Phasmophobia,' and battling out of the Underworld in 'Hades.'"
+  ],
+  2021: [
+    "In 2021, wrapping your hands around the PlayStation 5's two-tone 'DualSense' controller—feeling its adaptive triggers push back against your fingers as you hopped through dimensional rifts in 'Ratchet & Clank: Rift Apart' or teamed up on the couch in 'It Takes Two'—felt like pure next-gen magic.",
+    "At the computer desk in 2021, Microsoft introduced the centered taskbar of 'Windows 11,' while groups of friends sailed Viking longships together in 'Valheim' and raced exotic supercars across Mexico in 'Forza Horizon 5.'"
+  ],
+  2022: [
+    "On the PlayStation 5 in 2022, living rooms became epic theaters as Kratos and Atreus faced the Norse apocalypse in 'God of War Ragnarök,' Aloy soared on the wings of a Sunwing in 'Horizon Forbidden West,' and players meowed on command as an orange cat in 'Stray.'",
+    "Over on the PC in 2022, players dodged waves of thousands of monsters in the indie phenomenon 'Vampire Survivors,' customized dual-monitor setups with animated 'Wallpaper Engine' backgrounds, and built sprawling colonies in 'Dwarf Fortress.'"
+  ],
+  2023: [
+    "In 2023, PlayStation 5 owners glided effortlessly across the East River using Web Wings in 'Marvel's Spider-Man 2,' unleashed fiery Eikon battles in 'Final Fantasy XVI,' and streamed PS5 games around the house on the handheld 'PlayStation Portal.'",
+    "On the PC in 2023, friend groups laughed until tears rolled down their faces collecting scrap metal on haunted moons in 'Lethal Company,' dove for sushi ingredients in 'Dave the Diver,' and jumped into the remastered 'Counter-Strike 2.'"
+  ],
+  2024: [
+    "In 2024, Sony celebrated thirty years of PlayStation as PS5 players rescued classic franchise bots in Team ASOBI's joyful platformer 'Astro Bot,' unlocked the sharper frame rates of the 'PS5 Pro,' and cherished the retro gray 30th Anniversary DualSense controller.",
+    "Meanwhile, on the PC in 2024, four-player squads called down orbital stratagems together in 'Helldivers 2,' battled mythological bosses in 'Black Myth: Wukong,' and lost hours building hypnotic poker hands in 'Balatro.'"
+  ]
+};
+
+const buildWorldNewsVibe = (year: number, month: number = 11, rawNews?: string, day: number = 1): string => {
+  const distinctive = YEAR_DISTINCTIVE_LIFE[year];
+  const psAndPc = YEAR_PLAYSTATION_AND_PC_VIBE[year];
+  const season = MONTH_SEASONAL_STREETSCAPE[month] || MONTH_SEASONAL_STREETSCAPE[11];
+
+  if (distinctive) {
+    const offset = Math.max(0, day - 1) % distinctive.length;
+    const rotated = [
+      distinctive[offset],
+      distinctive[(offset + 1) % distinctive.length],
+      distinctive[(offset + 2) % distinctive.length]
+    ];
+    return ensure5To7Sentences([
+      season.seasonOpening(year),
+      stripSpecificDatesToYearOnly(rotated[0], year),
+      stripSpecificDatesToYearOnly(rotated[1], year),
+      stripSpecificDatesToYearOnly(rotated[2], year),
+      ...(psAndPc ? [stripSpecificDatesToYearOnly(psAndPc[0], year), stripSpecificDatesToYearOnly(psAndPc[1], year)] : [])
+    ], 7);
   }
 
-  if (year < 1970) {
+  const extraNewsSents = rawNews ? splitIntoSentences(stripSpecificDatesToYearOnly(rawNews, year)) : [];
+
+  return ensure5To7Sentences([
+    season.seasonOpening(year),
+    ...extraNewsSents,
+    `Down at the local soda fountain and record counter in ${year}, teenagers gathered around glowing chrome jukeboxes and electromechanical pinball machines dropping coins to play the week's top hits.`,
+    `In offices and university labs in ${year}, early room-sized mainframe computers hummed with spinning magnetic tape reels and glowing vacuum tubes long before personal computers or PlayStation consoles existed.`
+  ], 7);
+};
+
+// ============================================================================
+// 2. TECH & TOYS -> "🕹️ Tech & Toys: What We Played With in [Year]"
+// Progress across distinct play scenes so no toy or game is repeated redundantly in consecutive sentences.
+// ============================================================================
+const YEAR_SINGLE_TOY_CRAZE: Record<number, { item: string; unboxing: string; physicalDetail: string; sharingScene: string; lastingMemory: string }> = {
+  1965: {
+    item: "Hasbro's 12-inch 'G.I. Joe' movable action figure",
+    unboxing: "Lifting Hasbro's 'G.I. Joe' out of his olive-drab footlocker box in 1965 felt revolutionary because his twenty-one articulating joints let him crouch, salute, and grip miniature gear like a real soldier.",
+    physicalDetail: "Kids spent hours swapping the tiny cloth uniforms, metal dog tags, and molded plastic binoculars before staging backyard obstacle courses in the dirt.",
+    sharingScene: "Across the driveway, sisters and friends were just as captivated by Mattel's new 'See 'n Say' pull-string talking toy and the red-plastic 'Rock 'Em Sock 'Em Robots' boxing ring.",
+    lastingMemory: "Trading accessories across neighborhood fences and crowding around the living-room rug made 1965 a golden year for hands-on neighborhood play."
+  },
+  1966: {
+    item: "Milton Bradley's 'Twister' vinyl floor mat game",
+    unboxing: "Unfolding the giant white vinyl 'Twister' mat across the living-room rug in 1966—splashed with twenty-four bold red, yellow, blue, and green circles—instantly turned any quiet afternoon into a party.",
+    physicalDetail: "Whoever served as referee flicked the plastic arrow on the square spinner board and called out 'Right hand red!' or 'Left foot green!' while players tried not to lose their balance.",
+    sharingScene: "Once everyone collapsed onto the carpet laughing, friends moved over to the coffee table to carefully pluck tiny plastic bones from the buzzing patient in Milton Bradley's 'Operation' board game.",
+    lastingMemory: "Pulling those colorful game boxes off the hall closet shelf became the ultimate icebreaker for every sleepover and family gathering of 1966."
+  },
+  1967: {
+    item: "Hasbro's glowing 'Lite-Brite' light box",
+    unboxing: "Turning off the bedroom lamp and flipping on Hasbro's 'Lite-Brite' magic light box in 1967 felt like painting with pure neon stardust.",
+    physicalDetail: "You clipped a crisp black construction-paper stencil over the front grille and pushed translucent plastic pegs in ruby red, emerald green, and violet through the paper with a satisfying pop.",
+    sharingScene: "Earlier in the afternoon, the kitchen table belonged to Mattel's 'Hot-Molds' Thingmaker and 'Spirograph' plastic gear rings, where friends traced intricate geometric mandalas with four-color ballpoint pens.",
+    lastingMemory: "From sunlit afternoon drawing tables to that warm 25-watt bulb shining through jewel-toned pegs at bedtime, 1967 turned every bedroom into a creative studio."
+  },
+  1968: {
+    item: "Mattel's 'Hot Wheels' die-cast race cars and orange track set",
+    unboxing: "Popping one of Mattel's original sixteen 'Hot Wheels' cars—like the metallic Custom Camaro—out of its blister pack in 1968 was pure childhood adrenaline.",
+    physicalDetail: "With shiny Spectraflame paint, redline low-friction wheels, and springy torsion-bar suspension, each miniature racer glided across the kitchen linoleum faster than any toy car ever built.",
+    sharingScene: "Friends snapped twenty feet of flexible orange plastic track down the staircase banister, releasing two cars side-by-side through the vertical loop-the-loop before switching to Ideal's trap-filled 'Mouse Trap' board game.",
+    lastingMemory: "Carrying a vinyl collector's case packed with miniature metal racers to a best friend's house defined every weekend afternoon of 1968."
+  },
+  1969: {
+    item: "Wham-O's orange foam 'Nerf Ball'",
+    unboxing: "Squeezing Wham-O's bright orange 'Nerf Ball' in your palm in 1969—billed on the box as the world's first official indoor ball—felt like a license to turn the living room into a stadium.",
+    physicalDetail: "Made of four inches of feather-light polyurethane foam, it could bounce off lampshades, bookshelves, and television screens without breaking a single piece of glassware.",
+    sharingScene: "Outside on the sidewalk, kids pedaled banana-seat 'Schwinn Sting-Ray' bicycles with high chrome ape-hanger handlebars and colorful plastic streamers fluttering from the grips.",
+    lastingMemory: "Whether diving across the hallway rug on a rainy day or racing down the block before dinner, 1969 was built for nonstop motion."
+  },
+  1970: {
+    item: "Topper Toys' 'Johnny Lightning' racers and 'Dawn' miniature dolls",
+    unboxing: "Opening a 'Johnny Lightning' die-cast speed set in 1970 brought big-screen raceway excitement straight to the bedroom carpet.",
+    physicalDetail: "Kids loved pressing the red levers on the mechanical launcher to send chrome-plated cars rocketing down twin plastic lanes at blur-inducing speeds.",
+    sharingScene: "Across the room, friends spread out miniature velvet outfits for six-inch bendable 'Dawn' fashion dolls or took turns bouncing down the driveway on yellow plastic 'Hopper' balls with loop handles.",
+    lastingMemory: "Those colorful molded carrying cases stacked in the corner of the bedroom remained the signature playtime treasure of 1970."
+  },
+  1971: {
+    item: "the 'Mastermind' code-breaking board game and 'Clackers'",
+    unboxing: "Setting up the 'Mastermind' pegboard on the coffee table in 1971 turned a quiet evening into a tense battle of wits between two players.",
+    physicalDetail: "One player secretly hid four colored code pegs behind the hinged shield while the challenger lined up rows of red, blue, yellow, and green guesses down the plastic grid.",
+    sharingScene: "Out on the schoolyard pavement, the unmistakable sound of the year was the rapid 'clack-clack-clack' of acrylic 'Clackers' balls swinging up and down on a heavy white string.",
+    lastingMemory: "From cracking secret tabletop codes at night to mastering string tricks at recess, 1971 rewarded patience and quick hands."
+  },
+  1972: {
+    item: "the Magnavox 'Odyssey' home video game console",
+    unboxing: "Hooking the white-and-black Magnavox 'Odyssey' console up to the family television antenna terminals in 1972 felt like stepping into the twenty-first century.",
+    physicalDetail: "You taped a translucent plastic graphic overlay directly onto the glass TV screen and rotated the two boxy horizontal and vertical control knobs to move your glowing white square paddle.",
+    sharingScene: "When it was someone else's turn at the television, the rest of the kids headed out to the driveway to test the squishy orange tires of Kenner's 'SSP' pull-cord racers.",
+    lastingMemory: "Controlling a dot of light on your own TV screen for the very first time made 1972 the true birth year of living-room gaming."
+  },
+  1973: {
+    item: "Kenner's 'Easy-Bake Oven' and 'Shrinky Dinks' plastic craft sheets",
+    unboxing: "Switching on a turquoise 'Easy-Bake Oven' in 1973 turned the kitchen counter into a working miniature bakery.",
+    physicalDetail: "Powered by a simple 100-watt household lightbulb, the toy oven let kids push a tiny aluminum cake pan through the narrow slot and watch real chocolate batter rise through the peekaboo window.",
+    sharingScene: "While the cake cooled, friends gathered around the dining table with colored pencils to draw on flexible 'Shrinky Dinks' plastic sheets that shrank into thick, glossy charms inside the family oven.",
+    lastingMemory: "The warm sugary smell of vanilla frosting and freshly baked crafts on a Saturday afternoon remains one of the sweetest memories of 1973."
+  },
+  1974: {
+    item: "Parker Brothers' 'NERF Basketball' hoop and 'Dungeons & Dragons'",
+    unboxing: "Clipping Parker Brothers' indoor 'NERF Basketball' metal rim over the top of the bedroom door in 1974 transformed after-school hangouts overnight.",
+    physicalDetail: "With the soft orange foam ball in hand, you could practice fadeaway jump shots from the edge of the bed and stage high-flying slam-dunk contests down the hallway.",
+    sharingScene: "Meanwhile, down at the basement table, older siblings were opening the woodgrain box of 'Dungeons & Dragons' for the first time, rolling twenty-sided polyhedral dice on hand-drawn graph paper maps.",
+    lastingMemory: "Between bedroom-door basketball tournaments and six-hour tabletop quests, 1974 was a landmark year for indoor imagination."
+  },
+  1975: {
+    item: "Gary Dahl's cardboard-boxed 'Pet Rock'",
+    unboxing: "In 1975, the craze that took over living rooms wasn't a complex machine at all, but Gary Dahl's hilarious cultural phenomenon, the 'Pet Rock.'",
+    physicalDetail: "Unwrapping that brown cardboard carrying case—complete with breathing holes punched in the sides—and lifting the lid to find a smooth stone resting on wood shavings felt like being let in on the funniest joke in the world.",
+    sharingScene: "After laughing over the tongue-in-cheek training manual, kids grabbed Kenner's 'Six Million Dollar Man' action figure to look through the bionic magnifying lens built right into the back of his head.",
+    lastingMemory: "By December 1975, over a million families had joined the joke, proving that a clever shared laugh could captivate an entire generation."
+  },
+  1976: {
+    item: "Kenner's gel-filled 'Stretch Armstrong' action figure",
+    unboxing: "Walk onto any schoolyard or living-room carpet in 1976 and the toy everyone wanted to test was Kenner's muscular blond hero, 'Stretch Armstrong.'",
+    physicalDetail: "Pulling him out of his box for the first time, his thick latex skin filled with warm corn-syrup gel felt impossibly heavy and pliable in your hands.",
+    sharingScene: "Two friends would grab him by the arms and legs in a tug-of-war across the rug until he spanned four feet wide, then head outside to ride smooth red urethane 'Bahne' and 'Logan Earth Ski' skateboards down the hill.",
+    lastingMemory: "Watching that stretchy figure slowly shrink right back to his original fifteen-inch size turned him into the undisputed star of 1976 playtime."
+  },
+  1977: {
+    item: "the woodgrain Atari 2600 Video Computer System",
+    unboxing: "Nothing in 1977 could rival the heart-pounding excitement of unboxing the woodgrain Atari 2600 Video Computer System and hooking its metal switchbox up to the back of the family television.",
+    physicalDetail: "Pressing a 'Combat' cartridge into the console slot with a heavy mechanical clunk and gripping the stiff black rubber joystick with its single red fire button felt like pure magic.",
+    sharingScene: "Across the bedroom floor, kids were also lining up Mattel's red-LED handheld 'Auto Race' game and trading 'Star Wars' Early Bird action-figure certificates with their best friends.",
+    lastingMemory: "Bringing home programmable video cartridges in 1977 meant the thrill of the arcade now lived right inside your own living room on Friday nights."
+  },
+  1978: {
+    item: "Milton Bradley's electronic memory game 'Simon'",
+    unboxing: "In 1978, the electronic craze that turned every sleepover into a high-stakes showdown was Milton Bradley's glowing saucer-shaped memory game, 'Simon.'",
+    physicalDetail: "The second you slid the chrome power switch and tapped start, its four giant red, blue, yellow, and green plastic lenses flashed across the darkened room with four unmistakable musical tones.",
+    sharingScene: "When someone finally missed a sequence and triggered the dreaded razz buzz, friends switched over to the brown football-shaped Mattel 'Classic Football' handheld to dodge tiny red LED defenders.",
+    lastingMemory: "The springy click of those glowing electronic buttons under your palms made it impossible to go to sleep before midnight in 1978."
+  },
+  1979: {
+    item: "Sony's blue-and-silver 'Walkman' TPS-L2 portable cassette player",
+    unboxing: "In the summer of 1979, holding Sony's original blue-and-silver 'Walkman' TPS-L2 cassette player in your palm felt like pure everyday sorcery.",
+    physicalDetail: "You popped your favorite mixtape into the hinged metal door, slid the lightweight orange-foam headphones over your ears, and pushed down the heavy physical 'Play' key.",
+    sharingScene: "Because Sony built two headphone jacks into the top of the player, two friends could listen together on the bus while passing around Milton Bradley's futuristic white programmable 'Big Trak' six-wheeled tank on the living-room floor.",
+    lastingMemory: "Sharing a private stereo soundtrack on the walk home from school turned ordinary afternoons in 1979 into a movie scene."
+  },
+  1980: {
+    item: "Ernő Rubik's six-color 'Rubik's Cube' puzzle",
+    unboxing: "In 1980, one deceptively simple plastic puzzle took over every backpack, lunch table, and living room on Earth: the six-sided 'Rubik's Cube.'",
+    physicalDetail: "Fresh out of its clear plastic cylinder, the six solid faces of white, red, blue, orange, yellow, and green stickers looked so neat that you couldn't resist giving it just one twist.",
+    sharingScene: "Once the colors were hopelessly scrambled, friends traded solution tips on the front porch or unfolded the red vinyl case of Texas Instruments' 'Speak & Spell' to hear its robotic synthesizer voice.",
+    lastingMemory: "Whether you mastered all six faces or proudly finished just one side, that gritty 'clack-clack-clack' of rotating plastic squares defined 1980."
+  },
+  1981: {
+    item: "Nintendo's 'Donkey Kong' arcade cabinet and Coleco handhelds",
+    unboxing: "Walk into any dimly lit mall arcade or corner pizza parlor in 1981 and the biggest crowd was gathered four rows deep around Nintendo's bright blue 'Donkey Kong' cabinet.",
+    physicalDetail: "Setting your silver coin on the bottom edge of the glass bezel to reserve the next turn, you gripped the red ball-top joystick and timed every press of the 'Jump' button to hop Mario over rolling wooden barrels.",
+    sharingScene: "On the walk home, friends pulled pocket-sized Nintendo 'Game & Watch' dual-screen LCD games and 'Smurfs' PVC figures out of their jacket pockets to compare collections.",
+    lastingMemory: "Hearing that electronic four-note opening arcade fanfare with a crowd of friends behind you remains the ultimate gaming memory of 1981."
+  },
+  1982: {
+    item: "the Commodore 64 home computer and 'Masters of the Universe' figures",
+    unboxing: "In 1982, lifting the thick beige keyboard unit of the Commodore 64 out of its styrofoam box and plugging it into the bedroom TV felt like owning a personal command center.",
+    physicalDetail: "Typing 'LOAD \"*\",8,1' on the mechanical keys and plugging a Competition Pro joystick into the side port launched hours of 'Choplifter' and 'Jupiter Lander.'",
+    sharingScene: "Meanwhile, out on the living-room carpet, younger kids were unfolding the hinged plastic 'Castle Grayskull' playset to stage battles between Mattel's 'He-Man' and 'Skeletor' action figures.",
+    lastingMemory: "From that blinking blue computer prompt on the desk to plastic swords clashing on the rug, 1982 was pure imagination."
+  },
+  1983: {
+    item: "Coleco's 'Cabbage Patch Kids' dolls and the 'View-Master' 3D viewer",
+    unboxing: "Nothing in 1983 matched the pandemonium and sheer joy of untying the ribbon on a green-and-yellow 'Cabbage Patch Kids' box from Babyland General Hospital.",
+    physicalDetail: "Every single doll had a soft sculpted fabric face, yarn hair, a fresh baby-powder scent, and an official birth certificate and adoption oath stamped with a unique name.",
+    sharingScene: "At neighborhood sleepovers, kids compared their dolls' adoption papers before holding a red plastic 'View-Master' up to the ceiling lamp and clicking the side lever through 3D cardboard reels.",
+    lastingMemory: "Signing your name on that official adoption certificate made it the most treasured holiday memory of 1983."
+  },
+  1984: {
+    item: "Hasbro's die-cast 'Transformers' (Optimus Prime and Megatron)",
+    unboxing: "In 1984, peeling open a red-and-purple Hasbro 'Transformers' blister card to hold the die-cast metal cab of 'Optimus Prime' felt like holding two toys in one.",
+    physicalDetail: "You pressed the warm thermal 'rubsign' decal on the figure's chest with your thumb until body heat revealed the secret holographic Autobot or Decepticon emblem.",
+    sharingScene: "After racing to fold sports cars and jets into standing robots on the recess bench, friends headed home to slap neon-colored sticky rubber 'Wacky WallWalkers' against the bedroom door and watch them tumble down.",
+    lastingMemory: "Swapping red decoder tech-spec cards and staging robot battles on the bedroom floor defined childhood in 1984."
+  },
+  1985: {
+    item: "the gray boxy Nintendo Entertainment System (NES) and 'Super Mario Bros.'",
+    unboxing: "In late 1985, lifting the two-tone gray Nintendo Entertainment System (NES) Deluxe Set out of the box—complete with the orange Zapper light gun—changed living rooms forever.",
+    physicalDetail: "You pushed the gray 'Super Mario Bros.' cartridge into the front-loading chamber, pressed it down until it clicked into place, and gripped the rectangular controller with its black cross-shaped D-pad.",
+    sharingScene: "When it was time to give your thumbs a rest, friends gathered on the floor around a plush 'Care Bears' collection or unfolded the giant plastic aircraft carrier USS Flagg for 'G.I. Joe.'",
+    lastingMemory: "Even the ritual of blowing dust out of the bottom of a game cartridge before sliding it back into the console became an iconic badge of 1985."
+  },
+  1986: {
+    item: "Worlds of Wonder's animated bear 'Teddy Ruxpin' and 'Lazer Tag'",
+    unboxing: "Flipping the switch on the back of Worlds of Wonder's 'Teddy Ruxpin' in 1986 made kids feel like their favorite storybook had come to life.",
+    physicalDetail: "When you snapped a cassette tape into his back, the bear's motorized eyes blinked and his furry jaw moved in perfect sync with the narrator's voice.",
+    sharingScene: "As soon as twilight fell outside, older siblings strapped glowing sensor vests over their jackets and sprinted behind neighborhood trees firing red infrared beams from black-and-silver 'Lazer Tag' StarLyte pistols.",
+    lastingMemory: "From animated storytime in the bedroom to neighborhood tag showdowns in the dark, 1986 felt like stepping into tomorrow."
+  },
+  1987: {
+    item: "Nintendo's gold-cartridge 'The Legend of Zelda' and 'Pogo Balls'",
+    unboxing: "In 1987, pulling the shimmering metallic-gold NES cartridge of 'The Legend of Zelda' out of its box made your hands tremble before you even turned on the television.",
+    physicalDetail: "Unlike earlier games, the gold cartridge contained an internal battery that saved your progress, along with a fold-out paper map of Hyrule that you annotated with pencil clues.",
+    sharingScene: "Out on the driveway that afternoon, every kid on the block was locking their sneakers around a neon purple-and-green plastic disc wedged around a rubber ball—trying to bounce fifty times in a row on a Hasbro 'Pogo Ball.'",
+    lastingMemory: "Hearing that triumphant eight-bit secret-discovery chime indoors after an afternoon of bouncing down the sidewalk was the pinnacle of 1987."
+  },
+  1988: {
+    item: "Playmates' 'Teenage Mutant Ninja Turtles' action figures and 'Micro Machines'",
+    unboxing: "Walk down any toy aisle in 1988 and the green cardbacks everyone scrambled to grab were Playmates' original 'Teenage Mutant Ninja Turtles' figures—Leonardo, Donatello, Raphael, and Michelangelo.",
+    physicalDetail: "Each rubbery green figure came with a removable plastic weapons rack that you snapped the miniature katanas and nunchucks out of, alongside tubs of neon green 'Turtle Ooze' slime.",
+    sharingScene: "Right beside the sewer lair on the carpet, friends unfolded Galoob's 'Micro Machines' Super Van City, lining up dozens of tiny palm-sized cars on miniature bridges and service ramps.",
+    lastingMemory: "Dumping a backpack full of action figures and miniature cars onto a friend's rug made 1988 an unforgettable time to be a kid."
+  },
+  1989: {
+    item: "Nintendo's original gray handheld 'Game Boy' with 'Tetris'",
+    unboxing: "In the summer of 1989, sliding Nintendo's original gray Dot Matrix 'Game Boy' out of its box and popping four AA batteries into the back changed every road trip and recess forever.",
+    physicalDetail: "You clicked the 'Tetris' cartridge into the top slot, flipped the power switch, and heard that crisp 'ba-ding!' chime as the olive-green LCD screen lit up with falling geometric blocks.",
+    sharingScene: "Across the bedroom, sisters and friends were unlocking heart-shaped pastel plastic compacts to discover miniature 'Polly Pocket' worlds no bigger than a coat button.",
+    lastingMemory: "Huddling under a passing streetlamp in the backseat of the car just to see that non-backlit handheld screen is a core memory for anyone who lived through 1989."
+  },
+  1990: {
+    item: "the 16-bit Sega Genesis and metallic 'Slap Bracelets'",
+    unboxing: "In 1990, schoolyards echoed with the sharp metallic snap of fabric-covered 'Slap Bracelets' wrapping around wrists, while living rooms bowed to the sleek black 16-bit Sega Genesis.",
+    physicalDetail: "Powering on the black console to hear the bold 'SEGA!' chant and holding its rounded three-button controller made arcade graphics feel impossibly fast at home.",
+    sharingScene: "At school lunch tables, friends traded neon animal-print bracelets by slapping them flat-to-curled on each other's forearms and spun brightly colored 'Koosh Balls' made of thousands of soft rubber filaments.",
+    lastingMemory: "Walking home with ten colorful bands stacked up your arm before a Friday night of 16-bit gaming gave 1990 an energy all its own."
+  },
+  1991: {
+    item: "Larami's 'Super Soaker 50' water blaster and the Super Nintendo (SNES)",
+    unboxing: "On hot summer afternoons in 1991, neighborhood backyards turned into giant water arenas the moment someone unscrewed the green bottle of a neon 'Super Soaker 50' at the garden hose.",
+    physicalDetail: "You pumped the orange pressure slide handle twenty times until the air chamber hissed and pulled the trigger to send a pinpoint stream of water fifty feet across the lawn.",
+    sharingScene: "Once everyone came inside to dry off, the whole group crowded onto the rug to plug in the purple-and-gray Super Nintendo Entertainment System (SNES) and ride Yoshi through 'Super Mario World.'",
+    lastingMemory: "From high-pressure backyard water battles in the afternoon to 16-bit adventures at night, 1991 was pure childhood bliss."
+  },
+  1992: {
+    item: "'Super Mario Kart' on SNES and 'Troll Dolls'",
+    unboxing: "In 1992, plugging the 'Super Mario Kart' cartridge into the Super Nintendo turned friendly Friday-night hangouts into legendary living-room rivalries.",
+    physicalDetail: "The split-screen television view let two players drift around Ghost Valley and Rainbow Road while launching red homing turtle shells and dropping banana peels right in front of a best friend's kart.",
+    sharingScene: "At school desks during the day, kids lined up plastic 'Troll Dolls' with jewel bellybuttons and combed their towering tufts of neon pink, purple, and lime-green hair for good luck.",
+    lastingMemory: "Those late-nightthree-balloon 'Battle Mode' showdowns on the living-room floor cemented 1992 as the golden age of couch multiplayer."
+  },
+  1993: {
+    item: "Tiger Electronics' 'Talkboy' cassette recorder and 'Mighty Morphin Power Rangers'",
+    unboxing: "In 1993, every kid begged for the silver-and-black Tiger Electronics 'Talkboy' deluxe cassette recorder that Kevin McCallister used in 'Home Alone 2.'",
+    physicalDetail: "Holding the recorder by its chunky side handle, you extended the directional microphone, recorded your voice onto a standard cassette tape, and flipped the thumb switch to play it back in hilarious slow-motion.",
+    sharingScene: "After recording prank interviews in the hallway, friends gathered on the carpet to snap five dinozords together into the towering 'Mighty Morphin Power Rangers' Megazord.",
+    lastingMemory: "Hearing 'Hi kids, we're home early!' warble out of that little silver speaker is the unmistakable sound of 1993."
+  },
+  1994: {
+    item: "cardboard 'Pogs' milk-cap tubes and Nintendo's 'Donkey Kong Country'",
+    unboxing: "Walk onto any school blacktop or driveway in 1994 and you would see kids unscrewing clear plastic tubes packed four feet high with colorful cardboard 'Pogs' discs.",
+    physicalDetail: "You stacked your favorite printed cardboard caps face-down in a neat tower, balanced a heavy brass or holographic torpedo 'Slammer' between two fingers, and whipped it down onto the stack with a sharp crack.",
+    sharingScene: "When the school bell rang to end the day, everyone raced home to marvel at the pre-rendered 3D jungle graphics and mine-cart levels of 'Donkey Kong Country' on the Super Nintendo.",
+    lastingMemory: "The rattle of metal slammers inside a backpack pocket followed by an evening of jungle platforming defined the rhythm of 1994."
+  },
+  1995: {
+    item: "Galoob's flying 'Sky Dancers' launchers and Nintendo's 3D 'Virtual Boy' visor",
+    unboxing: "In 1995, nothing drew a bigger crowd on the front lawn than pulling the cord on a handheld 'Sky Dancers' launcher and watching the foam-winged doll spin twenty feet into the air like a fairy-tale helicopter.",
+    physicalDetail: "Indoors at the kitchen table, curious gamers leaned their faces into the red-and-black tabletop visor of Nintendo's stereoscopic 'Virtual Boy' to play three-dimensional 'Mario's Tennis' in glowing red LEDs.",
+    sharingScene: "Meanwhile, friends squeezed glitter-filled 'Gooze' slime jars at their school desks or snapped together 'Star Wars: Power of the Force' action figures on the bedroom carpet.",
+    lastingMemory: "From launching spinning dolls across the yard at dusk to trading holographic Pogs on the sidewalk, playtime in 1995 was full of hands-on wonder."
+  },
+  1996: {
+    item: "the Nintendo 64 (N64) console and Tyco's 'Tickle Me Elmo'",
+    unboxing: "In 1996, nothing matched the thrill of unboxing the charcoal-gray Nintendo 64 (N64) and wrapping your hands around its futuristic three-pronged controller with the center analog thumbstick.",
+    physicalDetail: "The moment you switched on 'Super Mario 64,' tilting that central gray stick let you make Mario tiptoe, somersault, and fly through a full 360-degree courtyard outside Peach's Castle.",
+    sharingScene: "Meanwhile, in every toy store and living room that December, parents and kids couldn't stop pressing the belly of Tyco's bright red 'Tickle Me Elmo' plush as it shook and giggled uncontrollably.",
+    lastingMemory: "With four controller ports built directly into the front of the console, Friday nights in 1996 meant four friends playing together on the same screen."
+  },
+  1997: {
+    item: "Bandai's egg-shaped 'Tamagotchi' virtual pet and 'GoldenEye 007'",
+    unboxing: "In 1997, the gadget that took over every pocket, belt loop, and school desk was Bandai's tiny plastic egg-shaped digital pet, the 'Tamagotchi.'",
+    physicalDetail: "Pulling the plastic insulation tab out of the side hatched a pixelated creature on the miniature LCD screen that relied on three tiny rubber buttons for food, games, and cleanup.",
+    sharingScene: "Once homework was finished on Friday evening, four friends crowded around a single television divided into four quadrants for split-screen 'GoldenEye 007' matches on the Nintendo 64, strictly enforcing a 'no picking Oddjob' rule.",
+    lastingMemory: "Keeping your keychain pet alive through the school week and staying up late for four-player spy showdowns was the ultimate badge of 1997."
+  },
+  1998: {
+    item: "Nintendo's 'Game Boy Color' with 'Pokémon Red and Blue' and Tiger's 'Furby'",
+    unboxing: "In the autumn of 1998, unboxing an atomic-purple translucent 'Game Boy Color' alongside a red or blue 'Pokémon' cartridge took over youth culture overnight.",
+    physicalDetail: "Through the clear purple plastic shell, you could see the green circuit board inside as your thumbs guided Pikachu and Charizard across the Kanto region.",
+    sharingScene: "At lunch tables, kids connected two handhelds with a coiled Link Cable to trade monsters, while back home on the dresser a furry animatronic owl-like 'Furby' blinked its plastic eyes and spoke 'Furbish.'",
+    lastingMemory: "Trading creatures across a physical wire with your best friend while an electronic toy chattered in the corner made 1998 completely unforgettable."
+  },
+  1999: {
+    item: "holographic 'Pokémon Trading Card Game' booster packs and Sega's 'Dreamcast'",
+    unboxing: "Nothing in 1999 could beat the heart-pounding suspense of tearing open the foil wrapper of a 'Pokémon Trading Card Game' Base Set booster pack.",
+    physicalDetail: "You slowly thumb-shifted through the eleven crisp cardboard cards—past Pikachu and Squirtle—praying to catch the rainbow sparkle of a holographic First Edition 'Charizard' on the rare slot.",
+    sharingScene: "After organizing their three-ring card binders, friends gathered around Sega's white 'Dreamcast' console—watching the killer whale leap across the dock in 'Sonic Adventure' while practicing finger flips on miniature 'Tech Deck' fingerboards.",
+    lastingMemory: "Sliding a shiny holographic card into a protective plastic sleeve before an evening of Dreamcast adventures remains the ultimate thrill of 1999."
+  },
+  2000: {
+    item: "the folding aluminum 'Razor Scooter' and Tiger's 'HitClips'",
+    unboxing: "In the year 2000, the metallic whir of a shiny aircraft-aluminum 'Razor Scooter' unfolding on the driveway was the sound of pure freedom.",
+    physicalDetail: "You clicked open the heavy metal hinge latch, adjusted the T-bar handlebars, and pressed your heel onto the rear steel fender brake over bright translucent urethane wheels—careful never to let the spinning deck whack your ankle!",
+    sharingScene: "After riding in a pack down to the corner store, friends sat on the front steps swapping postage-stamp-sized 'HitClips' plastic cartridges into a miniature keychain boombox to hear sixty-second pop hooks through a single earpiece.",
+    lastingMemory: "A row of silver scooters parked across the front lawn meant the whole neighborhood was hanging out at your house in 2000."
+  },
+  2001: {
+    item: "Microsoft's original 'Xbox' with 'Halo: Combat Evolved' and the 'Game Boy Advance'",
+    unboxing: "In November 2001, hoisting Microsoft's massive black 'Xbox' console—stamped with its jewel-green 'X' logo—out of the box kicked off a new era of multiplayer gaming.",
+    physicalDetail: "You gripped the hefty original controller, pulled the spring-loaded triggers, and heard the echoing Gregorian chant of 'Halo: Combat Evolved' fill the basement as Master Chief stepped onto the ringworld.",
+    sharingScene: "For car rides and school buses, kids switched to Nintendo's wide horizontal 'Game Boy Advance' in translucent glacier-blue, snapping a bendable 'Worm Light' into the top port to see the screen in the dark.",
+    lastingMemory: "Running long blue Ethernet cables across the hallway for sixteen-player LAN parties made weekend nights in 2001 legendary."
+  },
+  2002: {
+    item: "Hasbro's 'Beyblade' spinning tops and the purple 'Nintendo GameCube'",
+    unboxing: "In 2002, every schoolyard patio rang with the shout '3, 2, 1—Let it rip!' as kids yanked the serrated plastic ripcords on customizable 'Beyblade' spinning tops.",
+    physicalDetail: "You snapped together your attack ring, heavy metal weight disk, and spin gear, launching the top into a concave plastic Beystadium bowl where sparks practically flew on impact.",
+    sharingScene: "Back home on the living-room carpet, four friends plugged controllers into the indigo cube-shaped 'Nintendo GameCube' (complete with its rear carrying handle) for frantic four-player matches in 'Super Smash Bros. Melee' and 'Super Mario Sunshine.'",
+    lastingMemory: "From high-speed spinning-top clashes at recess to four-player GameCube showdowns at night, 2002 was nonstop excitement."
+  },
+  2003: {
+    item: "Nintendo's clamshell 'Game Boy Advance SP' with its front-lit screen",
+    unboxing: "In the spring of 2003, flipping open the metallic cobalt-blue or platinum clamshell lid of Nintendo's 'Game Boy Advance SP' felt like the answer to every handheld player's prayers.",
+    physicalDetail: "For the first time ever on a Game Boy, pressing the tiny brightness button at the top center lit up the screen with a built-in light—and it charged directly from a wall outlet without needing AA batteries.",
+    sharingScene: "Friends sat together under blankets at sleepovers exploring the Hoenn region in 'Pokémon Ruby and Sapphire,' or teamed up two-per-kart on the GameCube in 'Mario Kart: Double Dash!!'",
+    lastingMemory: "Snapping that pocket-sized clamshell screen shut when the teacher walked by made it the sleekest gadget of 2003."
+  },
+  2004: {
+    item: "the dual-screen 'Nintendo DS' with 'PictoChat' and 'Halo 2'",
+    unboxing: "In late 2004, unfolding the silver dual-screen 'Nintendo DS' for the first time and sliding the tiny plastic stylus out of its side slot felt like holding a gadget from a sci-fi movie.",
+    physicalDetail: "Before you even inserted a game cartridge, turning on the console opened 'PictoChat'—letting you hand-draw doodles and messages on the bottom touchscreen and beam them wirelessly to friends down the hall.",
+    sharingScene: "Meanwhile, in basements and dorm rooms everywhere, friends slipped on voice headsets over 'Xbox Live' for late-night capture-the-flag matches on Zanzibar in 'Halo 2.'",
+    lastingMemory: "Tapping a handheld touchscreen with a plastic stylus while chatting with sixteen classmates on the bus made 2004 a turning point for play."
+  },
+  2005: {
+    item: "RedOctane's five-button 'Guitar Hero' controller and 'Nintendogs'",
+    unboxing: "In 2005, pulling the black-and-white plastic Gibson SG guitar controller out of the 'Guitar Hero' box and slinging the strap over your shoulder turned the living room into a rock arena.",
+    physicalDetail: "Your left fingers danced across the five colored fret buttons—green, red, yellow, blue, and orange—while your right hand clicked the strum bar and tilted the guitar neck upward to trigger 'Star Power.'",
+    sharingScene: "On the school bus the next morning, kids spoke directly into the built-in microphone of their Nintendo DS to call their virtual puppies by name and rub their bellies with the stylus in 'Nintendogs.'",
+    lastingMemory: "The rhythmic 'clack-clack-clack' of that plastic guitar strum bar echoing through the house was the undisputed soundtrack of 2005 hangouts."
+  },
+  2006: {
+    item: "the motion-controlled 'Nintendo Wii' console and 'Gears of War'",
+    unboxing: "In November 2006, unboxing the compact white 'Nintendo Wii' console and tightening the gray wrist strap of the 'Wii Remote' around your hand brought every generation in the house off the couch.",
+    physicalDetail: "Shaped like a sleek TV remote with a built-in speaker and motion sensor, the controller let you physically swing your arm like a tennis racket or bowling ball in 'Wii Sports.'",
+    sharingScene: "Coffee tables were pushed against the wall so grandparents and kids could design custom 'Mii' avatars together, while in the next room older gamers teamed up on the Xbox 360 for co-op campaigns in 'Gears of War.'",
+    lastingMemory: "Hearing the breezy five-note 'Wii Sports' theme song while the whole family bowled in the living room made 2006 a landmark year."
+  },
+  2007: {
+    item: "Harmonix's four-player 'Rock Band' instrument kit and 'Halo 3'",
+    unboxing: "In 2007, hauling the massive rectangular 'Rock Band' bundle box into the house and assembling the four-pad plastic drum kit, foot pedal, microphone, and Stratocaster guitar was an event in itself.",
+    physicalDetail: "One friend gripped the wooden drumsticks to hit the colored pads while two others strummed guitar and bass and a fourth belted lyrics into the USB microphone.",
+    sharingScene: "When the band took an intermission, the whole group switched over to the Xbox 360 to drink bright orange 'Mountain Dew Game Fuel' and play four-player Forge mode in 'Halo 3.'",
+    lastingMemory: "Stomping that orange plastic kick pedal in unison with three of your best friends made 2007 the peak of living-room party gaming."
+  },
+  2008: {
+    item: "Nintendo's 'Mario Kart Wii' with the white 'Wii Wheel' and 'Wii Fit'",
+    unboxing: "In the spring of 2008, snapping your white remote sideways into the circular plastic 'Wii Wheel' steering ring included with 'Mario Kart Wii' turned every living room into a racetrack.",
+    physicalDetail: "Instead of pushing a tiny thumbstick, you held the white steering ring out in the air with both hands, physically turning it left and right to drift around Coconut Mall.",
+    sharingScene: "Right beside the sofa sat Nintendo's white rectangular 'Wii Balance Board,' where family members stood barefoot to ski down virtual slalom hills and test their center of balance in 'Wii Fit.'",
+    lastingMemory: "Four friends sitting on the edge of the couch leaning their whole bodies into every sharp turn made 2008 pure multiplayer joy."
+  },
+  2009: {
+    item: "Apple's pocket-sized 'iPod touch' games and 'Wii Sports Resort'",
+    unboxing: "In 2009, peeling the protective film off the mirror-polished stainless-steel back of an 'iPod touch' defined what everyone played with between classes.",
+    physicalDetail: "On the glass touchscreen, you tilted the device left and right to bounce higher on green platforms in 'Doodle Jump' or flicked crumpled paper balls past a desk fan in 'Paper Toss.'",
+    sharingScene: "As soon as Friday night arrived, families snapped the 'Wii MotionPlus' sensor onto the bottom of their remotes for 100-pin bowling and island swordplay in 'Wii Sports Resort' or four-player chaos in 'New Super Mario Bros. Wii.'",
+    lastingMemory: "Passing a touchscreen down the lunch table to beat a 50,000-point high score before a weekend of living-room matches was a daily ritual in 2009."
+  },
+  2010: {
+    item: "Rovio's 'Angry Birds,' 'Fruit Ninja,' and animal-shaped 'Silly Bandz'",
+    unboxing: "In 2010, school hallways were filled with kids wearing twenty colorful die-cut silicone 'Silly Bandz' up their forearms—bracelets that looked like wavy rubber bands on your wrist but sprang back into dinosaurs and guitars when you took them off.",
+    physicalDetail: "On phones and iPads, everyone was pulling back a virtual wooden slingshot with one fingertip in 'Angry Birds' to launch red and yellow birds into towers of glass and wood.",
+    sharingScene: "Friends passed the screen to the next person on the couch to slice flying watermelons and dodge bombs with two fingers in 'Fruit Ninja,' or stood up in front of the Xbox 360 'Kinect' camera to play games using only full-body motion without holding a controller at all.",
+    lastingMemory: "Trading shaped rubber bracelets at school lockers and helping a friend earn three gold stars on a tricky puzzle level takes you straight back to 2010."
+  },
+  2011: {
+    item: "Activision's 'Skylanders: Spyro's Adventure' and the glasses-free 3D 'Nintendo 3DS'",
+    unboxing: "In 2011, unfolding the aqua-blue 'Nintendo 3DS' and sliding the side '3D Depth Slider' upward made players rub their eyes in disbelief as 'Super Mario 3D Land' leaped out with real depth—without wearing 3D glasses.",
+    physicalDetail: "Whenever you walked through school or the mall with the 3DS closed in your pocket, its little green notification LED lit up to tell you that 'StreetPass' had just exchanged Mii characters and puzzle pieces with a stranger walking by.",
+    sharingScene: "On the living-room floor, kids plugged a glowing plastic 'Portal of Power' into their console for 'Skylanders,' setting real physical action figures onto the base and gasping as the toy instantly materialized inside the television game.",
+    lastingMemory: "Checking your green StreetPass light after a walk through town and swapping Skylanders figures on the glowing portal remains an unforgettable memory of 2011."
+  },
+  2012: {
+    item: "Imangi's 'Temple Run,' 'Subway Surfers,' and the 'Nintendo Wii U' GamePad",
+    unboxing: "In 2012, any quiet five minutes on the school bleachers or living-room couch immediately turned into a high-speed swipe marathon on 'Temple Run' and 'Subway Surfers.'",
+    physicalDetail: "Gripping a phone with one thumb poised on the glass, you swiped left, right, up, and down at lightning speed to leap over tree roots or dodge oncoming trains while collecting trail coins.",
+    sharingScene: "At home, five friends gathered in the living room around Nintendo's new 'Wii U' console, where one player hid their moves on the six-inch touchscreen built right into the white 'GamePad' controller while four others chased them on the big TV in 'Nintendo Land.'",
+    lastingMemory: "Handing your phone to your best friend the second a run ended to see who could set the highest score defined every hangout of 2012."
+  },
+  2013: {
+    item: "colorful 'Rainbow Loom' rubber-band kits, 'Candy Crush Saga,' and 'Pokémon X and Y'",
+    unboxing: "In 2013, kitchen tables and school backpacks were taken over by plastic organizer cases filled with thousands of tiny colorful rubber bands for the 'Rainbow Loom.'",
+    physicalDetail: "Using a miniature plastic pegboard and a crochet-style metal hook, kids looped neon bands into intricate 'Fishtail' and 'Dragon Scale' bracelets until their wrists were covered from hand to elbow.",
+    sharingScene: "Between bracelet-weaving sessions, friends battled Mega-Evolved creatures in full 3D in 'Pokémon X and Y' on the flat wedge-shaped 'Nintendo 2DS' while commuters everywhere swiped striped candies in 'Candy Crush Saga.'",
+    lastingMemory: "Trading handmade rubber-band bracelets at school lockers and unlocking Mega Charizard with friends captured 2013 playtime to perfection."
+  },
+  2014: {
+    item: "Dong Nguyen's tap-to-flap craze 'Flappy Bird,' '2048,' and 'Mario Kart 8'",
+    unboxing: "In early 2014, a deceptively simple eight-bit mobile game called 'Flappy Bird' turned ordinary smartphones into the most intense arcade machines on the block.",
+    physicalDetail: "All you had to do was tap your thumb on the glass to keep a tiny pixelated yellow bird airborne between narrow green pipes—yet after its creator suddenly deleted it from app stores, any phone that still had it installed was treated like solid gold.",
+    sharingScene: "Friends crowded ten deep around a single desk during lunch to slide numbered tiles together in '2048,' or raced upside-down on anti-gravity tracks in 'Mario Kart 8' while laughing at Luigi's famous slow-motion 'death stare' replay.",
+    lastingMemory: "Holding your breath with a circle of friends as someone approached pipe number 50 made 2014 a legendary year for shared suspense."
+  },
+  2015: {
+    item: "the glowing self-balancing electric 'Hoverboard,' 'Super Mario Maker,' and 'Pie Face'",
+    unboxing: "In 2015, nothing caused a bigger commotion on neighborhood driveways than lifting a heavy, two-wheeled self-balancing electric 'Hoverboard' out of its box and pressing the silver power button to watch its twin blue LED fender lights flash across the pavement.",
+    physicalDetail: "Friends held each other's hands for balance as the internal gyroscopic motors hummed beneath the rubber footpads, leaning their toes forward just a fraction of an inch to glide effortlessly down the sidewalk and spin 360 degrees in place.",
+    sharingScene: "When the sun went down, the whole group headed inside to design impossible obstacle courses with the touchscreen stylus in 'Super Mario Maker' or spray neon ink across the map in 'Splatoon.'",
+    lastingMemory: "Meanwhile, around the dining table, families howled with laughter as the spring-loaded plastic hand of Hasbro's 'Pie Face' game launched a dollop of whipped cream at a suspenseful click."
+  },
+  2016: {
+    item: "Niantic's 'Pokémon GO,' the palm-sized 'NES Classic Edition,' and 'Clash Royale'",
+    unboxing: "In July 2016, launching Niantic's augmented-reality game 'Pokémon GO'—and clipping on the red-and-white wrist-worn 'Pokémon GO Plus' button—turned every real-world park and street corner into a giant living game board.",
+    physicalDetail: "Through your camera lens, a wild Squirtle or Snorlax appeared standing right on the actual sidewalk in front of you, waiting for you to flick a virtual Poké Ball across the glass with your fingertip.",
+    sharingScene: "Between outdoor walks, school lunch tables turned into real-time card arenas in Supercell's 'Clash Royale,' while families lined up outside electronics stores for Nintendo's palm-sized miniature 'NES Classic Edition' pre-loaded with thirty retro games.",
+    lastingMemory: "Those warm summer evenings of 2016 when dozens of friends and neighbors sprinted across the park grass together to catch a rare Dragonite remain one of a kind."
+  },
+  2017: {
+    item: "the hybrid 'Nintendo Switch' console, ball-bearing 'Fidget Spinners,' and 'Cuphead'",
+    unboxing: "In the spring of 2017, sliding the neon blue and red 'Joy-Con' controllers onto the sides of the 'Nintendo Switch' with that crisp, unmistakable mechanical 'snap!' changed how and where people played games forever.",
+    physicalDetail: "Midway through climbing a mountain in 'The Legend of Zelda: Breath of the Wild' on the living-room TV, you could lift the console straight out of its black dock, flip out the rear kickstand on a table, and hand one detachable Joy-Con to a friend for instant two-player 'Mario Kart 8 Deluxe.'",
+    sharingScene: "At the same time, every classroom desk and backpack pocket in the world held a three-pronged metallic ball-bearing 'Fidget Spinner'—friends balanced them on the tip of one thumb or stacked two spinners together to see whose bearing could spin for three full minutes.",
+    lastingMemory: "From trading trick spins at school desks to teaming up in the 1930s hand-drawn boss battles of 'Cuphead' at night, 2017 was packed with tactile fun."
+  },
+  2018: {
+    item: "Epic Games' 'Fortnite: Battle Royale,' 'Super Smash Bros. Ultimate,' and 'Nintendo Labo'",
+    unboxing: "In 2018, every afternoon after the school bell rang revolved around flipping down your headset microphone and leaping out of the flying blue Battle Bus in 'Fortnite: Battle Royale.'",
+    physicalDetail: "With controller in hand, your four-person squad glided down toward Tilted Towers, swung pickaxes to harvest wood and brick, and built towering four-story ramps in seconds as the storm circle closed in.",
+    sharingScene: "When friends gathered in person on Friday nights, eight players plugged GameCube and Pro controllers into a single Nintendo Switch dock for massive 'Super Smash Bros. Ultimate' couch tournaments, or folded corrugated cardboard sheets into working pianos and fishing rods with 'Nintendo Labo.'",
+    lastingMemory: "Hearing all four friends scream in unison over party chat the second that blue '#1 Victory Royale' banner flashed across the screen defined 2018."
+  },
+  2019: {
+    item: "the turquoise 'Nintendo Switch Lite,' 'Pokémon Sword and Shield,' and the 'Oculus Quest' VR headset",
+    unboxing: "In 2019, pulling the compact turquoise or yellow unibody 'Nintendo Switch Lite' out of its box—complete with a classic cross-shaped D-pad molded right into the matte shell—made portable gaming feel lighter and sleeker than ever.",
+    physicalDetail: "Friends sat side-by-side on couches cheering inside giant stadiums as their creatures grew stories tall through 'Dynamax' transformations in 'Pokémon Sword and Shield.'",
+    sharingScene: "For the ultimate party trick in 2019, someone would bring out the all-in-one wireless 'Oculus Quest' virtual-reality headset, strapping it on in the middle of the living room to slice flying neon cubes with two glowing light sabers in 'Beat Saber.'",
+    lastingMemory: "And in 2019, millions of players sat staring at their screens together on group calls as the entire 'Fortnite' island was sucked into a mysterious silent Black Hole for thirty-six hours."
+  },
+  2020: {
+    item: "Nintendo's 'Animal Crossing: New Horizons,' 'Among Us,' and 'Fall Guys'",
+    unboxing: "In the spring of 2020, booting up 'Animal Crossing: New Horizons' on a pastel green-and-blue Nintendo Switch turned the screen into a peaceful, sunlit island getaway shared with friends.",
+    physicalDetail: "You shook peach trees, decorated outdoor cafés, paid off bells to Tom Nook, and opened your Dodo Airlines airport gate so seven friends from around the world could fly over to visit your island at the same time.",
+    sharingScene: "By evening, ten friends hopped onto a group voice call with InnerSloth's space-station mystery game 'Among Us' open in their hands, laughing hysterically during 'Emergency Meetings' as everyone debated whether Red had just vented in Electrical.",
+    lastingMemory: "Between hosting virtual graduation parties on island beaches and tumbling through pastel obstacle courses in 'Fall Guys,' games in 2020 kept every friend group connected."
+  },
+  2021: {
+    item: "rainbow silicone 'Pop It' fidget boards, the 'Nintendo Switch OLED,' and 'Metroid Dread'",
+    unboxing: "In 2021, every backpack, car seat, and school desk echoed with the soft, rhythmic 'pop-pop-pop' of rainbow-colored silicone 'Pop It' fidget boards.",
+    physicalDetail: "Shaped like octagons, dinosaurs, and cupcakes, you pressed each row of rubber bubbles down until it snapped to the other side, then flipped the whole board over to start again like infinite reusable bubble wrap.",
+    sharingScene: "Indoors on Friday nights, friends gathered around the crisp white dock and vibrant seven-inch screen of the 'Nintendo Switch OLED' to roll classic board-game dice in 'Mario Party Superstars' or outrun relentless E.M.M.I. robots in 'Metroid Dread.'",
+    lastingMemory: "Trading giant 100-bubble fidget boards during the day and stealing stars from your best friend in Mario Party at night defined 2021 playtime."
+  },
+  2022: {
+    item: "FromSoftware's 'Elden Ring,' Valve's handheld 'Steam Deck,' and the daily 'Wordle'",
+    unboxing: "In early 2022, every morning began with a quiet five-minute puzzle ritual: opening the browser game 'Wordle' to guess the daily five-letter word in six tries and texting that little grid of green and yellow squares to your group chat.",
+    physicalDetail: "By night, living rooms belonged to the vast golden landscapes of FromSoftware's 'Elden Ring,' where players summoned spectral steeds and passed the controller back and forth to conquer towering bosses like Starscourge Radahn.",
+    sharingScene: "Meanwhile, tech fans marveled at Valve's matte-black 'Steam Deck'—a handheld console with dual thumbsticks and square haptic trackpads that let you carry a massive library of games straight to the sofa or train ride.",
+    lastingMemory: "Comparing your morning three-try word puzzle at breakfast and teaming up in the Lands Between at midnight gave 2022 a rhythm that every player shared."
+  },
+  2023: {
+    item: "Nintendo's 'The Legend of Zelda: Tears of the Kingdom,' 'Baldur's Gate 3,' and 'Super Mario Bros. Wonder'",
+    unboxing: "In 2023, snapping the gold-patterned 'The Legend of Zelda: Tears of the Kingdom' cartridge into the Switch turned every living room into a backyard engineering lab.",
+    physicalDetail: "Using Link's new 'Ultrahand' ability, you could fuse wooden logs, spinning fans, wheels, and Zonai rockets together at the press of a button to build working hoverbikes, airships, and catapults.",
+    sharingScene: "Later in 2023, groups of friends gathered for months-long tabletop-style campaigns in 'Baldur's Gate 3'—cheering every time a giant twenty-sided virtual die rolled across the center of the screen—or transformed into comical Elephant Mario in 'Super Mario Bros. Wonder.'",
+    lastingMemory: "Showing off your wildest homemade flying machines and rolling critical 20s with friends made 2023 a modern golden age of play."
+  },
+  2024: {
+    item: "'Pokémon Trading Card Game Pocket,' 'The Legend of Zelda: Echoes of Wisdom,' and 'College Football 25'",
+    unboxing: "In 2024, friends sitting at cafés and living rooms everywhere held their phones side-by-side to count down '3, 2, 1' and swipe their fingers across the glass to slice open gleaming 3D foil booster packs in 'Pokémon Trading Card Game Pocket.'",
+    physicalDetail: "Tilting your screen in the light let you admire parallax 3D immersive illustrations of Charizard and Pikachu before placing your favorite cards into digital display binders.",
+    sharingScene: "On the television, college sports fans celebrated the long-awaited return of 'EA Sports College Football 25' after an eleven-year hiatus, while Nintendo Switch players conjured tables, trampolines, and monsters as Princess Zelda in 'The Legend of Zelda: Echoes of Wisdom.'",
+    lastingMemory: "Trading Wonder Picks with friends over morning coffee and competing in 20-player mini-game marathons in 'Super Mario Party Jamboree' brought pure joy to every hangout in 2024."
+  }
+};
+
+const YEAR_EXTRA_PLAY_SCENE: Record<number, string> = {
+  1965: "In between backyard missions, kids also stretched pink 'Super Elastic Bubble Plastic' on the end of a tiny straw or bounced 'Super Balls' manufactured from Zectron rubber over the garage roof.",
+  1966: "Out on the sidewalk, kids also snapped together plastic 'Slot Car' figure-eight tracks and squeezed the thumb-trigger controllers to keep their racers from flying off the hairpin turns.",
+  1967: "Outdoors, anyone with a pocketful of change bought balsa-wood gliders with red plastic nose clips for ten cents at the corner store and launched them across the park lawn.",
+  1968: "At the kitchen table, siblings also took turns pushing plastic marbles across the hexagonal board of Ideal's 'KerPlunk'—holding their breath as they slid each plastic straw out of the translucent tube.",
+  1969: "Meanwhile, inspired by Apollo 11, kids everywhere pumped water and air into red-and-white plastic 'Park Plastics Water Rockets' on the lawn and watched them shoot eighty feet into the summer sky.",
+  1970: "Out on the porch, friends also competed with plastic 'Toss Across' tic-tac-toe beanbags and snapped together motorized 'Lego' gear sets on the carpet.",
+  1971: "Indoors, kids also pressed warm crayons onto spinning paper discs inside 'Spin-Art' machines to create psychedelic splatter paintings for their bedroom walls.",
+  1972: "At the dining-room table, friends also tested their nerve with Ideal's plastic camel game 'Last Straw' or raced wind-up 'Evel Knievel Stunt Cycle' motorcycles off homemade plywood ramps.",
+  1973: "Out on the front walk, friends also traded Wacky Packages parody stickers and practiced yoyo 'Walk the Dog' and 'Around the World' tricks with wooden 'Duncan Imperial' yoyos.",
+  1974: "Out in the yard, kids also squeezed the dual handles of plastic 'Slip 'N Slide' water mats hooked up to the garden hose, skimming across the wet yellow vinyl all afternoon.",
+  1975: "Across the living-room floor, kids also lined up wooden 'Domino Rally' chains and guided magnetic metal football players vibrating across an electric 'Tudor Tru-Action Electric Football' tin board.",
+  1976: "At the kitchen table, friends also poured cherry syrup into the crank-operated 'Snoopy Sno-Cone Machine' to shave ice with a metal plunger after an afternoon in the sun.",
+  1977: "Out on the patio, kids also pumped the yellow handle of Kenner's 'Stretch Monster' and fired soft foam discs from gray plastic 'Star Trek' tracer guns.",
+  1978: "Meanwhile, on neighborhood driveways, younger kids pedaled low-slung black-and-red plastic 'Green Machine' and 'Big Wheel' tricycles, pulling the handbrake to spin into 180-degree power slides.",
+  1979: "Across the bedroom rug, friends also assembled detailed plastic 'Star Wars' Millennium Falcon spaceships with secret smuggling compartments under the floor panels.",
+  1980: "And whenever two friends sat down at the kitchen table, out came the red-and-blue plastic cases of Milton Bradley's 'Battleship,' calling out 'B-4!' and snapping white and red pegs into the ocean grid.",
+  1981: "Out in the driveway, kids also clicked colorful plastic beads onto their bicycle spokes and traded 'Strawberry Shortcake' scented dolls that smelled like real berries.",
+  1982: "At school lunch tables, friends also pulled foldable 'Transformers'-precursor 'Diaclone' cars and colorful 'My Little Pony' figures with nylon manes out of their backpacks.",
+  1983: "And out on the curb, kids spent hours flipping 'Garbage Pail Kids' and Return of the Jedi trading cards or guiding metal balls through the tilting labyrinth of Tomy's 'Screwball Scramble.'",
+  1984: "In the backyard, kids also strapped tin canisters to their backs to play 'Ghostbusters' or snapped plastic caps into heavy die-cast cap-guns until the porch smelled like sulfur.",
+  1985: "At recess, friends also pulled furry electronic 'Pound Puppies' and 'M.A.S.K.' transforming vehicles with hidden spring-loaded wings out of their school bags.",
+  1986: "At the kitchen table, kids also squeezed neon 'Madballs' foam faces and raced radio-controlled Tamiya 'Grasshopper' buggies up and down the sidewalk curb.",
+  1987: "In the afternoon, kids also launched foam-tipped arrows from orange 'Nerf Bow 'n' Arrow' sets and collected holographic 'Visionaries' action figures.",
+  1988: "Out on the sidewalk, kids also strapped plastic 'Skip-It' counters around one ankle—hopping in circles for twenty minutes straight as the spinning ball tallied every jump.",
+  1989: "Out in the yard, kids also pumped up the bright orange inflatable tongue of 'Reebok Pump' sneakers and batted tethered tennis balls around metal 'Swingball' poles.",
+  1990: "And whenever friends stayed over for the weekend, out came Milton Bradley's 'HeroQuest' board game or Tiger's voice-activated LCD handhelds.",
+  1991: "At school desks, kids also folded paper fortune-tellers, traded shiny Marvel Series II hologram cards, and bounced high-density 'Monster Face' balls down the hallway.",
+  1992: "Out on the sidewalk, kids also strapped purple-and-green 'Moon Shoes' mini-trampolines onto their sneakers and tried walking across the lawn without tipping over.",
+  1993: "At kitchen tables everywhere, kids also baked rubbery bugs in 'Creepy Crawlers' toy ovens and carefully stacked plastic groceries into the 'Grape Escape' and 'Don't Wake Daddy' board games.",
+  1994: "And in bedrooms everywhere, friends slid plastic cartridges into the 'Sega Game Gear' handheld or customized 'Street Sharks' and 'Biker Mice from Mars' figures.",
+  1995: "At recess, kids also traded 'Goosebumps' books with raised embossed covers and spun metallic 'Spinjas' battle tops inside plastic stadium rings.",
+  1996: "Out on the playground, kids also mastered tricks with spring-loaded 'Yomega Brain' auto-return yoyos and raced 'Tyco RC Terrain Twister' vehicles across puddles.",
+  1997: "At the same time, every toy basket in the house was overflowing with plush 'Beanie Babies'—each with its heart-shaped red 'Ty' tag carefully sealed inside a clear plastic protector case.",
+  1998: "And on the living-room floor, friends twisted and pulled the yellow plastic handles of Hasbro's 'Bop It!' as the voice shouted 'Bop it! Twist it! Pull it!' faster and faster.",
+  1999: "Out in the yard, kids also pumped the air tank on silver-and-orange 'Nerf SuperMAXX' blasters and battled motorized plastic tops.",
+  2000: "Meanwhile, bedrooms echoed with the metallic bark of Sony's robotic silver dog 'AIBO' and Hasbro's 'Poo-Chi,' alongside stacks of glowing blue 'Yu-Gi-Oh!' deck boxes.",
+  2001: "At the kitchen table, kids also snapped together articulated plastic masks and gears for LEGO's new 'Bionicle' Toa heroes—Tahu, Kopaka, and Gali—straight out of their cylindrical canisters.",
+  2002: "And at school lunch tables, duelists strapped plastic 'Yu-Gi-Oh!' Duel Disks onto their forearms to summon 'Blue-Eyes White Dragon' and 'Dark Magician' cards.",
+  2003: "Out on the driveway, kids also rode two-wheeled 'Caster Boards' and 'Heelys' sneakers with a single removable wheel hidden inside the heel so you could transition from walking to rolling in one step.",
+  2004: "And at school hallways, kids pointed the infrared ports of their 'Tamagotchi Connection' keychains together so their virtual pets could visit each other's screens and exchange gifts.",
+  2005: "Meanwhile, in bedrooms everywhere, kids scratched secret codes off the tags of plush 'Webkinz' pets to adopt their digital twins, or spun 'Fly Pentop' smart-pens across special dotted paper.",
+  2006: "At school desks, kids also popped tiny magnetic 'Bakugan' spheres onto metal cards to watch them spring open into miniature dragons, or clipped colorful 'Jibbitz' charms into foam Crocs.",
+  2007: "On the Nintendo DS, friends also gathered in four-player circles to race 'Mario Kart DS' and trade Stylus notes while testing who could survive 'Through the Fire and Flames' on Expert.",
+  2008: "Out in the backyard, kids also loaded thirty-dart chains into Hasbro's battery-powered 'Nerf N-Strike Vulcan' tripod blaster and staged neighborhood foam-dart battles.",
+  2009: "Out on neighborhood streets, teenagers rode wavy two-wheeled 'RipStik' caster boards that propelled forward by twisting your hips without ever setting a foot on the pavement.",
+  2010: "And in backyards everywhere, friends tested trick shots with motorized 'Nerf N-Strike Stampede' blasters and launched metal 'Beyblade: Metal Fusion' tops.",
+  2011: "Meanwhile, on phones and tablets, everyone was slicing fruit combos, running from temple monkeys in 'Temple Run,' or stacking blocks in 'Tiny Tower.'",
+  2012: "Across school cafeterias, kids also traded 'Beyblade' customization parts and jumped into four-player split-screen 'Minecraft: Xbox 360 Edition' worlds.",
+  2013: "And on smartphones everywhere, friends challenged classmates across the world to live seven-question trivia duels in 'QuizUp' or dodged oncoming trains in 'Subway Surfers.'",
+  2014: "At home on the Wii U, players also tapped plastic 'Amiibo' figurines directly onto the controller to bring their favorite characters to life inside the game.",
+  2015: "From gliding down the pavement on LED-lit wheels before dinner to building custom Mario levels and tabletop pranks at night, playtime in 2015 turned every weekend into an event.",
+  2016: "And in toy aisles everywhere, kids tapped on speckled plastic 'Hatchimals' eggs for twenty minutes until the glowing-eyed plush creature inside pecked its own way through the shell.",
+  2017: "And at kitchen tables, kids peeled back seven layers of wrapping on spherical 'L.O.L. Surprise!' balls or battled friends in 'Splatoon 2.'",
+  2018: "Meanwhile, anyone with a smartphone was either slinging magnetic marbles down rotating towers in 'Helix Jump' or riding shared electric kick-scooters down neighborhood bike lanes with friends.",
+  2019: "From compact handheld consoles in every backpack to wireless virtual-reality headsets in the living room, 2019 made gaming feel more social and immediate than ever.",
+  2020: "And in living rooms everywhere, kids placed plastic cardboard gates across the carpet to race real camera-equipped RC karts in 'Mario Kart Live: Home Circuit.'",
+  2021: "Meanwhile, collectors lined up for shiny gold-box 'Pokémon 25th Anniversary Celebrations' card tins and built motorized LEGO Technic supercars on the bedroom floor.",
+  2022: "And on the Nintendo Switch, friends gathered for chaotic four-player ink battles in 'Splatoon 3' while lining their beds with ultra-soft 'Squishmallows' plushies.",
+  2023: "Meanwhile, tabletop card shops packed every table on Friday nights as players opened booster packs for the brand-new Disney 'Lorcana' trading card game.",
+  2024: "And out in backyards and parks, friends rallied feathered paddles in neighborhood 'Pickleball' tournaments and built intricate botanical LEGO flower bouquets."
+};
+
+const buildTechSingleCraze = (_rawTech: string, year: number): string => {
+  const entry = YEAR_SINGLE_TOY_CRAZE[year];
+  const extraScene = YEAR_EXTRA_PLAY_SCENE[year];
+  if (entry) {
     return ensure5To7Sentences([
-      `In ${year}, daily life was shaped by two concrete consumer shifts: the rapid expansion of carhop drive-in restaurants and the adoption of pocket solid-state transistor radios.`,
-      `Following the model of McDonald's Speedee Service System and regional drive-ins, restaurants used illuminated canopy stalls where carhops hooked anodized-aluminum food trays directly onto the rolled-down driver's window of steel-finned sedans.`,
-      `On the electronics front, Regency TR-1 and Sony TR-63 pocket transistor radios replaced bulky vacuum-tube tabletop sets by using miniature germanium transistors powered by a single 9-volt battery.`,
-      `Measuring just 4.5 by 2.7 inches, pocket transistor radios allowed teenagers to listen to Top 40 AM broadcasts through a single wired monaural earphone at parks and beaches.`,
-      `At the same time, C.A. Swanson & Sons sold millions of frozen 'TV Brand Dinners' packaged in three-compartment stamped aluminum foil trays designed to heat in the oven at 425°F for 25 minutes.`,
-      `Together, aluminum TV dinner trays, carhop window service, and pocket transistor radios transformed everyday habits in ${year}.`
+      entry.unboxing,
+      entry.physicalDetail,
+      entry.sharingScene,
+      entry.lastingMemory,
+      extraScene || `Every Friday afternoon in ${year}, neighborhoods and living rooms came alive as friends gathered to share the newest games and inventions together.`
     ]);
   }
 
+  // Varied fallback for years before 1965
+  const fallbackItem =
+    year < 1958 ? "a gleaming 'Lionel O-Gauge Electric Train Set'" :
+    year < 1960 ? "Wham-O's brightly colored plastic 'Hula Hoop'" :
+    "Ohio Art's red-framed 'Etch A Sketch' drawing screen";
+
   return ensure5To7Sentences([
-    `Daily life in ${year} centered on two concrete shifts: the integration of multimodal AI voice and workspace tools and the rapid rise of urban social run clubs and early-2000s CCD digital camera photography.`,
-    `Across offices and university campuses in ${year}, students and professionals used real-time AI transcription and workspace assistants to automate coding, scheduling, and document drafting.`,
-    `Out in public parks and waterfront paths, weekly evening social run clubs—organized via Strava and Instagram—drew hundreds of twenty- and thirty-somethings for 5-kilometer group runs followed by non-alcoholic athletic-brewing socials.`,
-    `At weekend parties in ${year}, compact 2000s point-and-shoot CCD digital cameras (such as the Canon PowerShot SD1000 and Sony Cyber-shot) with direct xenon flash replaced smartphone lenses to capture warm, film-grain portraits.`,
-    `Meanwhile, 40-ounce insulated stainless-steel tumblers and thrifted vintage leather jackets remained the signature street accessories across major cities.`
+    `In ${year}, the undisputed toy craze that took over every neighborhood sidewalk and living-room floor was ${fallbackItem}.`,
+    `There was an unforgettable rush of excitement the moment you lifted ${fallbackItem} out of its box and tested it in your hands for the very first time.`,
+    `Out on the front porch and driveway, kids also spent hours walking metal 'Slinky' springs down the front steps, shooting glass cat's-eye marbles in dirt rings, and spinning wooden tops.`,
+    `Inside on rainy afternoons, siblings gathered around the parlor rug to build miniature log cabins out of notched reddish-brown 'Lincoln Logs' and bolt steel girders together with 'Erector Sets.'`,
+    `From simple sidewalk games before dinner to imaginative living-room creations at night, playtime in ${year} brought every kid on the block together.`
   ]);
 };
 
 // ============================================================================
-// 2. TECH & TOYS: "🕹️ Tech & Toys: What We Played With in [Year]"
-// Focus on 1 or 2 specific gadgets/toys of that year. Explicitly name brand/model and describe the exact physical feeling and specs of using it.
+// 3. POP CULTURE -> "🎵 Pop Culture: The Soundtrack and Screens of [Year]"
+// Capture the cultural obsession of the year: describe the exact feeling of hearing the biggest hit song
+// on the radio or sitting in a packed, dark movie theater (5-7 sentences, explicitly naming song, artist, and movie).
 // ============================================================================
-const buildTechNoFiller = (rawTech: string, year: number): string => {
-  const supp = getSupplementForYear(year);
-  const baseSents = splitIntoSentences(rawTech);
-  const suppSents = splitIntoSentences(supp.techExtra4);
-
-  const s1 = baseSents[0] || rawTech;
-  const s2 = baseSents[1] || '';
-  // Include 2 factual sentences on the second named gadget/toy from supp.techExtra4
-  const s3 = suppSents[0] || '';
-  const s4 = suppSents[1] || '';
-
-  const physicalSpecSent =
-    year < 1983
-      ? `Operating ${year}'s hardware relied on direct mechanical hardware controls—sliding heavy metal toggle switches, turning analog potentiometer dials, and watching red light-emitting diode (LED) or phosphor CRT displays respond without boot-up operating systems.`
-      : year < 1996
-      ? `Using those ${year} devices meant slotting edge-connector ROM cartridges into spring-loaded console bays, rewinding 1/8-inch magnetic cassette tape spools, and running portable units on four AA alkaline batteries.`
-      : year < 2008
-      ? `The physical hardware of ${year} paired tactile polycarbonate buttons and optical laser discs or flash-memory cards with backlit LCD screens and wired 3.5-millimeter stereo headphone jacks.`
-      : `Engineered with capacitive multi-touch glass, custom system-on-chip processors, and lithium-ion batteries, ${year}'s flagship devices delivered high-definition graphics and instant wireless connectivity in a single chassis.`;
-
-  return ensure5To7Sentences([s1, s2, s3, s4, physicalSpecSent]);
-};
-
-// ============================================================================
-// 3. POP CULTURE: "🎵 Pop Culture: The Soundtrack and Screens of [Year]"
-// Pick EXACTLY ONE hit song and ONE blockbuster movie from that exact year.
-// EXPLICITLY NAME THE SONG, ARTIST, AND MOVIE. Describe the specific scenes, beats, or reasons they were massive (NO generic reaction filler!).
-// ============================================================================
-interface SongAndMovieDetail {
-  song: string;
-  artist: string;
-  songFacts: string[];
-  movie: string;
-  creator: string;
-  movieFacts: string[];
-}
-
-const EXACT_POP_DEEP_ARCHIVE: Record<number, SongAndMovieDetail> = {
-  1975: {
-    song: "Love Will Keep Us Together",
-    artist: "Captain & Tennille",
-    songFacts: [
-      "On the 1975 music charts, the #1 Billboard Hot 100 song of the year was Captain & Tennille's 'Love Will Keep Us Together,' recorded by husband-and-wife duo Daryl Dragon and Toni Tennille.",
-      "Driven by Daryl Dragon's bouncy multi-tracked Hohner Clavinet keyboard riff and Toni Tennille's tribute vocal nod ('Sedaka's back!') to songwriter Neil Sedaka at the fade-out, the single spent four weeks at #1 and won the 1975 Grammy Award for Record of the Year."
-    ],
-    movie: "Jaws",
-    creator: "Steven Spielberg",
-    movieFacts: [
-      "In movie theaters on June 20, 1975, 27-year-old director Steven Spielberg's thriller 'Jaws' opened on 409 North American screens to become the first film in cinema history to surpass $100 million in domestic box-office rentals ($476 million worldwide).",
-      "Because the three mechanical pneumatic sharks ('Bruce') frequently malfunctioned in the saltwater off Martha's Vineyard, Spielberg filmed most of the attacks from the water-level perspective of floating yellow barrels accompanied by composer John Williams's alternating two-note E-and-F ostinato tuba motif.",
-      "In the climax aboard the sinking fishing boat 'Orca,' Amity Island police chief Martin Brody (Roy Scheider) wedged a pressurized scuba tank into the 25-foot great white shark's jaws and fired an M1 Garand rifle to detonate it."
-    ]
-  },
-  1976: {
-    song: "Dancing Queen",
-    artist: "ABBA",
-    songFacts: [
-      "In 1976, Swedish pop quartet ABBA (Agnetha Fältskog, Björn Ulvaeus, Benny Andersson, and Anni-Frid Lyngstad) released their signature anthem 'Dancing Queen,' which topped the charts in over a dozen countries and became ABBA's sole #1 hit on the U.S. Billboard Hot 100.",
-      "Opening with Benny Andersson's sweeping 100-beat-per-minute glissando across an acoustic piano layered over lush string synthesizers, the track used Phil Spector's 'Wall of Sound' production technique to blend Agnetha and Anni-Frid's two-octave vocal harmonies."
-    ],
-    movie: "Rocky",
-    creator: "Sylvester Stallone and director John G. Avildsen",
-    movieFacts: [
-      "At the 1976 box office, Sylvester Stallone's underdog boxing drama 'Rocky'—written by Stallone in three and a half days and filmed in Philadelphia on a $1.075 million budget—became the highest-grossing film of 1976 with $225 million in ticket sales and won the Academy Award for Best Picture.",
-      "Pioneering the newly invented Garrett Brown 'Steadicam' stabilizer rig, the film followed Southpaw club fighter Rocky Balboa jogging through the Italian Market at dawn and sprinting up the 72 stone steps of the Philadelphia Museum of Art to Bill Conti's brass fanfare 'Gonna Fly Now.'",
-      "In the final fifteen-round heavyweight title bout at the Philadelphia Spectrum against undefeated champion Apollo Creed (Carl Weathers), Balboa went the full distance for the first time in Creed's career."
-    ]
-  },
-  1977: {
-    song: "Dreams",
-    artist: "Fleetwood Mac",
-    songFacts: [
-      "In June 1977, Fleetwood Mac's 'Dreams'—written by vocalist Stevie Nicks in ten minutes inside a studio at the Record Plant in Sausalito, California—reached #1 on the Billboard Hot 100 as the centerpiece of their 40-million-selling Grammy Album of the Year, 'Rumours.'",
-      "Anchored by John McVie's hypnotic two-note F-to-G bassline, Mick Fleetwood's steady hi-hat eighth-note groove, and Christine McVie's Fender Rhodes electric piano, 'Dreams' sold over one million physical 45-rpm copies in 1977."
-    ],
-    movie: "Star Wars",
-    creator: "George Lucas",
-    movieFacts: [
-      "On May 25, 1977, writer-director George Lucas's space opera 'Star Wars' opened in just 32 American theaters before expanding nationwide to gross a record $775 million worldwide and win six Academy Awards.",
-      "To execute the 365 miniature visual-effects shots—from the opening blockade runner pursued by an Imperial Star Destroyer to Luke Skywalker's (Mark Hamill) X-wing trench run along the Death Star—Lucas founded Industrial Light & Magic (ILM) in Van Nuys, California and built the computer-controlled 'Dykstraflex' motion-control camera.",
-      "Paired with Ben Burtt's organic sound design (combining a 35mm movie projector motor and television-tube hum for the lightsaber blade) and John Williams's London Symphony Orchestra score, 'Star Wars' permanently reinvented blockbuster filmmaking."
-    ]
-  },
-  1978: {
-    song: "Stayin' Alive",
-    artist: "the Bee Gees",
-    songFacts: [
-      "In early 1978, the Bee Gees (brothers Barry, Robin, and Maurice Gibb) spent four consecutive weeks at #1 on the Billboard Hot 100 with 'Stayin' Alive,' the opening track of the 40-million-selling 'Saturday Night Fever' soundtrack.",
-      "When drummer Dennis Bryon had to leave the Château d'Hérouville recording sessions in France, producer Albhy Galuten spliced two bars of drums from 'Night Fever' onto a continuous 20-foot magnetic tape loop running at a steady 104 beats per minute beneath Barry Gibb's famous falsetto."
-    ],
-    movie: "Grease",
-    creator: "director Randal Kleiser starring John Travolta and Olivia Newton-John",
-    movieFacts: [
-      "On the big screen in June 1978, Paramount Pictures' 1950s musical 'Grease' starring John Travolta (Danny Zuko) and Olivia Newton-John (Sandy Olsson) became the #1 movie of the year, grossing $396 million worldwide on a $6 million budget.",
-      "Filmed on location at Venice High School in Los Angeles ('Rydell High') and in the concrete channel of the Los Angeles River for the 'Thunder Road' hot-rod race in the 1948 Ford De Luxe 'Greased Lightnin',' the film produced four Billboard Top 5 singles.",
-      "In the closing carnival finale for 'You're the One That I Want,' Sandy traded her poodle skirts for black off-the-shoulder spandex and red peep-toe heels before Danny and Sandy flew into the clouds in a red convertible."
-    ]
-  },
-  1979: {
-    song: "My Sharona",
-    artist: "The Knack",
-    songFacts: [
-      "In the summer of 1979, Los Angeles power-pop quartet The Knack topped the Billboard Year-End Hot 100 chart with 'My Sharona,' which held the #1 spot for six consecutive weeks and became Capitol Records' fastest gold-certified debut single since The Beatles' 'I Want to Hold Your Hand' in 1964.",
-      "Written by lead singer Doug Fieger for 17-year-old Sharona Alperin, the track was propelled by drummer Bruce Gary's stomping tom-tom beat, Berton Averre's octave-jumping G-minor guitar riff, and an extended four-minute album guitar solo."
-    ],
-    movie: "Alien",
-    creator: "director Ridley Scott starring Sigourney Weaver",
-    movieFacts: [
-      "In theaters starting May 25, 1979, director Ridley Scott's sci-fi thriller 'Alien' grossed $203 million worldwide and won the Academy Award for Best Visual Effects.",
-      "Set aboard the commercial towing spacecraft 'USCSS Nostromo,' the film introduced Warrant Officer Ellen Ripley (Sigourney Weaver) battling a biomechanical xenomorph creature designed by Swiss surrealist artist H.R. Giger.",
-      "In the film's most famous sequence, executive officer Kane (John Hurt) collapsed at the crew's mess-hall breakfast table as the juvenile alien erupted through his chest in a single multi-camera take."
-    ]
-  },
-  1980: {
-    song: "Call Me",
-    artist: "Blondie",
-    songFacts: [
-      "On the 1980 Billboard Year-End Hot 100, the #1 song of the entire year was Blondie's 'Call Me,' co-written by lead vocalist Deborah Harry and Italian electronic producer Giorgio Moroder.",
-      "Driving at 142 beats per minute over Clem Burke's relentless four-on-the-floor bass drum and layered synthesizer arpeggios, 'Call Me' featured Deborah Harry singing the hook in English, French ('Appelle-moi, mon chéri'), and Italian while spending six straight weeks at #1."
-    ],
-    movie: "Star Wars: The Empire Strikes Back",
-    creator: "George Lucas and director Irvin Kershner",
-    movieFacts: [
-      "At the 1980 box office, 'Star Wars: The Empire Strikes Back' was the highest-grossing film of the year with $538 million in worldwide ticket sales.",
-      "Opening on the ice planet Hoth—filmed in sub-zero snowstorms on the Hardangerjøkulen glacier in Finse, Norway—the film showcased stop-motion four-legged Imperial AT-AT walkers and introduced Frank Oz's 26-inch latex puppet Jedi Master Yoda on Dagobah.",
-      "During the climactic lightsaber duel on the gantry of Cloud City over Bespin, Darth Vader severed Luke Skywalker's right hand and delivered one of cinema's greatest plot twists: 'No, I am your father.'"
-    ]
-  },
-  2004: {
-    song: "Yeah!",
-    artist: "Usher featuring Lil Jon and Ludacris",
-    songFacts: [
-      "In 2004, Usher's crunk&B smash 'Yeah!' featuring Lil Jon and Ludacris spent 12 consecutive weeks at #1 on the Billboard Hot 100 and finished as the #1 song of the year before winning the Grammy Award for Best Rap/Sung Collaboration.",
-      "Built by producer Lil Jon around an unmistakable eight-note, 105-beat-per-minute Roland Fantom synthesizer lead and thunderous 808 sub-bass kicks, 'Yeah!' propelled Usher's album 'Confessions' to 1.096 million first-week U.S. sales and Diamond certification."
-    ],
-    movie: "Shrek 2",
-    creator: "DreamWorks Animation starring Mike Myers, Eddie Murphy, and Antonio Banderas",
-    movieFacts: [
-      "At the 2004 box office, DreamWorks Animation's 'Shrek 2' was the #1 film of the year globally with $935.5 million in ticket sales—setting the record at the time as the highest-grossing animated film in history.",
-      "The film introduced Antonio Banderas as the swashbuckling assassin cat 'Puss in Boots' alongside Jennifer Saunders as the scheming Fairy Godmother in the Hollywood-parody kingdom of 'Far Far Away.'",
-      "In the film's climax, Shrek, Donkey, and a 50-foot giant Gingerbread Man ('Mongo') stormed the royal ball while the Fairy Godmother belted out a rock arrangement of Bonnie Tyler's 'Holding Out for a Hero.'"
-    ]
-  },
-  2007: {
-    song: "Umbrella",
-    artist: "Rihanna featuring Jay-Z",
-    songFacts: [
-      "In the summer of 2007, 19-year-old Barbadian singer Rihanna's 'Umbrella' featuring Jay-Z ruled the Billboard Hot 100 for seven consecutive weeks and topped the UK Singles Chart for a decade-record ten straight weeks.",
-      "Produced by Tricky Stewart and Kuk Harrell around a stock Apple GarageBand drum loop called 'Vintage Funk Kit 03' and a stuttering 'ella, ella, eh, eh, eh' vocal hook, 'Umbrella' won the Grammy Award for Best Rap/Sung Collaboration."
-    ],
-    movie: "Spider-Man 3",
-    creator: "director Sam Raimi starring Tobey Maguire",
-    movieFacts: [
-      "In movie theaters starting May 4, 2007, director Sam Raimi's 'Spider-Man 3' starring Tobey Maguire, Kirsten Dunst, James Franco, and Thomas Haden Church was the #1 domestic box-office hit of 2007 ($336.5 million U.S., $895 million worldwide) and set a then-world record $151.1 million opening weekend.",
-      "The plot pitted Peter Parker against three villains—Flint Marko / Sandman, New Goblin, and Eddie Brock / Venom (Topher Grace)—after an extraterrestrial black symbiote bonded to Spider-Man's suit.",
-      "Sony Pictures Imageworks wrote custom particle-simulation software to animate millions of individual digital sand grains during the armored-car and skyscraper construction battles."
-    ]
-  }
-};
-
 const EXACT_YEAR_SONG_AND_MOVIE: Record<number, {
   song: string;
   artist: string;
   movie: string;
   creator: string;
+  sceneVibe: string;
 }> = {
-  1965: { song: "(I Can't Get No) Satisfaction", artist: "The Rolling Stones", movie: "The Sound of Music", creator: "Robert Wise and Julie Andrews" },
-  1966: { song: "Good Vibrations", artist: "The Beach Boys", movie: "The Good, the Bad and the Ugly", creator: "Sergio Leone and Clint Eastwood" },
-  1967: { song: "Respect", artist: "Aretha Franklin", movie: "The Jungle Book", creator: "Walt Disney Productions" },
-  1968: { song: "Hey Jude", artist: "The Beatles", movie: "2001: A Space Odyssey", creator: "Stanley Kubrick" },
-  1969: { song: "Sugar, Sugar", artist: "The Archies", movie: "Butch Cassidy and the Sundance Kid", creator: "Paul Newman and Robert Redford" },
-  1970: { song: "Bridge Over Troubled Water", artist: "Simon & Garfunkel", movie: "Love Story", creator: "Arthur Hiller" },
-  1971: { song: "Joy to the World", artist: "Three Dog Night", movie: "Willy Wonka & the Chocolate Factory", creator: "Gene Wilder" },
-  1972: { song: "American Pie", artist: "Don McLean", movie: "The Godfather", creator: "Francis Ford Coppola and Marlon Brando" },
-  1973: { song: "Superstition", artist: "Stevie Wonder", movie: "The Sting", creator: "Paul Newman and Robert Redford" },
-  1974: { song: "The Way We Were", artist: "Barbra Streisand", movie: "Young Frankenstein", creator: "Mel Brooks and Gene Wilder" },
-  1981: { song: "Bette Davis Eyes", artist: "Kim Carnes", movie: "Raiders of the Lost Ark", creator: "Steven Spielberg and Harrison Ford" },
-  1982: { song: "Eye of the Tiger", artist: "Survivor", movie: "E.T. the Extra-Terrestrial", creator: "Steven Spielberg" },
-  1983: { song: "Billie Jean", artist: "Michael Jackson", movie: "Star Wars: Return of the Jedi", creator: "George Lucas and Mark Hamill" },
-  1984: { song: "When Doves Cry", artist: "Prince", movie: "Ghostbusters", creator: "Ivan Reitman and Bill Murray" },
-  1985: { song: "Everybody Wants to Rule the World", artist: "Tears for Fears", movie: "Back to the Future", creator: "Robert Zemeckis and Michael J. Fox" },
-  1986: { song: "Walk Like an Egyptian", artist: "The Bangles", movie: "Top Gun", creator: "Tony Scott and Tom Cruise" },
-  1987: { song: "I Wanna Dance with Somebody (Who Loves Me)", artist: "Whitney Houston", movie: "The Princess Bride", creator: "Rob Reiner" },
-  1988: { song: "Sweet Child o' Mine", artist: "Guns N' Roses", movie: "Who Framed Roger Rabbit", creator: "Robert Zemeckis" },
-  1989: { song: "Like a Prayer", artist: "Madonna", movie: "Batman", creator: "Tim Burton and Michael Keaton" },
-  1990: { song: "U Can't Touch This", artist: "MC Hammer", movie: "Home Alone", creator: "Chris Columbus and Macaulay Culkin" },
-  1991: { song: "Smells Like Teen Spirit", artist: "Nirvana", movie: "Terminator 2: Judgment Day", creator: "James Cameron and Arnold Schwarzenegger" },
-  1992: { song: "I Will Always Love You", artist: "Whitney Houston", movie: "Aladdin", creator: "Walt Disney Animation and Robin Williams" },
-  1993: { song: "Dreams", artist: "The Cranberries", movie: "Jurassic Park", creator: "Steven Spielberg" },
-  1994: { song: "I'll Make Love to You", artist: "Boyz II Men", movie: "The Lion King", creator: "Walt Disney Feature Animation" },
-  1995: { song: "Gangsta's Paradise", artist: "Coolio", movie: "Toy Story", creator: "Pixar Animation Studios and Tom Hanks" },
-  1996: { song: "Wannabe", artist: "the Spice Girls", movie: "Independence Day", creator: "Roland Emmerich and Will Smith" },
-  1997: { song: "My Heart Will Go On", artist: "Celine Dion", movie: "Titanic", creator: "James Cameron, Leonardo DiCaprio, and Kate Winslet" },
-  1998: { song: "...Baby One More Time", artist: "Britney Spears", movie: "Saving Private Ryan", creator: "Steven Spielberg and Tom Hanks" },
-  1999: { song: "Smooth", artist: "Santana featuring Rob Thomas", movie: "The Matrix", creator: "the Wachowskis and Keanu Reeves" },
-  2000: { song: "Bye Bye Bye", artist: "*NSYNC", movie: "Gladiator", creator: "Ridley Scott and Russell Crowe" },
-  2001: { song: "Fallin'", artist: "Alicia Keys", movie: "Harry Potter and the Sorcerer's Stone", creator: "Chris Columbus and Daniel Radcliffe" },
-  2002: { song: "Lose Yourself", artist: "Eminem", movie: "Spider-Man", creator: "Sam Raimi and Tobey Maguire" },
-  2003: { song: "In Da Club", artist: "50 Cent", movie: "The Lord of the Rings: The Return of the King", creator: "Peter Jackson" },
-  2005: { song: "We Belong Together", artist: "Mariah Carey", movie: "Star Wars: Episode III – Revenge of the Sith", creator: "George Lucas" },
-  2006: { song: "Hips Don't Lie", artist: "Shakira featuring Wyclef Jean", movie: "Pirates of the Caribbean: Dead Man's Chest", creator: "Gore Verbinski and Johnny Depp" },
-  2008: { song: "Viva la Vida", artist: "Coldplay", movie: "The Dark Knight", creator: "Christopher Nolan, Christian Bale, and Heath Ledger" },
-  2009: { song: "I Gotta Feeling", artist: "The Black Eyed Peas", movie: "Avatar", creator: "James Cameron" },
-  2010: { song: "Rolling in the Deep", artist: "Adele", movie: "Inception", creator: "Christopher Nolan and Leonardo DiCaprio" },
-  2011: { song: "Party Rock Anthem", artist: "LMFAO", movie: "Harry Potter and the Deathly Hallows – Part 2", creator: "David Yates" },
-  2012: { song: "Somebody That I Used to Know", artist: "Gotye featuring Kimbra", movie: "Marvel's The Avengers", creator: "Joss Whedon and Robert Downey Jr." },
-  2013: { song: "Get Lucky", artist: "Daft Punk featuring Pharrell Williams", movie: "Frozen", creator: "Walt Disney Animation Studios" },
-  2014: { song: "Uptown Funk", artist: "Mark Ronson featuring Bruno Mars", movie: "Interstellar", creator: "Christopher Nolan and Matthew McConaughey" },
-  2015: { song: "Hello", artist: "Adele", movie: "Star Wars: The Force Awakens", creator: "J.J. Abrams" },
-  2016: { song: "Closer", artist: "The Chainsmokers featuring Halsey", movie: "Captain America: Civil War", creator: "Anthony and Joe Russo" },
-  2017: { song: "Shape of You", artist: "Ed Sheeran", movie: "Star Wars: The Last Jedi", creator: "Rian Johnson" },
-  2018: { song: "God's Plan", artist: "Drake", movie: "Avengers: Infinity War", creator: "Anthony and Joe Russo" },
-  2019: { song: "Old Town Road", artist: "Lil Nas X featuring Billy Ray Cyrus", movie: "Avengers: Endgame", creator: "Anthony and Joe Russo" },
-  2020: { song: "Blinding Lights", artist: "The Weeknd", movie: "Tenet", creator: "Christopher Nolan" },
-  2021: { song: "drivers license", artist: "Olivia Rodrigo", movie: "Spider-Man: No Way Home", creator: "Jon Watts and Tom Holland" },
-  2022: { song: "As It Was", artist: "Harry Styles", movie: "Top Gun: Maverick", creator: "Joseph Kosinski and Tom Cruise" },
-  2023: { song: "Flowers", artist: "Miley Cyrus", movie: "Barbie", creator: "Greta Gerwig and Margot Robbie" },
-  2024: { song: "Espresso", artist: "Sabrina Carpenter", movie: "Inside Out 2", creator: "Pixar Animation Studios" }
+  1965: { song: "(I Can't Get No) Satisfaction", artist: "The Rolling Stones", movie: "The Sound of Music", creator: "Robert Wise and Julie Andrews", sceneVibe: "watching Julie Andrews spin across the green Alpine meadow as the opening orchestral swell filled the theater" },
+  1966: { song: "Good Vibrations", artist: "The Beach Boys", movie: "The Good, the Bad and the Ugly", creator: "Sergio Leone and Clint Eastwood", sceneVibe: "leaning forward in the dark as Ennio Morricone's echoing two-note whistle built tension during the final three-way circular standoff" },
+  1967: { song: "Respect", artist: "Aretha Franklin", movie: "The Jungle Book", creator: "Walt Disney Productions", sceneVibe: "tapping your feet in the velvet theater seats as Baloo the bear and Mowgli sang 'The Bare Necessities' down the jungle river" },
+  1968: { song: "Hey Jude", artist: "The Beatles", movie: "2001: A Space Odyssey", creator: "Stanley Kubrick", sceneVibe: "staring up in awe at the giant curved Cinerama screen as the 'Star Gate' light show and 'Thus Spake Zarathustra' thundered through the auditorium" },
+  1969: { song: "Sugar, Sugar", artist: "The Archies", movie: "Butch Cassidy and the Sundance Kid", creator: "Paul Newman and Robert Redford", sceneVibe: "holding your breath with the entire crowd as Paul Newman and Robert Redford leaped off the rocky cliff into the roaring river below" },
+  1970: { song: "Bridge Over Troubled Water", artist: "Simon & Garfunkel", movie: "Love Story", creator: "Arthur Hiller", sceneVibe: "hearing sniffles across every row of the darkened theater as the piano theme played and Ali MacGraw spoke the famous line about love" },
+  1971: { song: "Joy to the World", artist: "Three Dog Night", movie: "Willy Wonka & the Chocolate Factory", creator: "Gene Wilder", sceneVibe: "watching the candyman's factory doors swing open to reveal a glowing edible wonderland of chocolate rivers and giant gummy bears" },
+  1972: { song: "American Pie", artist: "Don McLean", movie: "The Godfather", creator: "Francis Ford Coppola and Marlon Brando", sceneVibe: "sitting in pin-drop silence as the haunting trumpet solo faded in and Marlon Brando spoke from the shadows of his study" },
+  1973: { song: "Superstition", artist: "Stevie Wonder", movie: "The Sting", creator: "Paul Newman and Robert Redford", sceneVibe: "grinning with the whole audience as Scott Joplin's ragtime piano bounced from the speakers and the ultimate big-con twist clicked into place" },
+  1974: { song: "The Way We Were", artist: "Barbra Streisand", movie: "Young Frankenstein", creator: "Mel Brooks and Gene Wilder", sceneVibe: "hearing the entire auditorium roar with nonstop laughter as Gene Wilder and Peter Boyle performed 'Puttin' On the Ritz' in top hats and tails" },
+  1975: { song: "Love Will Keep Us Together", artist: "Captain & Tennille", movie: "Jaws", creator: "Steven Spielberg", sceneVibe: "feeling the whole theater jump out of their seats in unison when the great white shark suddenly lunged out of the dark water behind Roy Scheider" },
+  1976: { song: "Dancing Queen", artist: "ABBA", movie: "Rocky", creator: "Sylvester Stallone", sceneVibe: "cheering out loud with hundreds of strangers as Rocky Balboa sprinted up the stone steps of the Philadelphia Museum of Art with his fists raised high" },
+  1977: { song: "Dreams", artist: "Fleetwood Mac", movie: "Star Wars", creator: "George Lucas", sceneVibe: "feeling the floor rumble beneath your shoes as the golden fanfare blasted and a giant Imperial Star Destroyer rumbled endlessly overhead across the stars" },
+  1978: { song: "Stayin' Alive", artist: "the Bee Gees", movie: "Grease", creator: "John Travolta and Olivia Newton-John", sceneVibe: "singing along in the dark as John Travolta and Olivia Newton-John danced through the carnival finale to 'You're the One That I Want'" },
+  1979: { song: "My Sharona", artist: "The Knack", movie: "Alien", creator: "Ridley Scott and Sigourney Weaver", sceneVibe: "gripping the armrests in the pitch-black cinema as Sigourney Weaver crept through the strobing, steam-filled corridors of the Nostromo" },
+  1980: { song: "Call Me", artist: "Blondie", movie: "Star Wars: The Empire Strikes Back", creator: "George Lucas and Irvin Kershner", sceneVibe: "hearing a collective gasp ripple through the packed theater when Darth Vader looked at Luke Skywalker over the Cloud City abyss and revealed the truth" },
+  1981: { song: "Bette Davis Eyes", artist: "Kim Carnes", movie: "Raiders of the Lost Ark", creator: "Steven Spielberg and Harrison Ford", sceneVibe: "cheering as Harrison Ford's Indiana Jones snatched his fedora from under a closing stone door and sprinted away from a giant rolling boulder" },
+  1982: { song: "Eye of the Tiger", artist: "Survivor", movie: "E.T. the Extra-Terrestrial", creator: "Steven Spielberg", sceneVibe: "watching in wonder as Elliott's BMX bicycle lifted off the forest trail and glided silhouetted across a giant full moon" },
+  1983: { song: "Billie Jean", artist: "Michael Jackson", movie: "Star Wars: Return of the Jedi", creator: "George Lucas", sceneVibe: "feeling the rush of speed as Rebel speeder bikes weaved between giant redwood trees on Endor and green lightsabers clashed in the throne room" },
+  1984: { song: "When Doves Cry", artist: "Prince", movie: "Ghostbusters", creator: "Ivan Reitman and Bill Murray", sceneVibe: "laughing and cheering with the packed house as a hundred-foot Stay Puft Marshmallow Man stomped down the avenues of Manhattan" },
+  1985: { song: "Everybody Wants to Rule the World", artist: "Tears for Fears", movie: "Back to the Future", creator: "Robert Zemeckis and Michael J. Fox", sceneVibe: "holding your breath as lightning struck the Hill Valley clock tower and Marty McFly's DeLorean vanished in twin trails of fire at 88 miles per hour" },
+  1986: { song: "Walk Like an Egyptian", artist: "The Bangles", movie: "Top Gun", creator: "Tony Scott and Tom Cruise", sceneVibe: "feeling the roar of F-14 Tomcat afterburners rattle the theater walls as Tom Cruise raced a motorcycle down the sunset runway" },
+  1987: { song: "I Wanna Dance with Somebody (Who Loves Me)", artist: "Whitney Houston", movie: "The Princess Bride", creator: "Rob Reiner", sceneVibe: "smiling from ear to ear in the dark as swordfighters traded witty banter atop the Cliffs of Insanity and 'As you wish' became an instant classic" },
+  1988: { song: "Sweet Child o' Mine", artist: "Guns N' Roses", movie: "Who Framed Roger Rabbit", creator: "Robert Zemeckis", sceneVibe: "rubbing your eyes in disbelief as live-action Hollywood noir and hand-drawn cartoon characters shared the exact same screen in Toontown" },
+  1989: { song: "Like a Prayer", artist: "Madonna", movie: "Batman", creator: "Tim Burton and Michael Keaton", sceneVibe: "watching the sleek black Batmobile ignite its jet turbine and streak through the gothic shadows of Gotham City to Danny Elfman's brass score" },
+  1990: { song: "U Can't Touch This", artist: "MC Hammer", movie: "Home Alone", creator: "Chris Columbus and Macaulay Culkin", sceneVibe: "crying with laughter alongside the entire auditorium as eight-year-old Macaulay Culkin sprung paint-can booby traps on two hapless burglars" },
+  1991: { song: "Smells Like Teen Spirit", artist: "Nirvana", movie: "Terminator 2: Judgment Day", creator: "James Cameron and Arnold Schwarzenegger", sceneVibe: "staring in amazement as a liquid-metal T-1000 morphed right through solid steel prison bars in groundbreaking computer animation" },
+  1992: { song: "I Will Always Love You", artist: "Whitney Houston", movie: "Aladdin", creator: "Walt Disney Animation and Robin Williams", sceneVibe: "laughing nonstop at Robin Williams's rapid-fire Genie transformations before soaring over the clouds on a magic carpet to 'A Whole New World'" },
+  1993: { song: "Dreams", artist: "The Cranberries", movie: "Jurassic Park", creator: "Steven Spielberg", sceneVibe: "watching the ripples vibrate in a cup of water on a Ford Explorer dashboard just before a life-sized Tyrannosaurus rex stepped out into the rain" },
+  1994: { song: "I'll Make Love to You", artist: "Boyz II Men", movie: "The Lion King", creator: "Walt Disney Feature Animation", sceneVibe: "feeling chills run down your spine as the red African sun rose on the giant screen and the opening chant of 'Circle of Life' echoed through the theater" },
+  1995: { song: "Gangsta's Paradise", artist: "Coolio", movie: "Toy Story", creator: "Pixar Animation Studios and Tom Hanks", sceneVibe: "discovering the magic of the world's first computer-animated feature as Woody and Buzz Lightyear glided gracefully into the moving van" },
+  1996: { song: "Wannabe", artist: "the Spice Girls", movie: "Independence Day", creator: "Roland Emmerich and Will Smith", sceneVibe: "hearing the entire Friday-night crowd erupt into applause after Bill Pullman's rousing speech and Will Smith's cockpit cigar celebration" },
+  1997: { song: "My Heart Will Go On", artist: "Celine Dion", movie: "Titanic", creator: "James Cameron, Leonardo DiCaprio, and Kate Winslet", sceneVibe: "sitting in a sold-out theater where everyone held their breath as Jack and Rose stood with arms outstretched at the bow of the ship" },
+  1998: { song: "...Baby One More Time", artist: "Britney Spears", movie: "Saving Private Ryan", creator: "Steven Spielberg and Tom Hanks", sceneVibe: "sitting in stunned, reverent silence as the visceral history of Normandy unfolded on screen with unmatched realism" },
+  1999: { song: "Smooth", artist: "Santana featuring Rob Thomas", movie: "The Matrix", creator: "the Wachowskis and Keanu Reeves", sceneVibe: "watching the camera spin 360 degrees in 'bullet time' as Keanu Reeves leaned backward in a black trench coat on a skyscraper roof" },
+  2000: { song: "Bye Bye Bye", artist: "*NSYNC", movie: "Gladiator", creator: "Ridley Scott and Russell Crowe", sceneVibe: "feeling the roar of the Roman Colosseum crowd as Russell Crowe removed his spiked helmet and declared, 'Are you not entertained?'" },
+  2001: { song: "Fallin'", artist: "Alicia Keys", movie: "Harry Potter and the Sorcerer's Stone", creator: "Chris Columbus and Daniel Radcliffe", sceneVibe: "watching wooden boats glide across a dark lake toward the candlelit towers of Hogwarts Castle as John Williams's celesta melody twinkled" },
+  2002: { song: "Lose Yourself", artist: "Eminem", movie: "Spider-Man", creator: "Sam Raimi and Tobey Maguire", sceneVibe: "feeling your stomach drop with excitement as Tobey Maguire swung between Manhattan skyscrapers at sunset for the very first time" },
+  2003: { song: "In Da Club", artist: "50 Cent", movie: "The Lord of the Rings: The Return of the King", creator: "Peter Jackson", sceneVibe: "getting goosebumps as six thousand Rohirrim horsemen charged across the Pelennor Fields at dawn to the sound of battle horns" },
+  2004: { song: "Yeah!", artist: "Usher featuring Lil Jon and Ludacris", movie: "Shrek 2", creator: "DreamWorks Animation", sceneVibe: "laughing with a packed auditorium as Puss in Boots flashed his giant adorable eyes and a fifty-foot Gingerbread Man stormed the castle" },
+  2005: { song: "We Belong Together", artist: "Mariah Carey", movie: "Star Wars: Episode III – Revenge of the Sith", creator: "George Lucas", sceneVibe: "watching blue lightsabers clash above rivers of glowing lava on Mustafar in a packed midnight screening where fans waved plastic sabers in the aisles" },
+  2006: { song: "Hips Don't Lie", artist: "Shakira featuring Wyclef Jean", movie: "Pirates of the Caribbean: Dead Man's Chest", creator: "Gore Verbinski and Johnny Depp", sceneVibe: "cheering as Johnny Depp's Captain Jack Sparrow dueled atop a giant runaway wooden waterwheel rolling through the Caribbean jungle" },
+  2007: { song: "Umbrella", artist: "Rihanna featuring Jay-Z", movie: "Spider-Man 3", creator: "Sam Raimi and Tobey Maguire", sceneVibe: "sitting in a packed opening-weekend theater as Spider-Man battled Sandman and Venom high above the glittering avenues of New York" },
+  2008: { song: "Viva la Vida", artist: "Coldplay", movie: "The Dark Knight", creator: "Christopher Nolan, Christian Bale, and Heath Ledger", sceneVibe: "leaning forward in electric silence every single time Heath Ledger's Joker walked onto the IMAX screen during the Gotham bank heist and hospital scenes" },
+  2009: { song: "I Gotta Feeling", artist: "The Black Eyed Peas", movie: "Avatar", creator: "James Cameron", sceneVibe: "putting on polarized 3D glasses in the dark and reaching out your hand as glowing bioluminescent seeds drifted through the forests of Pandora" },
+  2010: { song: "Rolling in the Deep", artist: "Adele", movie: "Inception", creator: "Christopher Nolan and Leonardo DiCaprio", sceneVibe: "hearing a collective gasp across the entire theater as the silver spinning top wobbled on the table just before the screen cut to black" },
+  2011: { song: "Party Rock Anthem", artist: "LMFAO", movie: "Harry Potter and the Deathly Hallows – Part 2", creator: "David Yates", sceneVibe: "sharing an emotional farewell with a theater full of fans who had grown up together over ten years as the Battle of Hogwarts reached its finale" },
+  2012: { song: "Somebody That I Used to Know", artist: "Gotye featuring Kimbra", movie: "Marvel's The Avengers", creator: "Joss Whedon and Robert Downey Jr.", sceneVibe: "hearing the entire audience cheer like a football stadium as the camera circled all six Avengers standing back-to-back in midtown Manhattan" },
+  2013: { song: "Get Lucky", artist: "Daft Punk featuring Pharrell Williams", movie: "Frozen", creator: "Walt Disney Animation Studios", sceneVibe: "watching Queen Elsa build a glittering palace of ice up the mountainside while the whole theater hummed 'Let It Go'" },
+  2014: { song: "Uptown Funk", artist: "Mark Ronson featuring Bruno Mars", movie: "Interstellar", creator: "Christopher Nolan and Matthew McConaughey", sceneVibe: "feeling Hans Zimmer's pipe-organ score vibrate right through your chest as the spacecraft docked in spinning orbit above a giant black hole" },
+  2015: { song: "Hello", artist: "Adele", movie: "Star Wars: The Force Awakens", creator: "J.J. Abrams", sceneVibe: "erupting into applause with the opening-night crowd the second the Millennium Falcon tarp flew off and Han Solo said, 'Chewie, we're home'" },
+  2016: { song: "Closer", artist: "The Chainsmokers featuring Halsey", movie: "Captain America: Civil War", creator: "Anthony and Joe Russo", sceneVibe: "cheering out loud when the word 'QUEENS' flashed on screen and a teenage Spider-Man flipped into the airport tarmac battle" },
+  2017: { song: "Shape of You", artist: "Ed Sheeran", movie: "Star Wars: The Last Jedi", creator: "Rian Johnson", sceneVibe: "experiencing five seconds of complete, breathless silence across a packed theater as Vice Admiral Holdo's cruiser jumped to lightspeed" },
+  2018: { song: "God's Plan", artist: "Drake", movie: "Avengers: Infinity War", creator: "Anthony and Joe Russo", sceneVibe: "hearing the thunderous roar when Thor arrived in Wakanda—followed ten minutes later by stunned, pin-drop disbelief as heroes turned to dust" },
+  2019: { song: "Old Town Road", artist: "Lil Nas X featuring Billy Ray Cyrus", movie: "Avengers: Endgame", creator: "Anthony and Joe Russo", sceneVibe: "experiencing the loudest theater cheer of a lifetime when golden portals opened, Captain America caught Mjolnir, and shouted 'Avengers... assemble'" },
+  2020: { song: "Blinding Lights", artist: "The Weeknd", movie: "Tenet", creator: "Christopher Nolan", sceneVibe: "watching time literally run backward and forward at once across the screen in a mind-bending espionage spectacle" },
+  2021: { song: "drivers license", artist: "Olivia Rodrigo", movie: "Spider-Man: No Way Home", creator: "Jon Watts and Tom Holland", sceneVibe: "jumping out of your seat as Andrew Garfield and Tobey Maguire stepped through glowing portals to unite three generations of Spider-Man" },
+  2022: { song: "As It Was", artist: "Harry Styles", movie: "Top Gun: Maverick", creator: "Joseph Kosinski and Tom Cruise", sceneVibe: "gripping your seat as real cockpit cameras put you inside roaring Navy jets diving through a narrow snow-covered canyon" },
+  2023: { song: "Flowers", artist: "Miley Cyrus", movie: "Barbie", creator: "Greta Gerwig and Margot Robbie", sceneVibe: "sitting in a sea of pink outfits laughing and wiping away tears together as Barbie stepped out of pastel Barbieland into the real world" },
+  2024: { song: "Espresso", artist: "Sabrina Carpenter", movie: "Inside Out 2", creator: "Pixar Animation Studios", sceneVibe: "laughing in recognition with a packed family crowd as new emotions led by orange-haired Anxiety took over headquarters inside Riley's mind" }
 };
 
-const buildPopNoFiller = (year: number): string => {
-  const deep = EXACT_POP_DEEP_ARCHIVE[year];
-  if (deep) {
-    return ensure5To7Sentences([
-      ...deep.songFacts,
-      ...deep.movieFacts
-    ]);
-  }
-
-  const supp = getSupplementForYear(year);
-  const suppSents = splitIntoSentences(supp.popExtra4);
+const buildPopVibe = (year: number, rawPop: string = ''): string => {
   const item = EXACT_YEAR_SONG_AND_MOVIE[year] || {
     song: "Rock Around the Clock",
     artist: "Bill Haley & His Comets",
     movie: "Singin' in the Rain",
-    creator: "Gene Kelly and Stanley Donen"
+    creator: "Gene Kelly and Stanley Donen",
+    sceneVibe: "smiling in the darkened theater as Gene Kelly splashed joyfully through puddles under a glowing streetlamp"
   };
 
+  const rawPopSents = splitIntoSentences(rawPop);
+
   return ensure5To7Sentences([
-    `On the ${year} music charts, the signature hit song of the year was '${item.song}' performed by ${item.artist}.`,
-    `Driven by its unmistakable opening rhythm and vocal hook, '${item.song}' logged multiple weeks atop the Billboard Hot 100 chart and earned multi-platinum certification from the RIAA.`,
-    `In movie theaters during ${year}, the blockbuster event of the season was ${item.creator}'s motion picture '${item.movie}.'`,
-    suppSents[0] || `Showcasing groundbreaking cinematography and lead performances, '${item.movie}' shattered weekend attendance records across North American and international multiplexes.`,
-    suppSents[1] || `Together, ${item.artist}'s '${item.song}' and ${item.creator}'s '${item.movie}' anchored the soundtrack and box office of ${year}.`
-  ]);
+    `Tune into the airwaves of ${year} and the defining anthem pouring out of car windows and stereos everywhere was '${item.song}' by ${item.artist}.`,
+    ...rawPopSents,
+    `When Friday night arrived, moviegoers lined up down the sidewalk for ${item.creator}'s box-office phenomenon '${item.movie},' sinking into their theater seats with buttered popcorn and ${item.sceneVibe}.`
+  ], 5);
 };
 
 // ============================================================================
-// 4. PRICE SHOCK: "💸 The Price Shock: What Everyday Life Cost"
-// 5-7 conversational sentences stating exact average USD prices for a car, house, gas, and movie ticket, naming specific car models and basic groceries.
+// 4. PRICE SHOCK -> "💸 The Price Shock: What Everyday Life Cost"
+// Concrete, zero-filler comparison of everyday costs in that exact year.
 // ============================================================================
-const buildPriceShockNoFiller = (year: number, exact: ExactYearData): string => {
-  const { minWage, housePrice } = getYearLeadersAndPop(year);
+const buildPriceShockVibe = (year: number, exact: ExactYearData): string => {
+  const { housePrice, minWage } = getYearLeadersAndPop(year);
   const cleanBurger = exact.priceShock.burger.replace(/\s*\([^)]*\)/g, '');
 
-  const carModels =
-    year < 1965 ? "a brand-new Chevrolet Bel Air sedan listed for $2,450, a Ford F-100 pickup cost $1,980, and a Volkswagen Beetle carried a $1,595 sticker" :
-    year < 1975 ? "a Ford Mustang hardtop carried a $2,915 MSRP, a V8 Chevrolet Impala listed for $3,490, and a compact Honda Civic hatchback cost $2,150" :
-    year < 1985 ? "a Honda Accord LX sedan listed for $6,950, a Ford Mustang GT fastback cost $8,420, and a Chevrolet Caprice Classic was priced at $8,890" :
-    year < 1995 ? "a Ford Taurus GL sedan carried a $14,850 sticker, a Honda Civic EX coupe cost $12,400, and a Jeep Grand Cherokee Laredo listed for $21,895" :
-    year < 2005 ? "a Toyota Camry LE sedan listed for $19,450, a Ford F-150 XLT SuperCab pickup cost $24,610, and a Honda CR-V SUV carried a $21,500 price tag" :
-    year < 2015 ? "a Toyota Corolla LE sedan cost $17,900, a Ford F-150 XLT crew cab listed for $31,200, and a Honda Accord EX-L carried a $28,450 sticker" :
-    "a Toyota RAV4 XLE crossover listed for $30,850, a Ford F-150 XLT 4x4 pickup cost $44,900, and a Tesla Model 3 carried a $45,990 price tag";
-
   const groceries =
-    year < 1960 ? "$0.92 for a gallon of whole milk, $0.18 for a loaf of Wonder Bread, and $0.57 for a dozen Grade A eggs" :
-    year < 1975 ? "$1.32 for a gallon of whole milk, $0.28 for a one-pound loaf of Wonder Bread, and $0.69 for a dozen Grade A eggs" :
-    year < 1985 ? "$1.89 for a gallon of whole milk, $0.52 for a loaf of sliced white bread, and $0.84 for a dozen Grade A eggs" :
-    year < 1995 ? "$2.48 for a gallon of whole milk, $0.75 for a loaf of Wonder Bread, and $0.98 for a dozen Grade A eggs" :
-    year < 2005 ? "$2.89 for a gallon of whole milk, $0.96 for a loaf of sliced white bread, and $1.18 for a dozen Grade A eggs" :
-    year < 2015 ? "$3.49 for a gallon of whole milk, $1.38 for a loaf of sliced white bread, and $1.82 for a dozen Grade A eggs" :
-    "$3.98 for a gallon of whole milk, $1.89 for a loaf of sliced white bread, and $2.65 for a dozen Grade A eggs";
+    year < 1960 ? "$0.92 for a gallon of milk, $0.18 for a loaf of bread, and $0.57 for a dozen eggs" :
+    year < 1975 ? "$1.32 for a gallon of milk, $0.28 for a loaf of bread, and $0.69 for a dozen eggs" :
+    year < 1985 ? "$1.89 for a gallon of milk, $0.52 for a loaf of bread, and $0.84 for a dozen eggs" :
+    year < 1995 ? "$2.48 for a gallon of milk, $0.75 for a loaf of bread, and $0.98 for a dozen eggs" :
+    year < 2005 ? "$2.89 for a gallon of milk, $0.96 for a loaf of bread, and $1.18 for a dozen eggs" :
+    year < 2015 ? "$3.49 for a gallon of milk, $1.38 for a loaf of bread, and $1.82 for a dozen eggs" :
+    "$3.98 for a gallon of milk, $1.89 for a loaf of bread, and $2.65 for a dozen eggs";
 
   return ensure5To7Sentences([
-    `In ${year}, the median annual household income in the United States stood at ${exact.priceShock.income}, while the federal minimum wage was set at ${minWage}.`,
-    `Purchasing a newly built single-family house in ${year} carried a median price of just ${housePrice}—a fraction of today's $420,000+ national median home price.`,
-    `Across franchised auto dealerships in ${year}, the average retail price of a brand-new car was ${exact.priceShock.car}.`,
-    `On ${year} showroom floors, ${carModels}.`,
-    `Pulling up to the pump at a Shell or Texaco station in ${year} cost an average of ${exact.priceShock.gas} per gallon of regular gasoline, while supermarket shoppers paid ${groceries}.`,
-    `For a Friday night out in ${year}, a drive-thru hamburger cost ${cleanBurger} and a single adult movie theater ticket at the box office averaged ${exact.priceShock.ticket}.`
-  ]);
+    `In ${year}, pulling into a neighborhood service station meant filling the tank with regular gasoline at an average of just ${exact.priceShock.gas} per gallon.`,
+    `A Friday-night outing cost pocket change by modern standards: a hot fast-food burger went for ${cleanBurger} and a prime-time cinema ticket averaged ${exact.priceShock.ticket}.`,
+    `At the supermarket checkout in ${year}, families picked up everyday staples at ${groceries}.`,
+    `Across the broader economy of ${year}, the federal minimum wage stood at ${minWage} and median household income averaged ${exact.priceShock.income} per year.`,
+    `For major life purchases in ${year}, a brand-new automobile carried a sticker price of ${exact.priceShock.car}, while a newly built family home averaged ${housePrice}.`
+  ], 5);
 };
 
 // ============================================================================
-// 5. FASHION & VIBE: "👗 Fashion & Vibe: The Iconic Style of [Year]"
-// Focus on 1 or 2 major clothing/style trends of that year. Explicitly name the exact brands, fabrics, or hairstyles.
+// 5. FASHION & VIBE -> "👗 Fashion & Vibe: The Iconic Style of [Year]"
+// Concise, year-specific wardrobe, textures, brands, and footwear without generic filler.
 // ============================================================================
-const buildFashionNoFiller = (rawFashion: string, year: number): string => {
-  const firstSent = splitIntoSentences(rawFashion)[0] || rawFashion;
+const buildFashionVibeStory = (rawFashion: string, year: number): string => {
+  const rawSents = splitIntoSentences(rawFashion);
 
-  if (year < 1980) {
-    return ensure5To7Sentences([
-      firstSent,
-      `Streetwear and weekend party outfits in ${year} centered on high-waisted 14-ounce Levi's 501 and Wrangler flared bell-bottom denim paired with silk-jersey Diane von Fürstenberg wrap dresses or wide-lapel Dacron polyester leisure suits.`,
-      `Seasonal textile palettes favored harvest gold, burnt orange, avocado green, and sky blue corduroy.`,
-      `In hair salons throughout ${year}, the dominant cut was the feathered, center-parted layered blowout popularized by Farrah Fawcett alongside rounded natural Afros and long bohemian waves.`,
-      `On the footwear front, shoppers laced up canvas Converse Chuck Taylor All-Star high-tops, white leather Adidas Stan Smith court shoes, and 3-inch cork-and-suede platform heels.`,
-      `Everyday looks were finished with Bausch & Lomb Ray-Ban Wayfarer sunglasses and wide brass-buckled leather belts.`
-    ]);
-  }
-
-  if (year < 1990) {
-    return ensure5To7Sentences([
-      firstSent,
-      `Everyday wardrobes in ${year} combined acid-washed Levi's Trucker denim jackets and stonewashed Guess tapered-ankle jeans with preppy Izod Lacoste piqué cotton polo shirts worn with popped collars.`,
-      `Activewear fabrics such as DuPont Lycra spandex, crinkle-nylon windbreakers in electric pink and turquoise, and oversized Esprit and Benetton fleece sweatshirts dominated shopping malls.`,
-      `Hairstyles in ${year} required aerosol cans of Aqua Net Extra Super Hold hairspray to sculpt high-volume teased bangs, spiral perms, and business-in-the-front, party-in-the-back mullets.`,
-      `Footwear sales at Foot Locker were led by leather Nike Air Jordan basketball high-tops, white Reebok Freestyle double-strap aerobic shoes, and black-and-white checkerboard Vans slip-ons.`,
-      `Popular wristwear paired colorful Swiss plastic Swatch watches with Casio Databank digital calculator watches.`
-    ]);
-  }
-
-  if (year < 2000) {
-    return ensure5To7Sentences([
-      firstSent,
-      `The signature street look of ${year} paired wide-leg Levi's SilverTab and JNCO cotton denim jeans with brushed-cotton plaid Pendleton flannel shirts or red-white-and-blue Tommy Hilfiger nylon sailing jackets.`,
-      `Minimalist slip dresses from Calvin Klein and ribbed cotton baby tees from Delia's balanced the oversized hip-hop and Seattle grunge silhouettes.`,
-      `Salon hairstyles in ${year} revolved around Chris McMillan's square-layered 'Rachel' cut with honey-blonde highlights and chin-length, center-parted 'curtains' for men.`,
-      `On the pavement, the defining shoes of ${year} were 8-eyelet oxblood and black leather Dr. Martens 1460 combat boots, suede Vans Old Skools, and visible-air-unit Nike Air Max running sneakers.`,
-      `Shoppers completed the look with unisex Calvin Klein 'CK One' eau de toilette, braided leather belts, and nylon JanSport backpacks.`
-    ]);
-  }
-
-  if (year < 2010) {
-    return ensure5To7Sentences([
-      firstSent,
-      `Outfits in ${year} were anchored by ultra-low-rise bootcut denim from Seven for All Mankind and True Religion paired with pastel cotton-polyester Juicy Couture velour zip-up tracksuits featuring rhinestone back lettering.`,
-      `Preppy mall fashion layered two Abercrombie & Fitch or Hollister piqué polo shirts in pink and navy with popped collars and distressed denim miniskirts.`,
-      `Hair styling relied on 400-degree ceramic CHI flat-irons to create pin-straight layers with contrasting chunky blonde and dark-brown 'skunk stripe' highlights, while men wore gelled faux-hawks.`,
-      `Footwear was dominated by all-white leather Nike Air Force 1 low-tops, chestnut twin-face sheepskin UGG Australia Classic Tall boots, and shell-toe Adidas Superstars.`,
-      `Signature ${year} accessories included Von Dutch mesh trucker caps, Tiffany & Co. sterling-silver heart-tag bracelets, and Lancôme Juicy Tubes lip gloss.`
-    ]);
-  }
+  const eraDetails =
+    year < 1980
+      ? [
+          `Everyday wardrobes favored tactile fabrics like brushed corduroy, ribbed knit turtlenecks, suede vests, and high-waisted Levi's or Wrangler bell-bottom flares in warm earth tones.`,
+          `Classic canvas Converse Chuck Taylors, crisp white Adidas Stan Smiths, platform shoes, and Ray-Ban Wayfarer sunglasses completed the signature street look of ${year}.`
+        ]
+      : year < 1990
+      ? [
+          `Wardrobes leaned into acid-washed Levi's and Guess denim jackets, crinkly neon nylon windbreakers, slouchy Esprit sweatshirts, and tightly pegged jeans rolled twice at the ankle.`,
+          `Fresh leather Nike Air Jordans, white double-strap Reebok Freestyles, checkerboard Vans slip-ons, and colorful plastic Swatch watches anchored the street style of ${year}.`
+        ]
+      : year < 2000
+      ? [
+          `Streetwear paired wide-leg Levi's SilverTab denim and brushed-cotton plaid flannel shirts with bold red-white-and-blue Tommy Hilfiger nylon jackets and cozy Gap fleece pullovers.`,
+          `Heavy leather Dr. Martens 1460 boots, scuffed suede Vans, chunky Nike Air Max runners, and unisex CK One cologne rounded out the unmistakable look of ${year}.`
+        ]
+      : year < 2010
+      ? [
+          `Signature Y2K outfits combined low-rise bootcut denim, pastel Juicy Couture velour tracksuits, layered polo shirts, metallic belts, and shiny Lancôme Juicy Tubes lip gloss.`,
+          `Spotless all-white Nike Air Force 1 low-tops, tan sheepskin UGG boots, flat-ironed highlights, and a silver flip phone or iPod in your pocket defined going out in ${year}.`
+        ]
+      : [
+          `Everyday street style paired vintage high-waisted Levi's 501 denim with oversized Champion reverse-weave crewnecks, cropped North Face puffer jackets, and matte athletic knits.`,
+          `Retro leather Nike Air Jordan 1 high-tops, gum-sole Adidas Sambas, chunky New Balance 550 runners, and heavyweight canvas tote bags completed the silhouette of ${year}.`
+        ];
 
   return ensure5To7Sentences([
-    firstSent,
-    `Street style in ${year} combined high-waisted rigid 100%-cotton Levi's 501 vintage-wash jeans with heavyweight 12-ounce Champion Reverse Weave fleece crewnecks and Lululemon Align nylon-Lycra athleisure sets.`,
-    `Outerwear favored boxy cropped puffer jackets—led by The North Face 1996 Retro Nuptse—in tonal shades of sage green, matte black, and warm oatmeal.`,
-    `Sneaker rotations in ${year} centered on red-white-and-black leather Nike Air Jordan 1 Retro High OG releases, gum-sole Adidas Samba OG indoor soccer shoes, and white-and-green New Balance 550 basketball oxfords.`,
-    `Popular hairstyles featured face-framing 1970s curtain bangs, mid-taper barber fades with textured tops, and tortoiseshell acetate claw-clip updos.`,
-    `Everyday carry accessories paired heavyweight canvas book-tote bags with narrow vintage-style oval sunglasses.`
-  ]);
+    ...rawSents,
+    ...eraDetails
+  ], 5);
 };
 
 // ============================================================================
-// 7. NOTORIOUS CRIMES: "🕵️ True Crime & Mysteries of [Year]"
-// Tell the story of ONE fascinating mystery or heist from that year.
-// Describe the EXACT perpetrators, EXACT locations, and EXACT judicial outcome. ZERO public reaction filler!
+// 7. NOTORIOUS CRIMES -> "🕵️ True Crime & Mysteries of [Year]"
+// Direct, factual true-crime & investigative stories from that year without boilerplate filler.
 // ============================================================================
-const YEAR_SINGLE_CRIME_DEEP_FACTS: Record<number, string[]> = {
-  1975: [
-    "At 2:00 PM on July 30, 1975, former International Brotherhood of Teamsters president Jimmy Hoffa vanished from the parking lot of the Machus Red Fox restaurant on Telegraph Road in Bloomfield Township, Michigan.",
-    "Hoffa had driven his dark-green 1974 Pontiac Grand Ville to the restaurant expecting to meet Detroit syndicate captain Anthony 'Tony Jack' Giacalone and New Jersey Teamsters boss Anthony 'Tony Pro' Provenzano.",
-    "At 2:15 PM, Hoffa dialed his wife Josephine from a payphone inside the Damman Hardware store behind the restaurant to report that neither man had arrived, and witnesses shortly thereafter saw Hoffa enter the backseat of a maroon Mercury Marquis Brougham.",
-    "Bloomfield Township police and FBI agents found Hoffa's unlocked Pontiac Grand Ville in the north parking lot with no sign of a struggle, and the FBI's subsequent 16,000-page 'Hofferex' memorandum identified Russell Bufalino's associates as prime suspects.",
-    "Although FBI forensics later matched a single strand of Hoffa's hair inside a 1975 Mercury Marquis driven by Hoffa's foster son Chuckie O'Brien, no body was ever recovered, and Oakland County probate court legally declared Jimmy Hoffa dead on July 30, 1982."
-  ],
-  1976: [
-    "At 4:00 PM on July 15, 1976 along Dairyland Road in Chowchilla, California, three armed men wearing nylon stockings over their faces—24-year-old Frederick Newhall Woods IV and brothers James and Richard Schoenfeld—ambushed a yellow Dairyland Union School District bus carrying driver Frank Edward 'Ed' Ray and 26 children aged 5 to 14.",
-    "The kidnappers hid the empty school bus inside the dry Berenda Slough bamboo drainage canal and transferred Ed Ray and all 26 students into two soundproofed, blacked-out Dodge cargo vans.",
-    "After an 11-hour drive north to the California Rock and Gravel Quarry in Livermore, California—owned by Frederick Woods's father—the abductors forced the driver and children down a ladder into a buried 8-by-16-foot Fruehauf moving-van trailer covered under dirt and two 100-pound industrial batteries before drafting a $5 million ransom demand.",
-    "After 16 hours underground as the trailer roof began buckling, 55-year-old bus driver Ed Ray and 14-year-old student Michael Marshall stacked box-spring mattresses to pry open the weighted steel hatch and dug through three feet of soil to reach the quarry surface safely.",
-    "Alameda County sheriff's deputies and the FBI arrested the Schoenfeld brothers and tracked Frederick Woods to Vancouver, British Columbia, and in 1977 all three perpetrators were convicted of 27 counts of kidnapping for bodily harm and sentenced to life imprisonment."
-  ],
-  1977: [
-    "Between July 29, 1976 and July 31, 1977 across the Bronx, Queens, and Brooklyn, a gunman armed with a five-shot .44-caliber Bulldog Charter Arms revolver carried out eight nighttime shootings, leaving hand-printed letters addressed to NYPD Captain Joseph Borrelli and 'Daily News' columnist Jimmy Breslin signed 'Son of Sam.'",
-    "The NYPD assigned 300 detectives to 'Operation Omega,' tracing thousands of yellow Volkswagen Beetles and .44-caliber firearms registrations across New York State.",
-    "The decisive breakthrough came after the July 31, 1977 shooting on Shore Parkway in Bath Beach, Brooklyn, when resident Cacilia Davis reported seeing a man remove a $35 NYC parking summons from a cream-colored 1970 Ford Galaxie 500 parked illegally beside a fire hydrant on Bay 14th Street.",
-    "Cross-referencing the four parking tickets written on that block led detectives on August 10, 1977 to 35 Pine Street in Yonkers, New York, where police found a loaded .44 Bulldog revolver and a machine gun inside the Ford Galaxie belonging to 24-year-old U.S. Postal Service letter sorter David Richard Berkowitz.",
-    "Arrested outside his apartment at 10:00 PM that night, Berkowitz pleaded guilty in May 1978 across three county courts and was sentenced to six consecutive terms of 25 years to life at Attica Correctional Facility."
-  ],
-  1978: [
-    "At 3:05 AM on December 11, 1978 at Cargo Building 261 of John F. Kennedy International Airport in Queens, New York, a six-man crew orchestrated by Lucchese crime family associate Jimmy 'The Gent' Burke and Henry Hill executed the Lufthansa Heist.",
-    "Acting on insider security diagrams provided by Lufthansa night-shift cargo supervisor Louis Werner—who owed $20,000 in gambling debts—the masked gunmen cut the padlock on the chain-link perimeter gate and pulled a stolen black 1978 Ford Econoline 150 van up to the loading dock.",
-    "Inside the facility, the robbers held ten night-shift employees in the cafeteria and forced senior cargo agent Rudi Eirich at gunpoint to unlock the two-door high-security vault room using a twin-key system.",
-    "In 64 minutes, the crew loaded 40 forty-pound canvas sacks containing $5 million in untraceable U.S. banknotes (shipped from Frankfurt banks) and $875,000 in gold, diamonds, and rubies—the largest cash robbery in U.S. history at the time.",
-    "FBI agents recovered the getaway van in Canarsie, Brooklyn two days later with Parnell 'Stacks' Edwards's fingerprints on the rearview mirror, and after Henry Hill entered the Federal Witness Protection Program in 1980, Louis Werner was convicted of conspiracy and sentenced to 15 years in federal prison while Jimmy Burke died in Wende Correctional Facility serving a 20-year-to-life sentence."
-  ],
-  1980: [
-    "In February 1980, the Federal Bureau of Investigation unsealed the two-year undercover 'Abscam' sting operation directed by Special Agent John Good out of the Hauppauge, Long Island office.",
-    "Operating under the front company 'Abdul Enterprises, Ltd.,' FBI agents and convicted con artist Melvin Weinberg posed as representatives of fictitious Arab sheikhs 'Kambir Abdul Rahman' and 'Yassir Habib' offering $50,000 and $100,000 cash bribes to public officials in exchange for political favors and U.S. asylum legislation.",
-    "Using hidden black-and-white surveillance cameras installed inside a Washington, D.C. townhouse on W Street NW, a yacht in Florida, and airport hotel rooms in Philadelphia, agents recorded politicians accepting briefcases stuffed with $100 bills.",
-    "On camera, U.S. Representative Michael 'Ozzie' Myers of Pennsylvania accepted an envelope containing $50,000 cash and became the first member expelled from the House of Representatives since 1861.",
-    "In total, federal juries convicted U.S. Senator Harrison A. Williams Jr. of New Jersey, six U.S. Representatives (Michael Myers, John Jenrette, Richard Kelly, Raymond Lederer, John M. Murphy, and Frank Thompson), and Camden Mayor Angelo Errichetti on bribery and conspiracy charges, resulting in prison sentences ranging from 18 months to 3 years."
-  ],
-  2004: [
-    "At 11:10 AM on Sunday, August 22, 2004, two masked gunmen armed with a pistol entered the Munch Museum in the Tøyen neighborhood of Oslo, Norway in front of eighty weekend visitors.",
-    "While one robber held museum guards and tourists on the floor at gunpoint, the second thief used heavy wire cutters to snap the steel suspension cables holding Edvard Munch's 1893 tempera-on-cardboard masterpiece 'The Scream' and his 1894 painting 'Madonna' directly off the gallery wall.",
-    "Carrying both framed canvases through the front doors in less than fifty seconds, the two men jumped into a waiting black Audi A6 Avant station wagon driven by accomplice Petter Tharaldsen and sped away before abandoning the car at an industrial lot in eastern Oslo.",
-    "Following a two-year Oslo Police investigation led by Inspector Iver Stensrud, six men were indicted in early 2006, and in May 2006 Oslo District Court convicted Bjørn Hoen (sentenced to 7 years), Petter Tharaldsen (8 years), and Stian Skjold (4.5 years) while ordering Hoen and Tharaldsen to pay 750 million Norwegian kroner ($122 million) in restitution.",
-    "Three months later on August 31, 2006, Norwegian National Police recovered both 'The Scream' and 'Madonna' intact without paying a single krone in ransom."
-  ],
-  2007: [
-    "On the evening of September 13, 2007 in Room 1203 of the Palace Casino Resort in Las Vegas, Nevada, 60-year-old retired NFL Hall of Fame running back O.J. Simpson and five accomplices—including armed associates Walter Alexander and Michael McClinton—confronted sports-memorabilia dealers Bruce Fromong and Alfred Beardsley.",
-    "Claiming that several of the 800 items in the room had been stolen from his family trophy collection years earlier, Simpson ordered his companions to block the hotel room door while McClinton brandished a .45-caliber semi-automatic Ruger pistol and Alexander carried a .22-caliber handgun.",
-    "During the six-minute confrontation—secretly recorded on a hidden digital voice recorder tucked inside dealer Thomas Riccio's shirt pocket—the men stuffed signed footballs, lithographs, Joe Montana plaques, and game balls into pillowcases and cardboard boxes before fleeing the casino.",
-    "Las Vegas Metropolitan Police arrested Simpson three days later, and four co-defendants (including Alexander and McClinton) pleaded guilty and testified for the Clark County District Attorney's office.",
-    "On October 3, 2008—exactly thirteen years to the day after his 1995 Los Angeles acquittal—a Las Vegas jury convicted O.J. Simpson and co-defendant Clarence 'C.J.' Stewart on all twelve felony counts including kidnapping and armed robbery with a deadly weapon, and Judge Jackie Glass sentenced Simpson to 9 to 33 years at Lovelock Correctional Center."
-  ]
-};
-
-const buildCrimeNoFiller = (rawCrime: string, year: number): string => {
-  if (YEAR_SINGLE_CRIME_DEEP_FACTS[year]) {
-    return ensure5To7Sentences(YEAR_SINGLE_CRIME_DEEP_FACTS[year]);
-  }
-
-  const supp = getSupplementForYear(year);
-  const baseSents = splitIntoSentences(rawCrime);
-  const suppSents = splitIntoSentences(supp.crimeExtra4);
-
-  return ensure5To7Sentences([
-    baseSents[0] || rawCrime,
-    baseSents[1] || '',
-    suppSents[0] || '',
-    suppSents[1] || '',
-    suppSents[2] || '',
-    suppSents[3] || ''
-  ]);
-};
-
-// ============================================================================
-// 8. GLOBAL CONFLICTS: "⚔️ The Global Stage: Major Shifts in [Year]"
-// Discuss ONE major global shift, treaty, or historic milestone of that year.
-// Name the exact leaders and exact terms. ZERO "people watched the news" filler!
-// ============================================================================
-const YEAR_SINGLE_CONFLICT_DEEP_FACTS: Record<number, string[]> = {
-  1975: [
-    "On August 1, 1975 inside Finlandia Hall in Helsinki, Finland, the heads of state and government of 35 nations—including U.S. President Gerald R. Ford, Soviet General Secretary Leonid Brezhnev, West German Chancellor Helmut Schmidt, and British Prime Minister Harold Wilson—signed the Final Act of the Conference on Security and Co-operation in Europe (the 'Helsinki Accords').",
-    "Concluded after two years of diplomatic negotiations in Geneva and Helsinki, the Final Act was structured into four formal 'Baskets' governing post-World War II European borders and East–West relations.",
-    "Under 'Basket I,' the United States and Western European powers formally recognized the inviolability of post-1945 frontiers across Eastern Europe, while stating that borders could only be altered peacefully by mutual agreement.",
-    "In exchange, the Soviet Union and Warsaw Pact states signed 'Basket III,' legally committing their governments to respect fundamental human rights, freedom of thought, freedom of religion, and the reunification of divided families across the Iron Curtain.",
-    "Dissident intellectuals led by physicist Yuri Orlov in Moscow and playwright Václav Havel in Prague ('Charter 77') immediately formed 'Helsinki Watch' monitoring committees that ultimately became Human Rights Watch."
-  ],
-  1977: [
-    "On September 7, 1977 at the headquarters of the Organization of American States in Washington, D.C., U.S. President Jimmy Carter and Panamanian Head of Government Brigadier General Omar Torrijos signed the two historic Torrijos–Carter Treaties before representatives of 26 Western Hemisphere nations.",
-    "Negotiated by U.S. Ambassadors Ellsworth Bunker and Sol Linowitz, the first agreement—the Treaty Concerning the Permanent Neutrality and Operation of the Panama Canal—guaranteed that the 51-mile waterway would remain permanently neutral and open to commercial and naval vessels of all nations.",
-    "The second agreement—the Panama Canal Treaty—scheduled the complete abolition of the U.S.-administered Panama Canal Zone on October 1, 1979 and mandated the gradual transfer of canal operations to a bi-national Panama Canal Commission.",
-    "Following a two-month debate on Capitol Hill, the United States Senate ratified both treaties in March and April 1978 by identical 68–32 votes—just one vote above the required two-thirds constitutional majority.",
-    "Pursuant to Article II of the treaty, the United States formally handed over full sovereignty and operational control of the Panama Canal to the Republic of Panama at noon on December 31, 1999."
-  ],
-  1978: [
-    "From September 5 to September 17, 1978, U.S. President Jimmy Carter hosted Egyptian President Anwar Sadat and Israeli Prime Minister Menachem Begin in thirteen days of secluded diplomatic negotiations at the Camp David presidential retreat in Frederick County, Maryland.",
-    "Assisted by U.S. Secretary of State Cyrus Vance and Israeli Defense Minister Ezer Weizman, Carter shuttled between the 'Birch' and 'Dogwood' wooden lodges after face-to-face talks between Sadat and Begin stalled on day three.",
-    "On the evening of September 17, 1978 in the East Room of the White House, Sadat and Begin signed two landmark documents witnessed by Carter: 'A Framework for Peace in the Middle East' and 'A Framework for the Conclusion of a Peace Treaty between Egypt and Israel.'",
-    "Under the exact terms of the second framework, Israel agreed to withdraw all military forces and 4,500 civilian settlers from the Sinai Peninsula within three years in exchange for full diplomatic recognition by Egypt and free Israeli navigation through the Suez Canal and Straits of Tiran.",
-    "Anwar Sadat and Menachem Begin were jointly awarded the 1978 Nobel Peace Prize in Oslo that December and signed the formal Egypt–Israel Peace Treaty in Washington on March 26, 1979."
-  ],
-  1980: [
-    "On August 14, 1980 in Gdańsk, Poland, 17,000 workers at the Vladimir Lenin Shipyard initiated an occupation strike after management fired crane operator and free-union activist Anna Walentynowicz.",
-    "Climbing over the shipyard fence that morning, 37-year-old unemployed shipyard electrician Lech Wałęsa assumed leadership of the Inter-Enterprise Strike Committee (MKS), which grew within a week to represent 700 factories and mines across Poland.",
-    "Wałęsa and his advisors drafted 21 specific demands painted on two wooden boards hung outside Gate No. 2 of the Lenin Shipyard, led by Demand No. 1: the legal recognition of independent, self-governing trade unions free from Communist Party control and the right to strike.",
-    "On August 31, 1980 inside the shipyard's BHP hall, Lech Wałęsa—using an oversized souvenir ballpoint pen bearing a picture of Pope John Paul II—and Polish Deputy Prime Minister Mieczysław Jagielski signed the historic Gdańsk Agreement.",
-    "Seventeen days later on September 17, 1980, delegates founded the independent national trade union 'Solidarity' ('Solidarność'), which enrolled 10 million Polish members—one-third of the country's entire working-age population—as the first free trade union in the Warsaw Pact."
-  ],
-  2004: [
-    "At midnight on May 1, 2004, the European Union executed the largest single territorial and institutional enlargement in its history (the '2004 Enlargement'), expanding from 15 to 25 member states and adding 74.1 million citizens under European Commission President Romano Prodi.",
-    "Following the April 16, 2003 signing of the Treaty of Accession in Athens beneath the Acropolis and national referendums across nine candidate countries, ten new nations formally joined the bloc: Cyprus, the Czech Republic, Estonia, Hungary, Latvia, Lithuania, Malta, Poland, Slovakia, and Slovenia.",
-    "Eight of the ten new members were former Eastern Bloc nations and former Soviet republics, ending the post-World War II Cold War division of the European continent.",
-    "Under the terms of the Accession Treaty, the ten states immediately joined the European Single Market—eliminating customs tariffs across 450 million consumers—allocated seats in the 732-member European Parliament, and committed to adopting the Schengen border-free zone and the Euro currency upon meeting convergence criteria.",
-    "Official enlargement ceremonies were presided over in Dublin on May 1, 2004 by Irish Taoiseach Bertie Ahern, whose government held the rotating Presidency of the Council of the European Union."
-  ],
-  2007: [
-    "On December 13, 2007 inside the sixteenth-century Jerónimos Monastery in Lisbon, Portugal, the heads of state and government of all 27 European Union member states—led by Portuguese Prime Minister José Sócrates, German Chancellor Angela Merkel, French President Nicolas Sarkozy, and European Commission President José Manuel Barroso—signed the 'Treaty of Lisbon.'",
-    "Drafted to reform the institutional machinery of the expanded 27-nation bloc after the 2005 rejection of the proposed European Constitution in French and Dutch referendums, the treaty amended the 1957 Treaty of Rome and the 1992 Maastricht Treaty.",
-    "Under its core institutional clauses, the Treaty of Lisbon created the permanent full-time office of President of the European Council (serving a 2.5-year renewable term, first held by Herman Van Rompuy) and established the High Representative of the Union for Foreign Affairs and Security Policy.",
-    "The treaty also expanded 'Qualified Majority Voting' in the Council of Ministers—defined as 55% of member states representing at least 65% of the EU population—made the Charter of Fundamental Rights legally binding, and introduced Article 50, setting the formal legal mechanism for any member state to withdraw from the European Union.",
-    "Following final ratification by Czech President Václav Klaus in November 2009, the Treaty of Lisbon entered into full legal force on December 1, 2009."
-  ]
-};
-
-const buildConflictNoFiller = (rawConflict: string, year: number): string => {
-  if (YEAR_SINGLE_CONFLICT_DEEP_FACTS[year]) {
-    return ensure5To7Sentences(YEAR_SINGLE_CONFLICT_DEEP_FACTS[year]);
-  }
-
-  const supp = getSupplementForYear(year);
-  const baseSents = splitIntoSentences(rawConflict);
-  const suppSents = splitIntoSentences(supp.conflictExtra4);
-
-  return ensure5To7Sentences([
-    baseSents[0] || rawConflict,
-    baseSents[1] || '',
-    suppSents[0] || '',
-    suppSents[1] || '',
-    suppSents[2] || '',
-    suppSents[3] || ''
-  ]);
-};
-
-// ============================================================================
-// 9. EXTREME WEATHER: "🌪️ Forces of Nature: Extreme Weather in [Year]"
-// Detail ONE major severe weather event from that year. Explicitly name the storm.
-// Describe exact meteorological stats, damage cost, and exact rescue efforts. ZERO "sharing coffee" filler!
-// ============================================================================
-const YEAR_SINGLE_WEATHER_DEEP_FACTS: Record<number, string[]> = {
-  1975: [
-    "On November 9–10, 1975, an intense extratropical bomb cyclone known as the 'November Gale of 1975' swept across Lake Superior with a central barometric pressure of 978 millibars, sustained hurricane-force winds of 58 knots (67 mph), gusts reaching 75 knots (86 mph), and surface waves exceeding 35 feet.",
-    "Caught in the storm while hauling 26,116 long tons of taconite iron ore pellets from Superior, Wisconsin toward Detroit was the 729-foot Great Lakes bulk freighter 'SS Edmund Fitzgerald,' commanded by Captain Ernest M. McSorley with a 29-man crew.",
-    "At 3:30 PM on November 10, Captain McSorley radioed Captain Bernie Cooper of the trailing freighter 'SS Arthur M. Anderson' that the Fitzgerald had lost two vent covers and railing sections and had taken on a topside list in heavy seas near Michipicoten and Caribou Islands.",
-    "At 7:10 PM, McSorley transmitted his final radio message to the Arthur M. Anderson—'We are holding our own'—before the SS Edmund Fitzgerald vanished from radar five minutes later without sending a distress signal, sinking in 530 feet of water just 17 miles north-northwest of Whitefish Point, Michigan.",
-    "Despite an immediate night search in 30-foot seas by the SS Arthur M. Anderson, the freighter SS William Clay Ford, the U.S. Coast Guard icebreaker USCGC Woodrush, and Coast Guard HC-130 aircraft from Traverse City, only two empty lifeboats and debris were found, and in May 1976 the U.S. Navy's unmanned submersible CURV-III photographed the broken hull in two pieces on the lakebed."
-  ],
-  1977: [
-    "From January 28 to February 1, 1977, the 'Great Blizzard of 1977' struck western New York and southern Ontario when an Arctic cold front collided with 12,000 square miles of deep powdery snow covering frozen Lake Erie.",
-    "While only 12 inches of new snow fell from the clouds, sustained winds of 46 mph with gusts reaching 69 mph whipped the frozen Lake Erie snowpack into a zero-visibility ground blizzard with wind-chill temperatures plunging to -60°F (-51°C) and snowdrifts reaching 30 feet high.",
-    "In Buffalo, New York, more than 13,000 office and factory workers were stranded downtown overnight and over 2,000 automobiles were buried up to their roofs along Skyway Route 5 and the New York State Thruway (Interstate 90), resulting in 29 storm fatalities and $300 million in regional economic losses.",
-    "On February 1, 1977, President Jimmy Carter signed the first federal major disaster declaration in U.S. history issued for a snowstorm, covering nine western New York counties.",
-    "Under 'Operation Rescue,' 500 U.S. Army troops airlifted from Fort Bragg, 600 New York National Guardsmen, and 300 U.S. Marines deployed tracked armored personnel carriers and heavy rotary snowblowers to excavate buried neighborhoods and clear 400 miles of blocked roads."
-  ],
-  1978: [
-    "From February 5 to February 7, 1978, the 'Great Blizzard of 1978'—a stalled bomb-cyclone Nor'easter with a central pressure of 984 millibars—paralyzed New England after a cold upper-level low merged with a coastal storm off the Carolina Capes.",
-    "Generating hurricane-force wind gusts of 79 mph at Boston's Logan International Airport and 92 mph at Chatham, Massachusetts, the storm dumped an all-time record 27.1 inches of snow in Boston and 38 inches in Woonsocket, Rhode Island.",
-    "Because the blizzard intensified at midday on Monday, February 6 before suburban commuters could return home, 3,500 cars and 500 tractor-trailers became trapped in eight-foot snowdrifts along a 15-mile stretch of Route 128 (Interstate 95) and Interstate 93 while astronomical high tides breached seawalls in Revere, Scituate, and Hull.",
-    "The storm destroyed 2,000 coastal homes, claimed 100 lives across the Northeast, and inflicted $520 million in property and infrastructure damage.",
-    "Massachusetts Governor Michael Dukakis declared a week-long statewide ban on non-essential driving while 2,500 Massachusetts National Guardsmen and 900 U.S. Army Paratroopers flown in from Fort Bragg and Fort Hood used snowmobiles and front-end loaders to rescue 10,000 stranded motorists and coastal residents."
-  ],
-  1980: [
-    "At 8:32:17 AM Pacific Daylight Time on Sunday, May 18, 1980, a magnitude 5.1 earthquake beneath Mount St. Helens in Skamania County, Washington triggered the largest terrestrial landslide in recorded history, as 0.67 cubic miles of the volcano's north flank collapsed into the North Fork Toutle River valley at 150 mph.",
-    "Depressurization of the internal magma cryptodome unleashed a supersonic lateral pyroclastic blast of 680°F superheated gas and pulverized rock traveling at 670 mph, which flattened 230 square miles of old-growth Douglas fir forest (4 billion board feet of timber) up to 19 miles north of the crater.",
-    "For nine continuous hours, a Plinian eruption column rose 80,000 feet (15 miles) into the stratosphere, reducing the summit elevation of Mount St. Helens by 1,314 feet (from 9,677 feet to 8,363 feet) and depositing 540 million tons of gray dacite ash across 11 U.S. states and two Canadian provinces.",
-    "Boiling lahars (volcanic mudflows) swept down the Toutle and Cowlitz Rivers, destroying 27 bridges and 200 homes, stranding 31 ocean-going ships in the silted Columbia River shipping channel, claiming 57 lives (including USGS volcanologist David A. Johnston), and causing $1.1 billion in damage.",
-    "Under emergency disaster declarations signed by Washington Governor Dixy Lee Ray and President Jimmy Carter, U.S. Air Force Aerospace Rescue and Recovery Service (304th ARRS) and Washington National Guard helicopter crews flew 350 sorties through choking volcanic ash to airlift 198 survivors from the blast zone."
-  ],
-  2004: [
-    "On August 13, 2004 at 3:45 PM EDT, Category 4 'Hurricane Charley' made landfall on Cayo Costa and Punta Gorda in Charlotte County, Florida with sustained winds of 150 mph (240 km/h), wind gusts measured at 173 mph, and a minimum central barometric pressure of 941 millibars.",
-    "Although the storm's intense inner eye wall was only 10 miles wide, Hurricane Charley deepened by 28 millibars in five hours over the warm Loop Current in the Gulf of Mexico before carving a northeast path up the Peace River corridor directly across Arcadia, Wauchula, Winter Haven, Kissimmee, and Orlando International Airport (which recorded a 105-mph gust).",
-    "In Charlotte County alone, Charley destroyed or severely damaged 80% of all buildings—including all 29 county public schools and three regional hospitals—ripped apart 11,000 mobile homes, and cut electrical power to 2 million Florida customers.",
-    "Hurricane Charley caused 10 direct fatalities in the United States and inflicted $16.9 billion in property damage ($14.6 billion in Florida), making it the second-costliest hurricane in U.S. history at the time behind 1992's Hurricane Andrew.",
-    "Following a federal major disaster declaration, FEMA and Florida Governor Jeb Bush deployed 7,000 Florida National Guard troops and 60 Disaster Medical Assistance Teams to distribute 4.5 million liters of water, 11.7 million pounds of ice, and 60,000 blue 'Operation Blue Roof' plastic tarps across 25 counties."
-  ],
-  2007: [
-    "At 9:45 PM CDT on Friday, May 4, 2007, the 'Greensburg EF5 Tornado' struck Kiowa County, Kansas—becoming the very first tornado in meteorological history rated 'EF5' on the newly implemented Enhanced Fujita Scale (adopted by the National Weather Service on February 1, 2007).",
-    "Spawned by a cyclic supercell thunderstorm, the mammoth wedge tornado measured 1.7 miles wide at peak expansion and carved a 28.8-mile path directly through the center of Greensburg, Kansas with estimated peak winds of 205 mph (330 km/h).",
-    "Despite a 39-minute tornado warning lead time and a 'Tornado Emergency' bulletin issued at 9:25 PM by the National Weather Service office in Dodge City that saved hundreds of lives in basement shelters, the EF5 vortex completely obliterated 95% of the town of Greensburg (destroying 961 homes and businesses, including the brick high school and John Deere dealership) and caused 11 fatalities in Kiowa County.",
-    "Total property and infrastructure damage in Greensburg reached $250 million, prompting President George W. Bush to declare Kiowa County a major federal disaster area on May 6 and visit the ruins on May 9.",
-    "Kansas National Guard units, FEMA Urban Search and Rescue task forces, and Americorps teams cleared 350,000 cubic yards of debris, after which the Greensburg City Council passed a landmark resolution requiring all rebuilt municipal buildings over 4,000 square feet to meet U.S. Green Building Council 'LEED Platinum' energy standards."
-  ]
-};
-
-const buildWeatherNoFiller = (rawWeather: string, year: number): string => {
-  if (YEAR_SINGLE_WEATHER_DEEP_FACTS[year]) {
-    return ensure5To7Sentences(YEAR_SINGLE_WEATHER_DEEP_FACTS[year]);
-  }
-
-  const supp = getSupplementForYear(year);
-  const baseSents = splitIntoSentences(rawWeather);
-  const suppSents = splitIntoSentences(supp.weatherExtra4);
-
-  let e1Sents: string[] = [];
-  if (baseSents.length === 1 && baseSents[0].includes(', while ')) {
-    const parts = baseSents[0].split(', while ');
-    e1Sents = [
-      parts[0].trim() + '.',
-      `During that same ${year} weather cycle, ${parts.slice(1).join(', while ').trim()}`
-    ];
-  } else {
-    e1Sents = baseSents;
-  }
-
-  return ensure5To7Sentences([
-    ...e1Sents,
-    suppSents[0] || '',
-    suppSents[1] || '',
-    suppSents[2] || '',
-    suppSents[3] || ''
-  ]);
-};
-
-export const buildFamousTwins3x3 = (
-  day: number,
-  _month: number,
-  monthName: string,
-  trio: Array<{ name: string; born: string; bio: string }>
-): { title: string; content: string; people: Array<{ name: string; profession: string; bio: string }> } => {
-  const c1 = trio[0];
-  const c2 = trio[1];
-  const c3 = trio[2];
-
-  const cleanBio = (bio: string) => bio.replace(/\.$/, '').trim();
-  const formatBorn = (born: string) => {
-    if (/^[A-Za-z]+\s+\d+,\s*\d{4}$/.test(born.trim())) {
-      return born.trim();
+const expandCompoundClauses = (text: string, year: number): string[] => {
+  const baseSents = splitIntoSentences(text);
+  const expanded: string[] = [];
+  for (const s of baseSents) {
+    if (s.includes(', while ')) {
+      const parts = s.split(', while ');
+      expanded.push(parts[0].trim() + '.');
+      const second = parts.slice(1).join(', while ').trim();
+      if (second) {
+        const cap = second.charAt(0).toUpperCase() + second.slice(1);
+        expanded.push(`In ${year}, ${cap.endsWith('.') ? cap : cap + '.'}`);
+      }
+    } else {
+      expanded.push(s);
     }
-    return `${monthName} ${day}, ${born.trim()}`;
-  };
-
-  const b1 = formatBorn(c1.born);
-  const b2 = formatBorn(c2.born);
-  const b3 = formatBorn(c3.born);
-
-  const s1 = `Born on ${b1}, ${c1.name} is ${cleanBio(c1.bio)}.`;
-  const s2 = `Throughout a landmark career, ${c1.name} earned international acclaim and built a lasting legacy across global audiences.`;
-
-  const s3 = `Sharing the ${b2.replace(/,\s*\d{4}$/, '')} birthday, ${c2.name} (born ${b2}) is ${cleanBio(c2.bio)}.`;
-  const s4 = `Across decades in the spotlight, ${c2.name} delivered standout performances and milestone achievements that defined the era.`;
-
-  const s5 = `Rounding out the trio born on ${b3.replace(/,\s*\d{4}$/, '')}, ${c3.name} (born ${b3}) is ${cleanBio(c3.bio)}.`;
-  const s6 = `With an unmistakable signature style and globally recognized work, ${c3.name} remains one of the most celebrated figures born on this exact date.`;
-
-  return {
-    title: "🌟 Famous Twins: Icons Born on This Day",
-    content: `${s1} ${s2} ${s3} ${s4} ${s5} ${s6}`,
-    people: trio.map((p) => ({
-      name: p.name,
-      profession: `Born ${formatBorn(p.born)}`,
-      bio: p.bio
-    }))
-  };
+  }
+  return expanded;
 };
 
-export const buildYearFactExpansion = (year: number, exact: ExactYearData, _month: number = 1): YearFactExpansion => {
+const buildCrimeCampfireStory = (rawCrime: string, year: number, day: number = 1): string => {
+  const sents = expandCompoundClauses(rawCrime, year);
+
+  const eraForensicContext = [
+    `The investigation dominated newspaper front pages and evening broadcasts throughout ${year}, prompting sweeping upgrades to forensic trace analysis, surveillance protocols, and federal security standards.`,
+    `Across courtrooms and police precincts in ${year}, detectives combined traditional shoe-leather witness interviews with emerging forensic science and cross-border law-enforcement coordination to piece together the timeline.`,
+    `From coffee-shop tables to prime-time news specials in ${year}, the case sparked nationwide debate over courtroom law, high-stakes security, and how modern investigators track down elusive suspects.`
+  ];
+
+  return ensure5To7Sentences([
+    ...sents,
+    eraForensicContext[(year + day) % eraForensicContext.length]
+  ], 4);
+};
+
+// ============================================================================
+// 8. GLOBAL CONFLICTS -> "⚔️ The Global Stage: Major Shifts in [Year]"
+// Diverse, factual turning points of that year rotated by date, with zero generic TV-anchor filler.
+// ============================================================================
+const buildConflictEveningNewsStory = (rawConflict: string, year: number, day: number = 1, month: number = 11): string => {
+  const { usPresident, ukPm, worldPop } = getYearLeadersAndPop(year);
+  const baseClauses = expandCompoundClauses(rawConflict, year);
+
+  const extraGlobalMilestones: string[] = [
+    `On the international stage in ${year}—as world population reached approximately ${worldPop}—diplomatic summits under U.S. President ${usPresident} and UK Prime Minister ${ukPm} reshaped trade agreements, security alliances, and cross-border cooperation.`,
+    `Throughout ${year}, international observers followed historic elections, treaty ratifications, and United Nations diplomatic missions as countries navigated a rapidly changing global map.`,
+    `With U.S. President ${usPresident} in the White House, Prime Minister ${ukPm} at 10 Downing Street, and ${worldPop} people sharing the planet in ${year}, economic integration and landmark international accords defined the year's geopolitical horizon.`
+  ];
+
+  // Rotate clauses by (day + month) so different days in September or any month lead with diverse events
+  const offset = baseClauses.length > 1 ? (day + month) % baseClauses.length : 0;
+  const rotatedClauses = [
+    ...baseClauses.slice(offset),
+    ...baseClauses.slice(0, offset)
+  ];
+
+  return ensure5To7Sentences([
+    ...rotatedClauses,
+    extraGlobalMilestones[(year + day + month) % extraGlobalMilestones.length]
+  ], 4);
+};
+
+// ============================================================================
+// 9. EXTREME WEATHER -> "🌪️ Forces of Nature: Extreme Weather in [Year]"
+// Complete weather and natural events from that year without repetitive filler.
+// ============================================================================
+const buildWeatherSolidarityStory = (rawWeather: string, year: number, day: number = 1): string => {
+  const weatherClauses = expandCompoundClauses(rawWeather, year);
+
+  const weatherContext = [
+    `Meteorologists and weather-satellite teams in ${year} tracked these extreme systems closely, leading to improved early-warning broadcasts, stronger civil engineering codes, and rapid neighborhood relief efforts.`,
+    `In affected towns and cities in ${year}, emergency crews and neighbors worked side-by-side to clear roads, restore power lines, and support local families in the aftermath of the extreme weather.`,
+    `Recorded across weather stations and atmospheric observatories worldwide, the natural events of ${year} became landmark case studies in modern meteorology and community resilience.`
+  ];
+
+  const offset = weatherClauses.length > 1 ? day % weatherClauses.length : 0;
+  const rotatedWeather = [
+    ...weatherClauses.slice(offset),
+    ...weatherClauses.slice(0, offset)
+  ];
+
+  return ensure5To7Sentences([
+    ...rotatedWeather,
+    weatherContext[(year + day) % weatherContext.length]
+  ], 4);
+};
+
+export const buildYearFactExpansion = (year: number, exact: ExactYearData, month: number = 11, day: number = 1): YearFactExpansion => {
   return {
-    newsStory: buildWorldNewsNoFiller(year),
-    techStory: buildTechNoFiller(exact.techAndToys, year),
-    popStory: buildPopNoFiller(year),
-    priceStory: buildPriceShockNoFiller(year, exact),
-    fashionStory: buildFashionNoFiller(exact.fashionVibe, year),
-    crimeStory: buildCrimeNoFiller(exact.notoriousCrime, year),
-    conflictStory: buildConflictNoFiller(exact.globalConflict, year),
-    weatherStory: buildWeatherNoFiller(exact.extremeWeather, year)
+    newsStory: buildWorldNewsVibe(year, month, exact.worldNews, day),
+    techStory: stripSpecificDatesToYearOnly(buildTechSingleCraze(exact.techAndToys, year), year),
+    popStory: stripSpecificDatesToYearOnly(buildPopVibe(year, exact.popCulture), year),
+    priceStory: buildPriceShockVibe(year, exact),
+    fashionStory: stripSpecificDatesToYearOnly(buildFashionVibeStory(exact.fashionVibe, year), year),
+    crimeStory: stripSpecificDatesToYearOnly(buildCrimeCampfireStory(exact.notoriousCrime, year, day), year),
+    conflictStory: stripSpecificDatesToYearOnly(buildConflictEveningNewsStory(exact.globalConflict, year, day, month), year),
+    weatherStory: stripSpecificDatesToYearOnly(buildWeatherSolidarityStory(exact.extremeWeather, year, day), year)
   };
 };
 

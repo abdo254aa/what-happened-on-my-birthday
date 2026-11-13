@@ -58,7 +58,7 @@ export const EXACT_YEAR_DB: Record<number, ExactYearData> = {
     priceShock: { car: "$6,370", ticket: "$2.34", gas: "$0.65", burger: "$0.38 (Big Mac: $0.90)", income: "$15,064" },
     fashionVibe: "Fashion in 1978 blended disco satin bomber jackets, high-waisted Designer jeans (such as Calvin Klein and Jordache), and athletic tube socks with striped tops. Big, voluminous perms and feathered layers ruled hair salons, while teenagers spent afternoons feeding quarters into 'Space Invaders' arcade machines at pizza parlors.",
     notoriousCrime: "At 3:05 AM on December 11, 1978, a crew of masked gunmen orchestrated by Jimmy Burke carried out the infamous Lufthansa Heist at Cargo Building 261 at New York's John F. Kennedy International Airport. With help from an inside cargo supervisor, the robbers bypassed airport security and escaped in a black Ford Econoline van with $5.875 million in untraceable U.S. currency and jewelry—the largest cash robbery on American soil at the time, later immortalized in the film 'Goodfellas.'",
-    globalConflict: "In September 1978, following thirteen days of secret negotiations hosted by President Jimmy Carter at the presidential retreat in Maryland, Egyptian President Anwar Sadat and Israeli Prime Minister Menachem Begin signed the historic Camp David Accords, establishing a framework for peace in the Middle East that earned both leaders the 1978 Nobel Peace Prize.",
+    globalConflict: "In September 1978, following thirteen days of negotiations hosted by President Jimmy Carter in Maryland, Egyptian President Anwar Sadat and Israeli Prime Minister Menachem Begin signed the historic Camp David Accords, earning both leaders the 1978 Nobel Peace Prize. That same year, Japan and China signed the landmark Treaty of Peace and Friendship in Beijing, and the Solomon Islands, Tuvalu, and Dominica each achieved independence.",
     extremeWeather: "From February 5 to February 7, 1978, the 'Great Blizzard of 1978'—a catastrophic bomb cyclone Nor'easter—paralyzed New England with hurricane-force winds and 27 inches of snow in Boston, stranding over 3,500 cars and trucks along Route 128 for days."
   },
   1979: {
@@ -88,7 +88,7 @@ export const EXACT_YEAR_DB: Record<number, ExactYearData> = {
     priceShock: { car: "$22,200", ticket: "$6.21", gas: "$1.88", burger: "$0.99 (Big Mac: $2.49)", income: "$44,334" },
     fashionVibe: "Fashion in 2004 centered on low-rise bootcut jeans, pastel Juicy Couture velour tracksuits, layered polo shirts with popped collars, and yellow Livestrong silicone wristbands. Women wore flat-ironed hair with chunky blonde highlights while men sported gelled faux-hawks, and friends socialized offline at Blockbuster Video aisles and mall food courts.",
     notoriousCrime: "On August 22, 2004, masked thieves entered the Munch Museum in Oslo, Norway in broad daylight and stole Edvard Munch's iconic paintings 'The Scream' and 'Madonna' directly off the gallery walls before escaping in a station wagon. That same year in New York, lifestyle mogul Martha Stewart was convicted in March 2004 of obstruction of justice and conspiracy related to her 2001 ImClone stock sale, reporting to federal prison in October 2004.",
-    globalConflict: "On November 11, 2004, longtime Palestinian leader Yasser Arafat died in a military hospital near Paris, triggering a major leadership transition in the Middle East. Globally, 2004 was defined by the ongoing coalition war in Iraq and Ukraine's peaceful 'Orange Revolution' protests in Kyiv in November–December 2004 following a disputed presidential election.",
+    globalConflict: "In 2004, the European Union completed the largest single expansion in its history by welcoming ten new member nations across Central Europe, the Baltics, and the Mediterranean, symbolically healing decades of Cold War division. That same year, NATO inducted seven new Eastern European democracies, millions of citizens in orange scarves gathered peacefully in Kyiv during Ukraine's landmark 'Orange Revolution,' and the African Union inaugurated the first session of the Pan-African Parliament.",
     extremeWeather: "During six weeks in August and September 2004, four major hurricanes—Charley, Frances, Ivan, and Jeanne—struck Florida, while Mount St. Helens reawakened in October–November 2004 to extrude a new lava dome inside its crater, followed on December 26, 2004 by the catastrophic M9.1 Indian Ocean earthquake and tsunami."
   }
 };
@@ -128,7 +128,7 @@ export const getExactYearData = (year: number): ExactYearData => {
       car: "$9,875", ticket: "$2.94", gas: "$1.22", burger: "$0.52 (Big Mac: $1.45)", income: "$20,171",
       fashion: "Fashion in 1982 embraced aerobic fitness culture with spandex leg warmers, headbands, and Reebok Freestyle sneakers, paired with acid-wash denim and high-volume perms at local roller rinks and video rental shops.",
       crime: "In September 1982, the 'Chicago Tylenol tampering case' shocked the nation and prompted Johnson & Johnson to conduct an unprecedented nationwide recall of 31 million bottles, leading the FDA to mandate triple-seal tamper-evident packaging on all over-the-counter medicines.",
-      conflict: "From April to June 1982, the Falklands War was fought between Argentina and the United Kingdom over the Falkland Islands in the South Atlantic, resulting in a 74-day naval and air campaign.",
+      conflict: "In 1982, the Falklands War was fought between Argentina and the United Kingdom in the South Atlantic, resulting in a 74-day naval and air campaign. That same year, Spain officially joined the North Atlantic Treaty Organization (NATO) as its sixteenth member state, and the United Nations Convention on the Law of the Sea (UNCLOS) was signed in Montego Bay, Jamaica.",
       weather: "One of the strongest El Niño events of the twentieth century developed in 1982, while the March–April 1982 eruption of the El Chichón volcano in Mexico sent a massive sulfur cloud into the stratosphere."
     },
     1983: {
@@ -148,7 +148,7 @@ export const getExactYearData = (year: number): ExactYearData => {
       car: "$11,450", ticket: "$3.36", gas: "$1.13", burger: "$0.55 (Big Mac: $1.55)", income: "$22,415",
       fashion: "In 1984, pastel T-shirts worn under linen suit jackets (the 'Miami Vice' look), oversized graphic tees, and high-top sneakers ruled fashion while breakdancing on cardboard mats swept neighborhood streets.",
       crime: "In July 1984, an armoured car guard named Tony Musulin-style predecessor, Victor Gerena of the Wells Fargo depot in West Hartford, Connecticut, disappeared with $7 million in cash in September 1983/1984, landing on the FBI's Ten Most Wanted list in May 1984.",
-      conflict: "In response to the 1980 Moscow boycott, the Soviet Union and fourteen Eastern Bloc allies boycotted the 1984 Summer Olympics in Los Angeles, highlighting ongoing Cold War divisions.",
+      conflict: "In 1984, the Soviet Union and fourteen Eastern Bloc allies boycotted the Summer Olympics in Los Angeles, while Romania and Yugoslavia participated to thunderous applause in the stadium. That same year, the United Kingdom and China signed the Sino-British Joint Declaration in Beijing on the future of Hong Kong, and Brunei gained full independence.",
       weather: "In March 1984, the violent Carolinas Tornado Outbreak spawned twenty-two tornadoes—including seven F4 storms—across North and South Carolina in a single afternoon."
     },
     1985: {
@@ -158,7 +158,7 @@ export const getExactYearData = (year: number): ExactYearData => {
       car: "$12,020", ticket: "$3.55", gas: "$1.12", burger: "$0.58 (Big Mac: $1.60)", income: "$23,618",
       fashion: "Fashion in 1985 featured Nike Air Jordan I basketball sneakers (released to the public in April 1985), neon Swatch watches worn two at a time, and power-shoulder blazers.",
       crime: "In May 1985, the FBI arrested retired U.S. Navy warrant officer John Anthony Walker Jr., uncovering one of the most damaging Cold War naval cryptographic espionage rings in American history.",
-      conflict: "In November 1985, U.S. President Ronald Reagan and new Soviet General Secretary Mikhail Gorbachev met for the first time at the Geneva Summit in Switzerland, beginning the diplomatic thaw that would end the Cold War.",
+      conflict: "In 1985, U.S. President Ronald Reagan and new Soviet General Secretary Mikhail Gorbachev met for the first time at the Geneva Summit in Switzerland, beginning the diplomatic thaw that would end the Cold War. That same year, five European nations signed the historic Schengen Agreement aboard a riverboat in Luxembourg to abolish internal border controls, and New Zealand declared itself a nuclear-free zone.",
       weather: "In May 1985, scientists from the British Antarctic Survey published the landmark discovery of the seasonal ozone hole over Antarctica, while Hurricane Gloria struck the U.S. East Coast in September 1985."
     },
     1986: {
@@ -168,7 +168,7 @@ export const getExactYearData = (year: number): ExactYearData => {
       car: "$12,650", ticket: "$3.71", gas: "$0.86", burger: "$0.60 (Big Mac: $1.60)", income: "$24,897",
       fashion: "Thanks to 'Top Gun' in 1986, Ray-Ban Aviator sunglasses and leather bomber jackets saw a 40% sales surge, paired with acid-wash denim and big crimped hair.",
       crime: "In April 1986, veteran journalist Geraldo Rivera hosted a live two-hour syndicated television special, 'The Mystery of Al Capone's Vaults,' watched by 30 million people as crews blasted open wall chambers under Chicago's Lexington Hotel.",
-      conflict: "In October 1986, Ronald Reagan and Mikhail Gorbachev met at the dramatic Reykjavik Summit in Iceland, coming within inches of an agreement to eliminate all strategic nuclear ballistic missiles.",
+      conflict: "In 1986, Ronald Reagan and Mikhail Gorbachev met at the dramatic Reykjavik Summit in Iceland, coming within inches of an agreement to eliminate all strategic nuclear ballistic missiles. Earlier in 1986, millions of citizens in yellow ribbons gathered along Epifanio de los Santos Avenue in Manila during the peaceful 'People Power Revolution' in the Philippines, while Spain and Portugal officially joined the European Community.",
       weather: "In 1986, Halley's Comet made its once-every-76-year pass through the inner solar system, while in August 1986 a sudden limnic eruption of dissolved carbon dioxide gas occurred at volcanic Lake Nyos in Cameroon."
     },
     1987: {
@@ -198,7 +198,7 @@ export const getExactYearData = (year: number): ExactYearData => {
       car: "$15,350", ticket: "$3.99", gas: "$1.00", burger: "$0.67 (Big Mac: $1.80)", income: "$28,906",
       fashion: "In 1989, Reebok Pump inflatable high-top basketball shoes debuted at $170 a pair, alongside Hypercolor-style oversized tees, biker shorts, and tall flat-top fades.",
       crime: "In March 1989, federal prosecutors indicted Wall Street 'junk bond king' Michael Milken of Drexel Burnham Lambert on ninety-eight counts of securities and reporting violations, defining the end of the 1980s Wall Street boom.",
-      conflict: "On the night of November 9, 1989, East German authorities opened the checkpoints along the Berlin Wall after peaceful 'Revolutions of 1989' swept across Poland, Hungary, and Czechoslovakia, bringing the Cold War division of Europe to a joyful end.",
+      conflict: "In 1989, East German authorities opened the checkpoints along the Berlin Wall after peaceful 'Revolutions of 1989' swept across Poland, Hungary, and Czechoslovakia, bringing the Cold War division of Europe to a joyful end. That same year, two million citizens across Estonia, Latvia, and Lithuania joined hands across 420 miles in the peaceful 'Baltic Way' human chain, and George H.W. Bush and Mikhail Gorbachev declared a new era of peace at the Malta Summit.",
       weather: "In September 1989, Category 4 Hurricane Hugo made landfall near Charleston, South Carolina, and on October 17, 1989, the magnitude 6.9 Loma Prieta earthquake struck the San Francisco Bay Area minutes before Game 3 of the 1989 World Series."
     },
     1990: {
@@ -208,7 +208,7 @@ export const getExactYearData = (year: number): ExactYearData => {
       car: "$16,050", ticket: "$4.23", gas: "$1.16", burger: "$0.70 (Big Mac: $1.85)", income: "$29,943",
       fashion: "Fashion in 1990 featured oversized brightly colored cross-colors streetwear, high-waisted pleated acid-wash jeans, and high-top fades or voluminous perms as teens socialized at roller rinks and shopping malls.",
       crime: "At 1:24 AM on March 18, 1990, two men disguised as Boston police officers talked their way inside the Isabella Stewart Gardner Museum and stole thirteen masterpieces—including works by Vermeer and Rembrandt valued at $500 million—in history's largest unsolved art heist.",
-      conflict: "In August 1990, Iraqi forces invaded neighboring Kuwait, prompting the United Nations Security Council to impose economic sanctions and assemble a thirty-five-nation military coalition in Saudi Arabia under Operation Desert Shield.",
+      conflict: "In 1990, East and West Germany officially reunified after forty-five years of division following the signing of the Two Plus Four Agreement. That same year, Namibia achieved independence in southern Africa, and the United Nations Security Council assembled a thirty-five-nation coalition under Operation Desert Shield following the invasion of Kuwait.",
       weather: "In August 1990, the violent Plainfield F5 tornado struck northern Illinois without warning, while Europe experienced the devastating Burns' Day Storm in January 1990."
     },
     1991: {
@@ -238,7 +238,7 @@ export const getExactYearData = (year: number): ExactYearData => {
       car: "$17,500", ticket: "$4.14", gas: "$1.11", burger: "$0.75 (Big Mac: $1.99)", income: "$31,241",
       fashion: "In 1993, slip dresses layered over white baby tees, choker necklaces, baggy carpenter jeans, and flannel shirts tied around the waist defined youth fashion.",
       crime: "In May 1993, armed robbers carried out the $7.4 million Brink's armored car depot heist in Rochester, New York, sparking a multi-year FBI investigation across the United States and Ireland.",
-      conflict: "On September 13, 1993, Israeli Prime Minister Yitzhak Rabin and PLO Chairman Yasser Arafat shook hands on the White House lawn after signing the historic Oslo I Accord.",
+      conflict: "In 1993, the Maastricht Treaty officially entered into force to establish the European Union, Czechoslovakia completed its peaceful 'Velvet Divorce' into the independent Czech Republic and Slovakia, Eritrea voted overwhelmingly for independence in a UN-monitored referendum, and Nelson Mandela and F.W. de Klerk won the Nobel Peace Prize for laying the foundations of a democratic South Africa.",
       weather: "In March 1993, the '1993 Storm of the Century' dumped record snowfall from Alabama to Maine, followed in the summer by the 'Great Flood of 1993' along the Mississippi and Missouri Rivers."
     },
     1994: {
@@ -258,7 +258,7 @@ export const getExactYearData = (year: number): ExactYearData => {
       car: "$18,850", ticket: "$4.35", gas: "$1.15", burger: "$0.79 (Big Mac: $2.05)", income: "$34,076",
       fashion: "Fashion in 1995 featured plaid matching skirt-suits (inspired by the July 1995 film 'Clueless'), baby-doll tees, baggy skate jeans, and wallet chains.",
       crime: "In February 1995, 28-year-old futures trader Nick Leeson fled Singapore after unauthorized speculative trades on the Nikkei index caused $1.3 billion in losses, single-handedly collapsing Barings Bank—Britain's oldest merchant bank, founded in 1762.",
-      conflict: "In November 1995, the presidents of Bosnia, Croatia, and Serbia signed the Dayton Accords at Wright-Patterson Air Force Base in Ohio, bringing an end to the three-and-a-half-year Bosnian War.",
+      conflict: "In 1995, the presidents of Bosnia, Croatia, and Serbia signed the Dayton Accords in Ohio, bringing an end to the three-and-a-half-year Bosnian War. That same year, the World Trade Organization (WTO) was officially established in Geneva, and Austria, Finland, and Sweden joined the European Union.",
       weather: "On January 17, 1995, the Great Hanshin (Kobe) earthquake struck Japan at magnitude 6.9, while the 1995 Atlantic hurricane season produced nineteen named storms including Hurricane Opal."
     },
     1996: {
@@ -268,7 +268,7 @@ export const getExactYearData = (year: number): ExactYearData => {
       car: "$19,400", ticket: "$4.42", gas: "$1.23", burger: "$0.82 (Big Mac: $2.10)", income: "$35,492",
       fashion: "In 1996, sporty 'Girl Power' platform sneakers, Adidas tear-away track pants with snap buttons up the sides, and frosted tips defined street style.",
       crime: "In April 1996, following a seventeen-year nationwide investigation, FBI agents arrested Harvard-educated mathematician Ted Kaczynski at a remote cabin without electricity near Lincoln, Montana.",
-      conflict: "In September 1996, the United Nations General Assembly adopted the Comprehensive Nuclear-Test-Ban Treaty (CTBT), banning all nuclear explosions in all environments.",
+      conflict: "In 1996, the United Nations General Assembly adopted the Comprehensive Nuclear-Test-Ban Treaty (CTBT), banning all nuclear explosions in all environments. That same year, Guatemala signed the historic Firm and Lasting Peace Accord to end its 36-year civil conflict, and the Arctic Council was established in Ottawa by eight northern nations.",
       weather: "In January 1996, the 'Blizzard of 1996' buried the U.S. East Coast under up to four feet of snow, followed by rapid warm rains that triggered severe river flooding across Pennsylvania and New York."
     },
     1997: {
@@ -278,7 +278,7 @@ export const getExactYearData = (year: number): ExactYearData => {
       car: "$19,950", ticket: "$4.59", gas: "$1.23", burger: "$0.85 (Big Mac: $2.15)", income: "$37,005",
       fashion: "In 1997, ultra-wide-leg JNCO jeans, inflatable bubble backpacks, butterfly hair clips, and black Ray-Ban Predator sunglasses (inspired by 'Men in Black') were everywhere.",
       crime: "In September 1997, six robbers carried out the Dunbar Armored depot heist in Los Angeles—the largest cash robbery in U.S. history at $18.9 million—which stayed unsolved for two years until a suspect accidentally handed over a stack of cash still bound in an original Dunbar paper currency strap.",
-      conflict: "In December 1997, 122 nations signed the Ottawa Treaty (Mine Ban Treaty) banning anti-personnel landmines, earning the International Campaign to Ban Landmines the 1997 Nobel Peace Prize.",
+      conflict: "In 1997, 122 nations signed the Ottawa Treaty (Mine Ban Treaty) banning anti-personnel landmines, earning the International Campaign to Ban Landmines the 1997 Nobel Peace Prize. That same year, the sovereignty of Hong Kong was ceremonially transferred from the United Kingdom to China, and delegates in Japan adopted the Kyoto Protocol on global greenhouse gas emissions.",
       weather: "The 1997–1998 El Niño event became the strongest on record at the time, while the Red River of the North flooded Grand Forks, North Dakota and Manitoba in April 1997."
     },
     1998: {
@@ -288,7 +288,7 @@ export const getExactYearData = (year: number): ExactYearData => {
       car: "$20,400", ticket: "$4.69", gas: "$1.06", burger: "$0.85 (Big Mac: $2.20)", income: "$38,885",
       fashion: "Fashion in 1998 featured cargo pants with side pockets, bucket hats, platform sandals, tinted rimless sunglasses, and spiky frosted tips.",
       crime: "In 1998, the U.S. Department of Justice filed its landmark federal antitrust lawsuit against Microsoft over the bundling of Internet Explorer with Windows 98, dominating business and legal headlines.",
-      conflict: "On April 10, 1998, political leaders in Northern Ireland, the UK, and Ireland signed the historic Good Friday Agreement in Belfast, bringing an end to thirty years of conflict known as 'The Troubles.'",
+      conflict: "In 1998, political leaders in Northern Ireland, the UK, and Ireland signed the historic Good Friday Agreement in Belfast, bringing an end to thirty years of conflict known as 'The Troubles.' That same year, diplomats from 120 nations gathered in Italy to adopt the Rome Statute establishing the International Criminal Court, and the European Central Bank was founded in Frankfurt.",
       weather: "In January 1998, a catastrophic five-day ice storm deposited over four inches of solid freezing rain across eastern Ontario, southern Quebec, and northern New England, collapsing steel high-voltage transmission towers and leaving 4 million people without power."
     },
     1999: {
@@ -308,7 +308,7 @@ export const getExactYearData = (year: number): ExactYearData => {
       car: "$21,250", ticket: "$5.39", gas: "$1.51", burger: "$0.89 (Big Mac: $2.35)", income: "$41,990",
       fashion: "In 2000, folding aluminum Razor scooters (named the 2000 Toy of the Year), low-rise flare jeans, bandana tops, and frosted spiky hair dominated streets and schoolyards.",
       crime: "In November 2000, a brazen gang attempted to steal the £200 million De Beers Millennium Star diamond from London's Millennium Dome using a JCB mechanical excavator and a speedboat waiting on the River Thames—only to find Scotland Yard's Flying Squad waiting in ambush disguised as maintenance cleaners.",
-      conflict: "In June 2000, South Korean President Kim Dae-jung and North Korean leader Kim Jong-il held the historic first Inter-Korean Summit in Pyongyang since the division of the peninsula, earning Kim Dae-jung the 2000 Nobel Peace Prize.",
+      conflict: "In 2000, South Korean President Kim Dae-jung and North Korean leader Kim Jong-il held the historic first Inter-Korean Summit in Pyongyang since the division of the peninsula, earning Kim Dae-jung the 2000 Nobel Peace Prize. That same year, world leaders at the United Nations Millennium Summit in New York adopted the eight Millennium Development Goals, and Ethiopia and Eritrea signed the Algiers Peace Agreement.",
       weather: "In early 2000, severe flooding submerged southern Mozambique (where helicopter crews famously rescued thousands from treetops), while the autumn of 2000 was the wettest on record across the United Kingdom since 1766."
     },
     2001: {
@@ -338,7 +338,7 @@ export const getExactYearData = (year: number): ExactYearData => {
       car: "$22,000", ticket: "$6.03", gas: "$1.59", burger: "$0.99 (Big Mac: $2.45)", income: "$43,318",
       fashion: "In 2003, UGG sheepskin boots worn with denim mini-skirts, Von Dutch trucker caps, and popped-collar pastel polo shirts were the defining fashion trends.",
       crime: "Over Valentine's Day weekend in February 2003, thieves bypassed ten layers of security to loot 109 vault boxes inside the Antwerp Diamond Centre in Belgium, escaping with over $100 million in diamonds before DNA on a discarded salami sandwich led detectives to the mastermind.",
-      conflict: "In March 2003, a U.S.-led coalition launched the invasion of Iraq (Operation Iraqi Freedom), dominating global news coverage and diplomatic debates throughout the year.",
+      conflict: "In 2003, international diplomacy and global news coverage centered on the coalition intervention in Iraq and debates at the United Nations Security Council. That same year, the African Union deployed its first peacekeeping mission in Burundi, Liberia signed the Accra Comprehensive Peace Agreement, and Georgia's peaceful 'Rose Revolution' ushered in democratic reforms in Tbilisi.",
       weather: "In August 2003, a historic European heatwave pushed temperatures past 104°F (40°C) across France, Germany, and the UK, while on August 14, 2003, overgrown trees touching power lines in Ohio triggered the Northeast Blackout of 2003 affecting 55 million people."
     },
     2005: {
