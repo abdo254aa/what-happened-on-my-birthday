@@ -1,5 +1,5 @@
-import React from 'react';
-import { HashRouter as Router, Routes, Route } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -16,6 +16,13 @@ import { SettingsProvider } from './contexts/SettingsContext';
 import { AdminProvider } from './contexts/AdminContext';
 
 const App: React.FC = () => {
+  useEffect(() => {
+    if (window.location.hash.startsWith('#/')) {
+      const cleanUrl = window.location.hash.slice(1);
+      window.history.replaceState(null, '', cleanUrl);
+    }
+  }, []);
+
   return (
     <ThemeProvider>
       <AdminProvider>
