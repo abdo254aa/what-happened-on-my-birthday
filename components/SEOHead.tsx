@@ -12,7 +12,7 @@ interface SEOHeadProps {
 
 const SEOHead: React.FC<SEOHeadProps> = ({ title, description, canonicalPath, schema, type = 'article' }) => {
   const location = useLocation();
-  const domain = 'https://mybirthdayfacts.com'; 
+  const domain = 'https://mybirthday.world'; 
   const url = canonicalPath ? `${domain}${canonicalPath}` : `${domain}${location.pathname}${location.search}`;
 
   useEffect(() => {

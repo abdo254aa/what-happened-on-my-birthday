@@ -137,61 +137,61 @@ const Sidebar: React.FC = () => {
       </div>
 
       {/* 2. DYNAMIC QUICK LINKS (Fixed to Today's Date) */}
-      <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-5 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-600 to-purple-600"></div>
-        <div className="mb-4 flex items-center gap-2.5">
-             <div className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-xl text-blue-600">
-                <BookOpen size={18} />
+        <div className="mb-4 flex items-center gap-3">
+             <div className="p-2.5 bg-blue-50 dark:bg-blue-900/30 rounded-xl text-blue-600">
+                <BookOpen size={20} />
              </div>
-             <h3 className="font-display font-black text-base md:text-[17px] text-slate-900 dark:text-white tracking-tight leading-none">
+             <h3 className="font-display font-black text-lg md:text-[19px] text-slate-900 dark:text-white tracking-tight leading-snug">
                 {getLabel('quick_links_header', activeDateString)}
             </h3>
         </div>
-        <nav className="flex flex-col space-y-0.5">
+        <nav className="flex flex-col space-y-1">
             {quickLinks.map((item, idx) => (
                 <button 
                     key={idx}
                     onClick={() => handleNavigate(item.id, activeDay, activeMonth)}
-                    className="flex items-center gap-3.5 px-2 py-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all group w-full text-left rtl:text-right"
+                    className="flex items-center gap-3.5 px-2.5 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all group w-full text-left rtl:text-right"
                 >
-                    <div className={`w-8 h-8 flex items-center justify-center bg-slate-50 dark:bg-slate-800 rounded-xl ${item.color} group-hover:scale-110 transition-transform shadow-sm border border-slate-100 dark:border-slate-700`}>
+                    <div className={`w-9 h-9 flex items-center justify-center bg-slate-50 dark:bg-slate-800 rounded-xl ${item.color} group-hover:scale-110 transition-transform shadow-sm border border-slate-100 dark:border-slate-700 shrink-0`}>
                         {item.icon}
                     </div>
                     <div className="flex-1 min-w-0">
-                        <h4 className="font-bold text-slate-700 dark:text-slate-300 text-[13px] group-hover:text-blue-700 dark:group-hover:text-blue-400 leading-tight">
+                        <h4 className="font-bold text-slate-700 dark:text-slate-300 text-[15px] group-hover:text-blue-700 dark:group-hover:text-blue-400 leading-snug">
                             {getLabel(item.labelKey, activeDateString)}
                         </h4>
                     </div>
-                    <ChevronIcon size={13} className="text-slate-300 group-hover:text-blue-500 shrink-0 transition-transform group-hover:translate-x-1" />
+                    <ChevronIcon size={16} className="text-slate-300 group-hover:text-blue-500 shrink-0 transition-transform group-hover:translate-x-1" />
                 </button>
             ))}
         </nav>
       </div>
 
       {/* 3. FRESH PICKS (Related Dates from Today) */}
-      <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-5 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-red-500 to-orange-500"></div>
         <div className="mb-4 flex items-center justify-between">
              <div className="flex items-center gap-2.5">
-                <TrendingUp size={18} className="text-red-600" />
-                <h3 className="font-display font-black text-base md:text-[17px] text-slate-900 dark:text-white tracking-tight">
+                <TrendingUp size={20} className="text-red-600" />
+                <h3 className="font-display font-black text-lg md:text-[19px] text-slate-900 dark:text-white tracking-tight">
                     {language === 'ar' ? 'اكتشف المزيد (More)' : 'More to Explore'}
                 </h3>
              </div>
         </div>
-        <nav className="flex flex-col space-y-3">
+        <nav className="flex flex-col space-y-3.5">
             {featuredArticles.map((art, idx) => (
                 <button 
                     key={idx}
                     onClick={() => handleNavigate(art.topicId, art.d, art.m)}
                     className="flex items-center gap-3.5 group w-full text-left rtl:text-right"
                 >
-                    <div className={`w-16 h-9 flex-shrink-0 bg-gradient-to-r ${art.color} rounded-xl flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform gap-1.5 px-2.5`}>
-                        <span className="text-base font-black leading-none">{art.d}</span>
-                        <span className="text-[9px] font-black uppercase tracking-widest border-l border-white/30 pl-1.5 rtl:border-l-0 rtl:border-r rtl:pl-0 rtl:pr-1.5">{art.mShort}</span>
+                    <div className={`w-[72px] h-10 flex-shrink-0 bg-gradient-to-r ${art.color} rounded-xl flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform gap-1.5 px-2.5`}>
+                        <span className="text-lg font-black leading-none">{art.d}</span>
+                        <span className="text-[11px] font-black uppercase tracking-wider border-l border-white/30 pl-1.5 rtl:border-l-0 rtl:border-r rtl:pl-0 rtl:pr-1.5">{art.mShort}</span>
                     </div>
                     <div className="flex-1 min-w-0">
-                        <h4 className="font-bold text-slate-800 dark:text-slate-200 text-[12.5px] group-hover:text-red-600 leading-tight line-clamp-2 transition-colors">
+                        <h4 className="font-bold text-slate-800 dark:text-slate-200 text-[14.5px] group-hover:text-red-600 leading-snug line-clamp-2 transition-colors">
                             {getLabel(art.labelKey, art.dStr)}
                         </h4>
                     </div>
@@ -201,21 +201,21 @@ const Sidebar: React.FC = () => {
       </div>
 
       {/* 4. TRIVIA */}
-      <div className="bg-amber-50 dark:bg-amber-900/10 rounded-[1.75rem] p-5 border border-amber-100 dark:border-amber-900/30 relative overflow-hidden">
-         <div className="flex items-center gap-2.5 mb-2.5 text-amber-700 dark:text-amber-500 font-black text-[9px] uppercase tracking-[0.2em]">
-            <HelpCircle size={14} /> {t('trivia_title')}
+      <div className="bg-amber-50 dark:bg-amber-900/10 rounded-[1.75rem] p-6 border border-amber-100 dark:border-amber-900/30 relative overflow-hidden">
+         <div className="flex items-center gap-2.5 mb-3 text-amber-700 dark:text-amber-500 font-black text-xs uppercase tracking-[0.18em]">
+            <HelpCircle size={16} /> {t('trivia_title')}
          </div>
-         <p className="text-slate-900 dark:text-slate-200 font-black text-[15px] leading-snug mb-3.5">
+         <p className="text-slate-900 dark:text-slate-200 font-black text-[17px] leading-snug mb-4">
              {t('trivia_q')}
          </p>
          {showRiddleAnswer ? (
-             <div className="bg-white dark:bg-slate-800 p-3.5 rounded-xl text-center shadow-sm border border-amber-200 dark:border-amber-900/40 animate-in zoom-in duration-200">
-                 <p className="font-black text-amber-600 text-base">{t('trivia_a')}</p>
+             <div className="bg-white dark:bg-slate-800 p-4 rounded-xl text-center shadow-sm border border-amber-200 dark:border-amber-900/40 animate-in zoom-in duration-200">
+                 <p className="font-black text-amber-600 text-lg">{t('trivia_a')}</p>
              </div>
          ) : (
              <button 
                 onClick={() => setShowRiddleAnswer(true)}
-                className="w-full py-2.5 bg-amber-600 text-white hover:bg-amber-700 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95"
+                className="w-full py-3 bg-amber-600 text-white hover:bg-amber-700 rounded-xl text-xs font-black uppercase tracking-widest transition-all active:scale-95"
              >
                 {t('click_reveal')}
              </button>
