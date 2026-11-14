@@ -3,6 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      window.addEventListener('error', function (e) {
+        if (e && e.filename && e.filename.indexOf('chrome-extension://') === 0) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+        }
+      }, true);
+    </script>
     <title>What Happened On My Birthday? Events & Famous Birthdays</title>
     <meta name="description" content="Discover what happened on your birthday. Explore historical events, famous people born on your date, and who shares your birthday." />
     <meta name="keywords" content="What Happened On My Birthday, Birthday Facts, Celebrity Birthdays, Historical Events, Zodiac Sign, Birthstone, Birthday Compatibility, Fun Trivia, Birthday Database, Numerology" />
@@ -76,24 +84,16 @@
       }
     </script>
 
-<script type="importmap">
-{
-  "imports": {
-    "react": "https://esm.sh/react@^19.2.3",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "react/": "https://esm.sh/react@^19.2.3/",
-    "react-router-dom": "https://esm.sh/react-router-dom@^7.11.0",
-    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
-    "@google/genai": "https://esm.sh/@google/genai@^1.34.0",
-    "vite": "https://esm.sh/vite@^7.3.0",
-    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2"
-  }
-}
-</script>
-    
 </head>
   <body class="bg-gray-50 text-slate-900 font-sans antialiased selection:bg-primary-500 selection:text-white">
     <div id="root"></div>
+    <noscript>
+      <main style="max-width:800px;margin:40px auto;padding:20px;font-family:sans-serif;line-height:1.6;">
+        <h1>MyBirthdayFacts — Historical Birthday Archive (mybirthday.world)</h1>
+        <p>Explore documented historical milestones, economic price benchmarks, music and film highlights, technology breakthroughs, and cultural profiles for your exact birth date across more than 80 years of history.</p>
+        <p>Browse our core sections: <a href="/about">About Our Archive</a> | <a href="/contact">Contact Us</a> | <a href="/privacy">Privacy Policy</a> | <a href="/terms">Terms of Service</a>.</p>
+      </main>
+    </noscript>
     <script type="module" src="/index.tsx"></script>
   </body>
 </html>
