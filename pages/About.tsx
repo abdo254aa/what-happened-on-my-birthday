@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
+import SEOHead from '../components/SEOHead';
 import { useLanguage } from '../contexts/LanguageContext';
 import { Target, Sparkles, ShieldCheck } from 'lucide-react';
 
@@ -9,6 +10,11 @@ const About: React.FC = () => {
 
   return (
     <div className={`min-h-screen bg-slate-50 dark:bg-slate-950 pb-20 transition-colors ${dir === 'rtl' ? 'text-right' : 'text-left'}`} dir={dir}>
+      <SEOHead
+        title="About Our Archive | MyBirthdayFacts (mybirthday.world)"
+        description="Learn how MyBirthdayFacts (mybirthday.world) compiles verified historical events, economic benchmarks, and cultural milestones for every birth date."
+        type="website"
+      />
       <div className="max-w-[1400px] mx-auto px-4 pt-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
           
